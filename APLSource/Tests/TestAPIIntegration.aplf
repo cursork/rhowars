@@ -69,7 +69,7 @@
      body←⎕JSON r.Data
      Assert 'has builtin' (0≠⎕NC'body.builtin')
      Assert 'has user' (0≠⎕NC'body.user')
-     Assert '2 builtin bots' (2=≢body.builtin)
+     Assert 'has builtin bots' (0<≢body.builtin)
 
      ⍝ --- POST /api/bots with valid source → 201 ---
      payload←⎕JSON(author: 'testuser' ⋄ name: 'TestBot' ⋄ source: src)

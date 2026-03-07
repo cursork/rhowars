@@ -1,0 +1,3 @@
+ state←Init
+⍝ Camper: no state needed
+ state←()

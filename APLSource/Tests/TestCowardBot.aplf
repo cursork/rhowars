@@ -1,0 +1,47 @@
+ TestCowardBot dummy;input;actions;s;cfg;corner1;corner2;r
+⍝ Test Coward bot behavior
+ ⎕IO←0
+ r←##.Cfg.BOT_RADIUS
+ cfg←(botSpeed: 5 ⋄ botHP: 100 ⋄ botRadius: r ⋄ bulletSpeed: 20 ⋄ bulletDamage: 20 ⋄ visionRange: 300 ⋄ visionHalfAngle: 45 ⋄ cooldown: 5 ⋄ maxTurns: 2000)
+ input←(loc: 100 100 ⋄ direction: 0 ⋄ turret: 0 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ##.Rhobots.Coward.Init ⋄ cfg: cfg)
+ ⍝ Near (r,r) corner — should head toward it
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'picks corner' (⍬≢actions.state.corner)
+ corner1←actions.state.corner
+ Assert 'picks (r,r)' ((r r)≡corner1)
+ ⍝ Once at corner, should stop
+ input.loc←r r
+ input.state←actions.state
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'stops at corner' (0=actions.speed)
+ Assert 'no fire when blind' (0=actions.fire)
+ ⍝ With visible rhobot — fires and flees to different corner
+ input.state←actions.state
+ input.visible←1 3⍴ 200 20 0
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'fires at visible target' (1=actions.fire)
+ corner2←actions.state.desired
+ Assert 'fled to different corner' (corner1≢corner2)
+ Assert 'desired set when fleeing' (⍬≢actions.state.desired)
+ ⍝ Mid-flee: seeing another bot should NOT change destination
+ input.state←actions.state
+ input.loc←500 10
+ input.visible←1 3⍴ 200 20 0
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'committed to flee target' (corner2≡actions.state.desired)
+ Assert 'fires while fleeing' (1=actions.fire)
+ ⍝ Arrival clears desired
+ input.state←actions.state
+ input.loc←actions.state.desired
+ input.visible←0 3⍴0
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'desired cleared on arrival' (⍬≡actions.state.desired)
+ Assert 'corner adopted on arrival' (corner2≡actions.state.corner)
+ ⍝ With narrow cone, sweep range should increase
+ cfg.visionHalfAngle←20
+ input.cfg←cfg
+ input.loc←100 100
+ input.visible←0 3⍴0
+ input.state←##.Rhobots.Coward.Init
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'narrow cone sweep' (25=actions.state.sweepMax)

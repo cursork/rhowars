@@ -1,0 +1,86 @@
+ actions←Tick input;s;x;y;w;h;r;corners;dists;ci;cx;cy;dx;dy;vis;rhobots;nIdx;halfAngle;mask;tcx;tcy
+⍝ Coward: run to nearest corner, sweep turret over inward quadrant, fire and flee on sight
+ ⎕IO←0
+ actions←()
+ s←input.state
+ x y←input.loc
+ w h←input.arena
+ halfAngle←45
+ r←10
+ :If 0≠⎕NC'input.cfg'
+     halfAngle←input.cfg.visionHalfAngle
+     r←input.cfg.botRadius
+ :EndIf
+ corners←4 2⍴ r r,(w-r) r,r(h-r),(w-r)(h-r)
+ ⍝ If fleeing to a desired corner, commit to reaching it
+ :If ⍬≢s.desired
+     tcx tcy←s.desired
+     dx←tcx-x ⋄ dy←tcy-y
+     :If 30<(dx*2)+dy*2
+         actions.direction←(180÷○1)×12○(0J1×dx)+dy
+         actions.speed←1
+     :Else
+         ⍝ Arrived — adopt this corner
+         ci←(↓corners)⍳⊂s.desired
+         s←SetCorner s corners ci w h halfAngle
+         s.desired←⍬
+         actions.speed←0
+     :EndIf
+     ⍝ Still fire at visible rhobots while fleeing
+     vis←input.visible
+     :If 0<≢vis
+         rhobots←(vis[;2]=0)⌿vis
+         :If 0<≢rhobots
+             nIdx←rhobots[;0]⍳⌊/rhobots[;0]
+             actions.turret←360|input.turret+rhobots[nIdx;1]
+             actions.fire←1
+         :EndIf
+     :EndIf
+     actions.state←s
+     :Return
+ :EndIf
+ ⍝ Pick nearest corner on first tick
+ :If ⍬≡s.corner
+     dists←+/((corners-⍤1⊢x y)*2)
+     ci←dists⍳⌊/dists
+     s←SetCorner s corners ci w h halfAngle
+ :EndIf
+ cx cy←s.corner
+ dx←cx-x ⋄ dy←cy-y
+ ⍝ Move toward corner until close
+ :If 30<(dx*2)+dy*2
+     actions.direction←(180÷○1)×12○(0J1×dx)+dy
+     actions.speed←1
+ :Else
+     actions.speed←0
+ :EndIf
+ ⍝ Look for visible rhobots — fire and flee to next corner
+ vis←input.visible
+ :If 0<≢vis
+     rhobots←(vis[;2]=0)⌿vis
+     :If 0<≢rhobots
+         nIdx←rhobots[;0]⍳⌊/rhobots[;0]
+         actions.turret←360|input.turret+rhobots[nIdx;1]
+         actions.fire←1
+         ⍝ Flee to nearest OTHER corner
+         dists←+/((corners-⍤1⊢x y)*2)
+         mask←~∧/corners=⍤1⊢cx cy
+         dists←dists+((~mask)×1E10)
+         ci←dists⍳⌊/dists
+         s.desired←corners[ci;]
+         actions.speed←1
+         actions.state←s
+         :Return
+     :EndIf
+ :EndIf
+ ⍝ No target — sweep turret across inward quadrant
+ s.sweep←s.sweep+s.sweepDir
+ :If s.sweep>s.sweepMax
+     s.sweepDir←-|s.sweepDir
+ :EndIf
+ :If s.sweep<-s.sweepMax
+     s.sweepDir←|s.sweepDir
+ :EndIf
+ actions.turret←360|s.inward+s.sweep
+ actions.fire←0
+ actions.state←s

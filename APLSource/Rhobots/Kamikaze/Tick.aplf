@@ -1,0 +1,23 @@
+ actions←Tick input;s;vis;rhobots;nIdx;targetAngle
+⍝ Kamikaze: charge at nearest visible rhobot whilst firing
+ ⎕IO←0
+ actions←()
+ s←input.state
+ vis←input.visible
+ :If 0<≢vis
+     rhobots←(vis[;2]=0)⌿vis
+     :If 0<≢rhobots
+         nIdx←rhobots[;0]⍳⌊/rhobots[;0]
+         targetAngle←360|input.turret+rhobots[nIdx;1]
+         actions.direction←targetAngle
+         actions.turret←targetAngle
+         actions.fire←1
+         actions.state←s
+         :Return
+     :EndIf
+ :EndIf
+ ⍝ Nothing visible — wander and sweep turret looking for targets
+ actions.direction←s.dir
+ actions.turret←360|input.turret+s.sweepDir
+ actions.fire←0
+ actions.state←s

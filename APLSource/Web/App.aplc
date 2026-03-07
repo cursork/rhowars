@@ -7,6 +7,7 @@
     :Field Private router
     :Field Private lastMatch
     :Field Private game
+    :Field Private defaultCfg
 
     ∇ Make args;StarkClass
       :Access Public
@@ -16,6 +17,7 @@
       router←⎕NEW StarkClass
       router.Handlers←⎕THIS
       router.Info←(title: 'rhowars' ⋄ version: '0.1.0')
+      defaultCfg←SaveCfg
       game.BotLib.LoadAll
       '/api/match' router.Post 'StartMatch'
       '/api/match' router.Get 'GetMatch'
@@ -23,6 +25,8 @@
       '/api/bots' router.Get 'ListBots'
       '/api/bots' router.Post 'UploadBot'
       '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
+      '/api/config' router.Get 'GetConfig'
+      '/api/config/reset' router.Post 'ResetConfig'
     ∇
 
     ∇ Start port
@@ -41,6 +45,10 @@
       :Trap 0
           body←req.Payload
           names←body.bots
+          ⍝ Apply ephemeral config if provided (persists until server restart)
+          :If 0≠⎕NC'body.config'
+              ApplyCfg body.config
+          :EndIf
           botns←⍬
           :For i :In ⍳≢names
               ns←game.BotLib.Resolve(i⊃names)
@@ -119,11 +127,6 @@
       :Trap 6
           author←req.PathParams.author
           name←req.PathParams.name
-          :If 0≠game.Rhobots.⎕NC⊂name
-              req.Fail 400
-              result←(error: 'Cannot delete a built-in bot')
-              :Return
-          :EndIf
           game.BotLib.Delete author name
           result←(deleted: author,'/',name)
       :Else
@@ -133,6 +136,7 @@
     ∇
 
     ∇ result←MatchSummary m;a;h
+      :Access Private
       ⎕IO←0
       a←m.bots[;7] ⋄ h←m.bots[;5]
       result←(
@@ -143,6 +147,72 @@
         hp: h
         turns: ≢m.history
       )
+    ∇
+
+    ∇ result←GetConfig req
+      :Access Public
+      result←(
+        arena: game.Cfg.ARENA
+        botSpeed: game.Cfg.BOT_SPEED
+        botHP: game.Cfg.BOT_HP
+        botRadius: game.Cfg.BOT_RADIUS
+        bulletSpeed: game.Cfg.BULLET_SPEED
+        bulletDamage: game.Cfg.BULLET_DAMAGE
+        visionRange: game.Cfg.VISION_RANGE
+        visionHalfAngle: game.Cfg.VISION_HALF_ANGLE
+        cooldown: game.Cfg.COOLDOWN
+        maxTurns: game.Cfg.MAX_TURNS
+      )
+    ∇
+
+    ∇ saved←SaveCfg
+      :Access Private
+      saved←(
+        ARENA: game.Cfg.ARENA
+        BOT_SPEED: game.Cfg.BOT_SPEED
+        BOT_HP: game.Cfg.BOT_HP
+        BOT_RADIUS: game.Cfg.BOT_RADIUS
+        BULLET_SPEED: game.Cfg.BULLET_SPEED
+        BULLET_DAMAGE: game.Cfg.BULLET_DAMAGE
+        VISION_RANGE: game.Cfg.VISION_RANGE
+        VISION_HALF_ANGLE: game.Cfg.VISION_HALF_ANGLE
+        COOLDOWN: game.Cfg.COOLDOWN
+        MAX_TURNS: game.Cfg.MAX_TURNS
+      )
+    ∇
+
+    ∇ ApplyCfg cfg
+      :Access Private
+      :If 0≠⎕NC'cfg.arena'          ⋄ game.Cfg.ARENA←cfg.arena                       ⋄ :EndIf
+      :If 0≠⎕NC'cfg.botSpeed'       ⋄ game.Cfg.BOT_SPEED←cfg.botSpeed                ⋄ :EndIf
+      :If 0≠⎕NC'cfg.botHP'          ⋄ game.Cfg.BOT_HP←cfg.botHP                      ⋄ :EndIf
+      :If 0≠⎕NC'cfg.botRadius'      ⋄ game.Cfg.BOT_RADIUS←cfg.botRadius              ⋄ :EndIf
+      :If 0≠⎕NC'cfg.bulletSpeed'    ⋄ game.Cfg.BULLET_SPEED←cfg.bulletSpeed           ⋄ :EndIf
+      :If 0≠⎕NC'cfg.bulletDamage'   ⋄ game.Cfg.BULLET_DAMAGE←cfg.bulletDamage         ⋄ :EndIf
+      :If 0≠⎕NC'cfg.visionRange'    ⋄ game.Cfg.VISION_RANGE←cfg.visionRange           ⋄ :EndIf
+      :If 0≠⎕NC'cfg.visionHalfAngle' ⋄ game.Cfg.VISION_HALF_ANGLE←cfg.visionHalfAngle ⋄ :EndIf
+      :If 0≠⎕NC'cfg.cooldown'       ⋄ game.Cfg.COOLDOWN←cfg.cooldown                  ⋄ :EndIf
+      :If 0≠⎕NC'cfg.maxTurns'       ⋄ game.Cfg.MAX_TURNS←cfg.maxTurns                 ⋄ :EndIf
+    ∇
+
+    ∇ result←ResetConfig req
+      :Access Public
+      RestoreCfg defaultCfg
+      result←GetConfig req
+    ∇
+
+    ∇ RestoreCfg saved
+      :Access Private
+      game.Cfg.ARENA←saved.ARENA
+      game.Cfg.BOT_SPEED←saved.BOT_SPEED
+      game.Cfg.BOT_HP←saved.BOT_HP
+      game.Cfg.BOT_RADIUS←saved.BOT_RADIUS
+      game.Cfg.BULLET_SPEED←saved.BULLET_SPEED
+      game.Cfg.BULLET_DAMAGE←saved.BULLET_DAMAGE
+      game.Cfg.VISION_RANGE←saved.VISION_RANGE
+      game.Cfg.VISION_HALF_ANGLE←saved.VISION_HALF_ANGLE
+      game.Cfg.COOLDOWN←saved.COOLDOWN
+      game.Cfg.MAX_TURNS←saved.MAX_TURNS
     ∇
 
 :EndClass

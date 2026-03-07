@@ -1,7 +1,5 @@
 const canvas = document.getElementById('arena');
 const ctx = canvas.getContext('2d');
-const W = canvas.width;
-const H = canvas.height;
 
 let data = null;      // match history
 let frame = 0;
@@ -33,6 +31,7 @@ async function loadBots() {
     })));
   } catch (e) {
     el.innerHTML = '<li class="bot-empty">Failed to load — is the server running?</li>';
+    document.getElementById('user-bots').innerHTML = '';
     console.error('Failed to load bots:', e);
   }
 }
@@ -91,7 +90,7 @@ function renderLineup() {
   const ul = document.getElementById('lineup-list');
   ul.innerHTML = '';
   if (matchLineup.length === 0) {
-    ul.innerHTML = '<li class="bot-empty">Click + to add bots</li>';
+    ul.innerHTML = '<li class="bot-empty">Click + to add rhobots</li>';
   } else {
     matchLineup.forEach((id, i) => {
       const li = document.createElement('li');
@@ -116,7 +115,7 @@ document.getElementById('btnStartMatch').onclick = async () => {
     const matchResp = await fetch(`${API}/api/match`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bots: matchLineup })
+      body: JSON.stringify({ bots: matchLineup, config: getConfig() })
     });
     if (!matchResp.ok) {
       const err = await matchResp.json();
@@ -125,9 +124,12 @@ document.getElementById('btnStartMatch').onclick = async () => {
     }
     const resp = await fetch(`${API}/api/match/history`);
     data = await resp.json();
+    resizeArena(data.arena);
     frame = 0;
     playing = false;
     clearInterval(playTimer);
+    timeline.max = data.frames.length - 1;
+    timeline.value = 0;
     document.getElementById('status').textContent =
       `Match loaded: ${data.turns} turns, ${data.names.length} bots`;
     render();
@@ -176,20 +178,49 @@ document.getElementById('speed').oninput = () => {
   if (playing) startPlayback();
 };
 
+const timeline = document.getElementById('timeline');
+timeline.oninput = () => {
+  if (!data) return;
+  frame = parseInt(timeline.value);
+  render();
+};
+// Pause playback while scrubbing
+timeline.onmousedown = timeline.ontouchstart = () => {
+  if (playing) {
+    playing = false;
+    clearInterval(playTimer);
+    document.getElementById('btnPlay').textContent = 'Play';
+  }
+};
+
 // === Upload ===
 
 document.getElementById('upload-toggle').onclick = () => {
+  document.getElementById('config-panel').classList.remove('open');
   document.getElementById('upload-panel').classList.toggle('open');
+};
+
+document.getElementById('config-toggle').onclick = () => {
+  document.getElementById('upload-panel').classList.remove('open');
+  document.getElementById('config-panel').classList.toggle('open');
 };
 
 document.getElementById('btnUpload').onclick = async () => {
   const author = document.getElementById('upload-author').value.trim();
-  const name = document.getElementById('upload-name').value.trim();
   const source = document.getElementById('upload-source').value;
   const statusEl = document.getElementById('upload-status');
 
-  if (!author || !name || !source) {
-    statusEl.textContent = 'Fill in author, name, and source.';
+  // Extract name from :Namespace declaration
+  const nsMatch = source.trim().match(/^:Namespace\s+(\S+)/m);
+  if (!nsMatch) {
+    statusEl.textContent = 'Source must start with :Namespace YourBotName';
+    statusEl.style.color = '#f44';
+    return;
+  }
+  const name = nsMatch[1];
+
+  if (!author || !source) {
+    statusEl.textContent = 'Fill in author and source.';
     statusEl.style.color = '#f44';
     return;
   }
@@ -249,12 +280,26 @@ async function deleteBot(author, name) {
 
 // === Render ===
 
+const MAX_CANVAS = 600;
+
+function resizeArena(arena) {
+  const [aw, ah] = arena;
+  const scale = MAX_CANVAS / Math.max(aw, ah);
+  const cw = Math.round(aw * scale);
+  const ch = Math.round(ah * scale);
+  canvas.width = cw;
+  canvas.height = ch;
+  document.getElementById('arena-col').style.setProperty('--arena-px', cw + 'px');
+}
+
 function render() {
   if (!data || !data.frames[frame]) return;
 
   const f = data.frames[frame];
   const bots = f.bots;
   const bullets = f.bullets;
+  const W = canvas.width;
+  const H = canvas.height;
   const arenaW = data.arena[0];
   const scale = W / arenaW;
   const r = data.botRadius * scale;
@@ -333,6 +378,14 @@ function render() {
   }
 
   document.getElementById('turnLabel').textContent = `Turn: ${f.turn}`;
+  timeline.value = frame;
+
+  // Show results on last frame
+  if (frame === data.frames.length - 1) {
+    showResults();
+  } else {
+    document.getElementById('results').classList.remove('show');
+  }
   let info = '';
   for (let i = 0; i < bots.length; i++) {
     const b = bots[i];
@@ -344,9 +397,77 @@ function render() {
   document.getElementById('info').innerHTML = info;
 }
 
+// === Results ===
+
+function showResults() {
+  if (!data) return;
+
+  // Find death turn for each bot by scanning frames
+  const n = data.names.length;
+  const deathTurn = new Array(n).fill(-1); // -1 = survived
+  for (let t = 1; t < data.frames.length; t++) {
+    const prev = data.frames[t - 1].bots;
+    const curr = data.frames[t].bots;
+    for (let i = 0; i < n; i++) {
+      if (deathTurn[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
+        deathTurn[i] = t;
+      }
+    }
+  }
+
+  // Build rankings: survivors first (sorted by remaining HP desc), then dead (sorted by death turn desc = died later is better)
+  const lastFrame = data.frames[data.frames.length - 1];
+  const entries = data.names.map((name, i) => ({
+    name, i,
+    alive: lastFrame.bots[i][7],
+    hp: lastFrame.bots[i][5],
+    deathTurn: deathTurn[i],
+    color: BOT_COLORS[i % BOT_COLORS.length]
+  }));
+
+  entries.sort((a, b) => {
+    if (a.alive !== b.alive) return b.alive - a.alive; // alive first
+    if (a.alive) return b.hp - a.hp; // among alive: higher HP first
+    return b.deathTurn - a.deathTurn; // among dead: died later = better
+  });
+
+  const survivors = entries.filter(e => e.alive);
+  const titleEl = document.getElementById('results-title');
+
+  if (survivors.length === 0) {
+    titleEl.textContent = 'DRAW';
+    titleEl.className = 'draw';
+  } else if (survivors.length === 1) {
+    titleEl.textContent = 'WINNER';
+    titleEl.className = 'winner';
+  } else {
+    titleEl.textContent = 'DRAW';
+    titleEl.className = 'draw';
+  }
+
+  const list = document.getElementById('results-list');
+  list.innerHTML = '';
+  entries.forEach((e, rank) => {
+    const li = document.createElement('li');
+    const detail = e.alive
+      ? `HP ${e.hp}`
+      : `killed turn ${e.deathTurn}`;
+    li.innerHTML =
+      `<span class="result-rank">#${rank + 1}</span>` +
+      `<span class="lineup-color" style="background:${e.color}"></span>` +
+      `<span class="result-name">${e.name}</span>` +
+      `<span class="result-detail">${detail}</span>`;
+    list.appendChild(li);
+  });
+
+  document.getElementById('results').classList.add('show');
+}
+
 // === Keyboard ===
 
 document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
   if (e.code === 'Space') {
     e.preventDefault();
     document.getElementById('btnPlay').click();
@@ -360,7 +481,56 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// === Config ===
+
+async function loadConfig() {
+  try {
+    const resp = await fetch(`${API}/api/config`);
+    if (!resp.ok) return;
+    const cfg = await resp.json();
+    document.getElementById('cfg-arenaW').value = cfg.arena[0];
+    document.getElementById('cfg-arenaH').value = cfg.arena[1];
+    document.getElementById('cfg-botSpeed').value = cfg.botSpeed;
+    document.getElementById('cfg-botHP').value = cfg.botHP;
+    document.getElementById('cfg-botRadius').value = cfg.botRadius;
+    document.getElementById('cfg-bulletSpeed').value = cfg.bulletSpeed;
+    document.getElementById('cfg-bulletDamage').value = cfg.bulletDamage;
+    document.getElementById('cfg-visionRange').value = cfg.visionRange;
+    document.getElementById('cfg-visionHalfAngle').value = cfg.visionHalfAngle;
+    document.getElementById('cfg-cooldown').value = cfg.cooldown;
+    document.getElementById('cfg-maxTurns').value = cfg.maxTurns;
+  } catch (e) {
+    console.error('Failed to load config:', e);
+  }
+}
+
+function getConfig() {
+  const v = id => parseInt(document.getElementById(id).value) || 0;
+  return {
+    arena: [v('cfg-arenaW'), v('cfg-arenaH')],
+    botSpeed: v('cfg-botSpeed'),
+    botHP: v('cfg-botHP'),
+    botRadius: v('cfg-botRadius'),
+    bulletSpeed: v('cfg-bulletSpeed'),
+    bulletDamage: v('cfg-bulletDamage'),
+    visionRange: v('cfg-visionRange'),
+    visionHalfAngle: v('cfg-visionHalfAngle'),
+    cooldown: v('cfg-cooldown'),
+    maxTurns: v('cfg-maxTurns')
+  };
+}
+
+async function resetConfig() {
+  try {
+    await fetch(`${API}/api/config/reset`, { method: 'POST' });
+    await loadConfig();
+  } catch (e) {
+    console.error('Failed to reset config:', e);
+  }
+}
+
 // === Init ===
 
 loadBots();
+loadConfig();
 renderLineup();

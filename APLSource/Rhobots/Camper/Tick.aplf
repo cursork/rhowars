@@ -1,0 +1,12 @@
+ actions←Tick input;centre;dx;dy;angle
+⍝ Camper: stops in place, aims at arena centre, fires every tick
+ ⎕IO←0
+ actions←()
+ actions.speed←0
+ centre←input.arena÷2
+ dx←(⊃centre)-⊃input.loc
+ dy←(1⊃centre)-1⊃input.loc
+ angle←(180÷○1)×12○(0J1×dx)+dy
+ actions.turret←angle
+ actions.fire←1
+ actions.state←input.state

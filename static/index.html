@@ -10,16 +10,32 @@ h1 { text-align: center; margin-bottom: 16px; letter-spacing: 2px; }
 
 #main { display: flex; gap: 20px; justify-content: center; }
 #sidebar { width: 260px; flex-shrink: 0; }
-#arena-col { display: flex; flex-direction: column; align-items: center; }
+#arena-col { display: flex; flex-direction: column; align-items: stretch; width: var(--arena-px, 600px); }
 
 /* Controls */
 #controls { margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
 button { background: #333; color: #eee; border: 1px solid #555; padding: 5px 12px; cursor: pointer; font-family: monospace; font-size: 12px; }
 button:hover { background: #444; }
-#info { margin-bottom: 6px; font-size: 13px; min-height: 1em; }
-canvas { border: 1px solid #333; }
+#info { margin-bottom: 6px; font-size: 13px; min-height: 1em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#arena-wrap { position: relative; }
+canvas { border: 1px solid #333; display: block; }
 #status { margin-top: 8px; font-size: 12px; color: #888; }
+#timeline-row { width: 100%; margin-bottom: 6px; }
+#timeline { width: 100%; accent-color: #4af; }
 select, input[type=range] { background: #222; color: #eee; border: 1px solid #555; padding: 3px; font-family: monospace; font-size: 12px; }
+
+/* Results overlay */
+#results { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
+#results.show { display: flex; }
+#results h2 { font-size: 24px; letter-spacing: 3px; }
+#results .result-list { list-style: none; width: 80%; max-width: 400px; }
+#results .result-list li { display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 14px; border-bottom: 1px solid #333; }
+#results .result-rank { width: 24px; text-align: right; color: #666; }
+#results .result-name { flex: 1; }
+#results .result-detail { color: #666; font-size: 12px; }
+#results .winner { color: #4f4; }
+#results .draw { color: #ff4; }
+#results button { margin-top: 8px; }
 
 /* Sidebar */
 #sidebar h2 { font-size: 14px; margin-bottom: 6px; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 4px; }
@@ -41,23 +57,31 @@ select, input[type=range] { background: #222; color: #eee; border: 1px solid #55
 #btnStartMatch:not(:disabled) { background: #2a4a2a; border-color: #4a4; }
 #btnStartMatch:disabled { opacity: 0.4; cursor: default; }
 
-/* Upload */
-#upload-toggle { margin-top: 12px; width: 100%; font-size: 11px; color: #888; background: none; border: 1px solid #333; }
-#upload-panel { display: none; margin-top: 8px; border: 1px solid #333; padding: 10px; border-radius: 3px; }
-#upload-panel.open { display: block; }
-#upload-panel label { display: block; margin: 6px 0 2px; font-size: 11px; color: #666; }
-#upload-panel input, #upload-panel textarea { width: 100%; background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 4px; font-family: monospace; font-size: 11px; }
-#upload-panel textarea { height: 120px; resize: vertical; }
-#upload-panel input[type=file] { border: none; padding: 2px 0; }
+/* Sidebar panels */
+.sidebar-toggle { margin-top: 6px; width: 100%; font-size: 11px; color: #888; background: none; border: 1px solid #333; }
+.sidebar-toggle:first-of-type { margin-top: 12px; }
+.sidebar-panel { display: none; margin-top: 8px; border: 1px solid #333; padding: 10px; border-radius: 3px; }
+.sidebar-panel.open { display: block; }
+.sidebar-panel label { display: block; margin: 6px 0 2px; font-size: 11px; color: #666; }
+.sidebar-panel input, .sidebar-panel textarea { width: 100%; background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 4px; font-family: monospace; font-size: 11px; }
+.sidebar-panel textarea { height: 120px; resize: vertical; }
+.sidebar-panel input[type=file] { border: none; padding: 2px 0; }
 #btnUpload { margin-top: 8px; width: 100%; }
 #upload-status { margin-top: 6px; font-size: 11px; }
+#api-help { margin-top: 8px; font-size: 11px; color: #888; }
+#api-help summary { cursor: pointer; color: #666; }
+#api-help pre { margin-top: 4px; font-size: 10px; color: #999; line-height: 1.4; white-space: pre; overflow: auto; max-height: 300px; background: #1a1a1a; padding: 6px; border: 1px solid #333; border-radius: 3px; }
+
+.cfg-row { display: flex; gap: 4px; }
+.cfg-row input { width: 50%; }
+#config-panel .cfg-reset { margin-top: 8px; width: 100%; font-size: 11px; }
 </style>
 </head>
 <body>
 <h1>rhowars</h1>
 <div id="main">
   <div id="sidebar">
-    <h2>Bots</h2>
+    <h2>Rhobots</h2>
     <h3>Built-in</h3>
     <ul id="builtin-bots" class="bot-list"></ul>
     <h3>User</h3>
@@ -70,18 +94,88 @@ select, input[type=range] { background: #222; color: #eee; border: 1px solid #55
       <button id="btnClearLineup" onclick="clearLineup()" style="font-size:11px;padding:4px 8px">Clear</button>
     </div>
 
-    <button id="upload-toggle">+ Upload Bot</button>
-    <div id="upload-panel">
+    <button id="upload-toggle" class="sidebar-toggle">+ Create Rhobot</button>
+    <div id="upload-panel" class="sidebar-panel">
       <label>Author</label>
       <input type="text" id="upload-author" placeholder="your-name">
-      <label>Bot Name</label>
-      <input type="text" id="upload-name" placeholder="MyBot">
       <label>Source (.apln)</label>
-      <textarea id="upload-source" placeholder=":Namespace MyBot&#10;    ∇ state←Init&#10;      state←⎕NS⍬&#10;    ∇&#10;    ∇ actions←Tick input&#10;      actions←⎕NS⍬&#10;      actions.state←input.state&#10;    ∇&#10;:EndNamespace"></textarea>
+      <textarea id="upload-source">:Namespace MyBot
+    ∇ state←Init
+      state←⎕NS⍬
+    ∇
+    ∇ actions←Tick input
+      actions←⎕NS⍬
+      actions.state←input.state
+    ∇
+:EndNamespace</textarea>
       <label>Avatar (optional)</label>
       <input type="file" id="upload-avatar" accept="image/*">
-      <button id="btnUpload">Upload</button>
+      <button id="btnUpload">Create</button>
       <div id="upload-status"></div>
+      <details id="api-help">
+        <summary>Rhobot API Reference</summary>
+        <pre>
+── Init (niladic) ──────────────
+Returns: state (any namespace)
+
+── Tick input ──────────────────
+input fields:
+  loc        2-vec: x y position
+  direction  current heading (degrees)
+  turret     current turret angle (degrees)
+  hp         current hit points
+  arena      2-vec: width height
+  visible    K×3 matrix (or empty):
+               [;0] distance
+               [;1] angle offset from turret
+               [;2] type: 0=rhobot 1=bullet
+  state      your state from last tick
+  cfg        namespace with game config:
+               .botSpeed    movement per tick
+               .botHP       starting hit points
+               .botRadius   collision radius
+               .bulletSpeed bullet speed per tick
+               .bulletDamage damage per hit
+               .visionRange vision distance
+               .visionHalfAngle half-width of vision cone
+               .cooldown    ticks between shots
+               .maxTurns    match turn limit
+
+output fields (all optional, ⍬ = no change):
+  direction  new heading (degrees)
+  turret     new turret angle (degrees)
+  fire       1 to fire, 0 to not
+  speed      0 to stop, 1 to move
+  state      updated state</pre>
+      </details>
+    </div>
+
+    <button id="config-toggle" class="sidebar-toggle">&#9881; Config</button>
+    <div id="config-panel" class="sidebar-panel">
+      <label>Arena (W × H)</label>
+      <div class="cfg-row">
+        <input type="number" id="cfg-arenaW" min="100" step="100" value="1000">
+        <input type="number" id="cfg-arenaH" min="100" step="100" value="1000">
+      </div>
+      <label>Bot Speed</label>
+      <input type="number" id="cfg-botSpeed" min="1" step="1" value="5">
+      <label>Bot HP</label>
+      <input type="number" id="cfg-botHP" min="1" step="10" value="100">
+      <label>Bot Radius</label>
+      <input type="number" id="cfg-botRadius" min="1" step="1" value="10">
+      <label>Bullet Speed</label>
+      <input type="number" id="cfg-bulletSpeed" min="1" step="1" value="20">
+      <label>Bullet Damage</label>
+      <input type="number" id="cfg-bulletDamage" min="1" step="5" value="20">
+      <label>Vision Range</label>
+      <input type="number" id="cfg-visionRange" min="10" step="10" value="300">
+      <label>Vision Half Angle</label>
+      <input type="number" id="cfg-visionHalfAngle" min="1" max="180" step="5" value="45">
+      <label>Cooldown (ticks)</label>
+      <input type="number" id="cfg-cooldown" min="0" step="1" value="5">
+      <label>Max Turns</label>
+      <input type="number" id="cfg-maxTurns" min="100" step="100" value="2000">
+      <button class="cfg-reset" onclick="resetConfig()">Reset to Defaults</button>
     </div>
   </div>
 
@@ -92,8 +186,18 @@ select, input[type=range] { background: #222; color: #eee; border: 1px solid #55
       <label>Speed <input type="range" id="speed" min="1" max="100" value="20"></label>
       <span id="turnLabel">Turn: 0</span>
     </div>
+    <div id="timeline-row">
+      <input type="range" id="timeline" min="0" max="0" value="0">
+    </div>
     <div id="info"></div>
-    <canvas id="arena" width="600" height="600"></canvas>
+    <div id="arena-wrap">
+      <canvas id="arena" width="600" height="600"></canvas>
+      <div id="results">
+        <h2 id="results-title"></h2>
+        <ul class="result-list" id="results-list"></ul>
+        <button onclick="document.getElementById('results').classList.remove('show')">Dismiss</button>
+      </div>
+    </div>
     <div id="status"></div>
   </div>
 </div>

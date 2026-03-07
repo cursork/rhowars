@@ -1,0 +1,9 @@
+ s←SetCorner(s corners ci w h halfAngle);sweepRange
+⍝ Set target corner and compute sweep parameters
+ ⎕IO←0
+ s.corner←corners[ci;]
+ s.inward←(180÷○1)×12○(0J1×(w÷2)-⊃s.corner)+(h÷2)-1⊃s.corner
+ s.sweep←0
+ sweepRange←0⌈45-halfAngle
+ s.sweepDir←{⍵=0:0 ⋄ 3}sweepRange
+ s.sweepMax←sweepRange

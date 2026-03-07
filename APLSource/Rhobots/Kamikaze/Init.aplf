@@ -1,0 +1,5 @@
+ state←Init
+⍝ Kamikaze: charge at visible rhobots, fire constantly
+ state←()
+ state.dir←?360
+ state.sweepDir←7

@@ -1,0 +1,14 @@
+ TestKamikazeBot dummy;input;actions
+⍝ Test Kamikaze bot behavior
+ ⎕IO←0
+ input←(loc: 500 500 ⋄ direction: 0 ⋄ turret: 90 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ##.Rhobots.Kamikaze.Init)
+ ⍝ Nothing visible — wander, don't fire
+ actions←##.Rhobots.Kamikaze.Tick input
+ Assert 'no fire when blind' (0=actions.fire)
+ Assert 'has direction' (0≠⎕NC'actions.direction')
+ ⍝ Rhobot visible at offset 30° — should charge and fire
+ input.visible←1 3⍴ 200 30 0
+ actions←##.Rhobots.Kamikaze.Tick input
+ Assert 'fires at target' (1=actions.fire)
+ Assert 'charges at target' (120=actions.direction)
+ Assert 'turret at target' (120=actions.turret)

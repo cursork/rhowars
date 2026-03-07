@@ -1,0 +1,16 @@
+ TestCamperBot dummy;input;actions
+⍝ Test Camper bot behavior
+ ⎕IO←0
+ input←(loc: 200 300 ⋄ direction: 90 ⋄ turret: 45 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ##.Rhobots.Camper.Init)
+ actions←##.Rhobots.Camper.Tick input
+ ⍝ Should stop immediately
+ Assert 'speed 0' (0=actions.speed)
+ ⍝ Should always fire
+ Assert 'always fires' (1=actions.fire)
+ ⍝ Turret should aim at centre (500,500) from (200,300)
+ Assert 'turret set' (0≠actions.turret)
+ ⍝ From centre, turret should be ~0 (pointing at self)
+ input.loc←500 500
+ actions←##.Rhobots.Camper.Tick input
+ Assert 'still fires at centre' (1=actions.fire)
+ Assert 'still stops' (0=actions.speed)

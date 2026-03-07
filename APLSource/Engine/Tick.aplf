@@ -20,6 +20,7 @@
      input.hp←bots[idx;5]
      input.arena←##.Cfg.ARENA
      input.state←idx⊃match.states
+     input.cfg←(botSpeed: ##.Cfg.BOT_SPEED ⋄ botHP: ##.Cfg.BOT_HP ⋄ botRadius: ##.Cfg.BOT_RADIUS ⋄ bulletSpeed: ##.Cfg.BULLET_SPEED ⋄ bulletDamage: ##.Cfg.BULLET_DAMAGE ⋄ visionRange: ##.Cfg.VISION_RANGE ⋄ visionHalfAngle: ##.Cfg.VISION_HALF_ANGLE ⋄ cooldown: ##.Cfg.COOLDOWN ⋄ maxTurns: ##.Cfg.MAX_TURNS)
      ns←idx⊃match.botns
      act←ns ##.Bot.CallTick input
      actions[idx]←⊂act
@@ -35,6 +36,8 @@
  ⍝ 4. Move all bots
  speeds←{6::1 ⋄ s←⍵⍎'speed' ⋄ ⍬≡s:1 ⋄ s}¨actions
  bots←speeds Move bots
+ ⍝ 4b. Bot-bot collision (push apart)
+ bots←CollideBots bots
  ⍝ 5. Fire bullets
  (bots bullets)←actions Shoot bots bullets
  ⍝ 6. Move bullets

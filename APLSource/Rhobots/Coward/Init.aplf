@@ -1,0 +1,9 @@
+ state←Init
+⍝ Coward: hide in nearest corner, sweep inward, fire at visible rhobots
+ state←()
+ state.corner←⍬
+ state.desired←⍬
+ state.inward←0
+ state.sweep←0
+ state.sweepDir←0
+ state.sweepMax←0
