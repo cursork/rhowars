@@ -1,0 +1,20 @@
+ TestSpinnerBot dummy;input;actions
+⍝ Test Spinner bot behavior
+ ⎕IO←0
+ input←⎕NS ''
+ input.loc←200 300
+ input.turret←45
+ input.visible←0 3⍴0
+ input.hp←100
+ input.arena←1000 1000
+ input.state←##.Rhobots.Spinner.Init
+ ⍝ Should rotate turret by 15°
+ actions←##.Rhobots.Spinner.Tick input
+ Assert 'turret rotated' (60=actions.turret)
+ Assert 'always fires' (1=actions.fire)
+ ⍝ Should head toward centre (500,500) from (200,300)
+ Assert 'direction set' (0≠actions.direction)
+ ⍝ When at centre, should stop
+ input.loc←500 500
+ actions←##.Rhobots.Spinner.Tick input
+ Assert 'at centre speed 0' (0=actions.speed)

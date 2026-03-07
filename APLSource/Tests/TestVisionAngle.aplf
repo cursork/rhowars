@@ -1,0 +1,22 @@
+ TestVisionAngle dummy;m;vis
+⍝ Test vision cone with angle wrapping (turret near 360/0 boundary)
+ ⎕IO←0
+ m←⎕NS ''
+ m.bullets←0 5⍴0
+ ⍝ Turret at 350°, target at angle ~10° (within 45° half-angle)
+ ⍝ Bot0 at (500,500), Bot1 slightly to the right and above
+ m.bots←2 8⍴ 1 500 500 0 350 100 0 1  2 510 550 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'sees target across 0° boundary' (1=≢vis)
+ ⍝ Turret at 10°, target behind at ~190°: should NOT see
+ m.bots←2 8⍴ 1 500 500 0 10 100 0 1  2 500 400 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'cannot see behind turret' (0=≢vis)
+ ⍝ Turret at 180°, target directly behind (at ~0°): should NOT see
+ m.bots←2 8⍴ 1 500 500 0 180 100 0 1  2 500 600 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'opposite direction invisible' (0=≢vis)
+ ⍝ Exactly at edge of cone (45° offset)
+ m.bots←2 8⍴ 1 500 500 0 0 100 0 1  2 600 600 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'at cone edge visible' (1=≢vis)

@@ -1,0 +1,24 @@
+ TestCollideMulti dummy;bots;bullets;r;events
+⍝ Test multiple bullets hitting same bot, and bullets hitting different bots
+ ⎕IO←0
+ ⍝ Two bullets hit the same bot
+ bots←1 8⍴ 1 100 100 0 0 100 0 1
+ bullets←2 5⍴ 105 100 20 0 99  95 100 ¯20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'double hit damage' (bots[0;5]=100-(2×##.Cfg.BULLET_DAMAGE))
+ Assert 'both bullets removed' (0=≢bullets)
+ ⍝ Two bots, one bullet hits only the first
+ bots←2 8⍴ 1 100 100 0 0 100 0 1  2 500 500 0 0 100 0 1
+ bullets←1 5⍴ 105 100 20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'first bot hit' (bots[0;5]=100-##.Cfg.BULLET_DAMAGE)
+ Assert 'second bot untouched' (bots[1;5]=100)
+ ⍝ Dead bot should not be hit
+ bots←1 8⍴ 1 100 100 0 0 0 0 0
+ bullets←1 5⍴ 105 100 20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'dead bot not hit' (bots[0;5]=0)
+ Assert 'bullet passes through dead bot' (1=≢bullets)

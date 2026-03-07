@@ -1,0 +1,18 @@
+ TestBotDeath dummy;bots;bullets;r;events
+⍝ Test that a bot dies when HP reaches 0
+ ⎕IO←0
+ ⍝ Bot with 20 HP hit by bullet doing 20 damage
+ bots←1 8⍴ 1 100 100 0 0 20 0 1
+ bullets←1 5⍴ 105 100 20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'hp reaches 0' (0=bots[0;5])
+ ⍝ Engine marks dead after collide (in Tick, bots[;7]←bots[;7]∧bots[;5]>0)
+ bots[;7]←bots[;7]∧bots[;5]>0
+ Assert 'bot marked dead' (0=bots[0;7])
+ ⍝ Overkill: bot with 10 HP hit for 20
+ bots←1 8⍴ 1 100 100 0 0 10 0 1
+ bullets←1 5⍴ 105 100 20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'hp goes negative' (bots[0;5]<0)

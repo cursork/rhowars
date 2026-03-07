@@ -1,0 +1,17 @@
+ TestMoveSpeed dummy;bots
+⍝ Test per-bot speed multiplier
+ ⎕IO←0
+ ⍝ Speed 0 means stay in place
+ bots←1 8⍴ 1 500 500 90 0 100 0 1
+ bots←(,0)##.Engine.Move bots
+ Assert 'speed 0: x stays' (500=bots[0;1])
+ Assert 'speed 0: y stays' (500=bots[0;2])
+ ⍝ Speed 1 means full speed
+ bots←1 8⍴ 1 500 500 90 0 100 0 1
+ bots←(,1)##.Engine.Move bots
+ Assert 'speed 1: x+5' (505=bots[0;1])
+ ⍝ Two bots, different speeds
+ bots←2 8⍴ 1 500 500 90 0 100 0 1  2 500 500 90 0 100 0 1
+ bots←(0 1)##.Engine.Move bots
+ Assert 'bot0 stayed' (500=bots[0;1])
+ Assert 'bot1 moved' (505=bots[1;1])

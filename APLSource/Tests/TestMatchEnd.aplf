@@ -1,0 +1,16 @@
+ TestMatchEnd dummy;m;bots
+⍝ Test match end conditions
+ ⎕IO←0
+ ⍝ Match ends when only 1 bot alive
+ m←##.Engine.Init ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ ⍝ Kill bot 2 manually
+ m.bots[1;5]←0
+ m.bots[1;7]←0
+ m←##.Engine.Tick m
+ Assert 'match ends with 1 alive' (m.done)
+ ⍝ Match ends at MAX_TURNS
+ m←##.Engine.Init ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ m.turn←##.Cfg.MAX_TURNS-1
+ m←##.Engine.Tick m
+ Assert 'match ends at max turns' (m.done)
+ Assert 'turn equals max' (m.turn=##.Cfg.MAX_TURNS)
