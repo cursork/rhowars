@@ -1,0 +1,44 @@
+ visible←match Vision botIdx;bots;bullets;me;myPos;myTurret;others;oPos;bPos;angles;dists;offsets;inCone;inRange;mask;vBot;vBul;ha
+⍝ Compute field of view for bot at botIdx
+⍝ Returns K×3 matrix: distance, angle_offset_from_turret, type (0=rhobot 1=bullet)
+⍝ Empty 0 3⍴0 if nothing visible
+ ⎕IO←0
+ bots←match.bots
+ bullets←match.bullets
+ ha←##.Cfg.VISION_HALF_ANGLE
+ me←bots[botIdx;]
+ myPos←me[1 2]
+ myTurret←me[4]
+ visible←0 3⍴0
+ ⍝ Check other alive bots
+ others←((⍳≢bots)≠botIdx)∧bots[;7]
+ :If ∨/others
+     oPos←(others⌿bots)[;1 2]
+     dists←(((oPos[;0]-⊃myPos)*2)+((oPos[;1]-1⊃myPos)*2))*0.5
+     angles←(180÷○1)×12○(0J1×oPos[;0]-⊃myPos)+oPos[;1]-1⊃myPos
+     offsets←360|angles-myTurret
+     ⍝ Normalize offset to -180..180 range
+     offsets←offsets-360×offsets>180
+     inCone←(|offsets)≤ha
+     inRange←dists≤##.Cfg.VISION_RANGE
+     mask←inCone∧inRange
+     :If ∨/mask
+         vBot←(mask/dists),⍪(mask/offsets),⍪(+/mask)⍴0
+         visible←visible⍪vBot
+     :EndIf
+ :EndIf
+ ⍝ Check bullets
+ :If 0<≢bullets
+     bPos←bullets[;0 1]
+     dists←(((bPos[;0]-⊃myPos)*2)+((bPos[;1]-1⊃myPos)*2))*0.5
+     angles←(180÷○1)×12○(0J1×bPos[;0]-⊃myPos)+bPos[;1]-1⊃myPos
+     offsets←360|angles-myTurret
+     offsets←offsets-360×offsets>180
+     inCone←(|offsets)≤ha
+     inRange←dists≤##.Cfg.VISION_RANGE
+     mask←inCone∧inRange
+     :If ∨/mask
+         vBul←(mask/dists),⍪(mask/offsets),⍪(+/mask)⍴1
+         visible←visible⍪vBul
+     :EndIf
+ :EndIf

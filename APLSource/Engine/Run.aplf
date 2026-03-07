@@ -1,0 +1,13 @@
+ match←Run botns
+⍝ Run a complete match and return the result with history
+ ⎕IO←0
+ match←Init botns
+ :While ~match.done
+     match←Tick match
+ :EndWhile
+ ⍝ Record final snapshot
+ snap←⎕NS ''
+ snap.turn←match.turn
+ snap.bots←match.bots
+ snap.bullets←match.bullets
+ match.history,←⊂snap

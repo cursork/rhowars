@@ -1,0 +1,29 @@
+ actions←Tick input;s;vis;rhobots;nearest;nIdx
+⍝ RandomWalker: random movement, aims turret at nearest visible rhobot
+ ⎕IO←0
+ actions←⎕NS ''
+ s←input.state
+ ⍝ Random direction change on countdown
+ s.countdown-←1
+ :If s.countdown≤0
+     s.dir←?360
+     s.countdown←5+?10
+ :EndIf
+ actions.direction←s.dir
+ ⍝ Look for visible rhobots (type=0)
+ vis←input.visible
+ :If 0<≢vis
+     rhobots←(vis[;2]=0)⌿vis
+     :If 0<≢rhobots
+         nIdx←(rhobots[;0]⍳⌊/rhobots[;0])
+         actions.turret←360|input.turret+rhobots[nIdx;1]
+         actions.fire←1
+     :Else
+         actions.turret←360|input.turret+3
+         actions.fire←0
+     :EndIf
+ :Else
+     actions.turret←360|input.turret+3
+     actions.fire←0
+ :EndIf
+ actions.state←s

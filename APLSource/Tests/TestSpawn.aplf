@@ -1,0 +1,12 @@
+ TestSpawn dummy;pos;dists;minSep
+⍝ Test that Spawn places bots with correct shape and separation
+ ⎕IO←0
+ pos←##.Engine.Spawn 4
+ Assert 'shape is 4x2' (4 2≡⍴pos)
+ Assert 'all x within bounds' (∧/(pos[;0]≥##.Cfg.BOT_RADIUS)∧pos[;0]≤(⊃##.Cfg.ARENA)-##.Cfg.BOT_RADIUS)
+ Assert 'all y within bounds' (∧/(pos[;1]≥##.Cfg.BOT_RADIUS)∧pos[;1]≤(1⊃##.Cfg.ARENA)-##.Cfg.BOT_RADIUS)
+ ⍝ Check minimum separation between all pairs
+ minSep←4×##.Cfg.BOT_RADIUS
+ dists←(((pos[;0]∘.-pos[;0])*2)+((pos[;1]∘.-pos[;1])*2))*0.5
+ dists←dists+1e10×(⍳≢pos)∘.=⍳≢pos  ⍝ ignore self-distance
+ Assert 'min separation met' (∧/,(dists≥minSep))

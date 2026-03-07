@@ -1,0 +1,21 @@
+ TestMove dummy;bots
+⍝ Test bot movement and wall clamping
+ ⎕IO←0
+ ⍝ Bot heading east (90°): should move +5 in x, 0 in y
+ bots←1 8⍴ 1 500 500 90 0 100 0 1
+ bots←##.Engine.Move bots
+ Assert 'east: x+5' (505=bots[0;1])
+ Assert 'east: y unchanged' ((|500-bots[0;2])<0.01)
+ ⍝ Bot heading north (0°): should move +5 in y
+ bots←1 8⍴ 1 500 500 0 0 100 0 1
+ bots←##.Engine.Move bots
+ Assert 'north: x unchanged' ((|500-bots[0;1])<0.01)
+ Assert 'north: y+5' (505=bots[0;2])
+ ⍝ Wall clamping: bot near right edge heading east
+ bots←1 8⍴ 1 995 500 90 0 100 0 1
+ bots←##.Engine.Move bots
+ Assert 'wall clamp right' (bots[0;1]=990)
+ ⍝ Dead bot should not move
+ bots←1 8⍴ 1 500 500 90 0 0 0 0
+ bots←##.Engine.Move bots
+ Assert 'dead bot stays' (500=bots[0;1])

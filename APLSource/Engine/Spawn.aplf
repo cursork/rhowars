@@ -1,0 +1,19 @@
+ positions←Spawn N;pos;ok;i;p;dists;minSep
+⍝ Place N bots randomly in the arena with minimum separation
+⍝ Returns N×2 matrix of (x,y) positions
+ ⎕IO←0
+ minSep←4×##.Cfg.BOT_RADIUS
+ pos←0 2⍴0
+ :For i :In ⍳N
+     :Repeat
+         p←##.Cfg.BOT_RADIUS+?##.Cfg.ARENA-2×##.Cfg.BOT_RADIUS
+         :If 0=≢pos
+             ok←1
+         :Else
+             dists←((pos[;0]-⊃p)*2)+(pos[;1]-1⊃p)*2
+             ok←∧/dists≥minSep*2
+         :EndIf
+     :Until ok
+     pos←pos⍪⍉⍪p
+ :EndFor
+ positions←pos

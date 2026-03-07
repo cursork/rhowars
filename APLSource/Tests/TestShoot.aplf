@@ -1,0 +1,22 @@
+ TestShoot dummy;bots;bullets;actions;a;r
+⍝ Test bullet creation from fire requests
+ ⎕IO←0
+ ⍝ One bot, turret at 90°, fires
+ bots←1 8⍴ 1 500 500 0 90 100 0 1
+ bullets←0 5⍴0
+ a←⎕NS '' ⋄ a.fire←1
+ actions←⊂a
+ r←actions ##.Engine.Shoot bots bullets
+ (bots bullets)←r
+ Assert 'bullet created' (1=≢bullets)
+ Assert 'bullet at bot pos' ((500=bullets[0;0])∧500=bullets[0;1])
+ Assert 'bullet dx ~20' ((|20-bullets[0;2])<0.01)
+ Assert 'bullet dy ~0' ((|bullets[0;3])<0.01)
+ Assert 'bullet owner' (1=bullets[0;4])
+ Assert 'cooldown set' (bots[0;6]=##.Cfg.COOLDOWN)
+ ⍝ Bot with cooldown > 0 should not fire
+ a←⎕NS '' ⋄ a.fire←1
+ actions←⊂a
+ r←actions ##.Engine.Shoot bots bullets
+ (bots bullets)←r
+ Assert 'no fire during cooldown' (1=≢bullets)

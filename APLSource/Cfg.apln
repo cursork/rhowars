@@ -1,0 +1,14 @@
+:Namespace Cfg
+    ⎕IO←0
+    ARENA←1000 1000
+    BOT_SPEED←5
+    BOT_HP←100
+    BOT_RADIUS←10
+    BULLET_SPEED←20
+    BULLET_DAMAGE←20
+    VISION_RANGE←300
+    VISION_HALF_ANGLE←45
+    COOLDOWN←5
+    BOT_TIMEOUT←100
+    MAX_TURNS←2000
+:EndNamespace

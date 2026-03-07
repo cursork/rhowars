@@ -1,0 +1,7 @@
+ Assert args;msg;cond
+⍝ Assert a condition is true, signal error with message if not
+⍝ Usage: Assert 'description' condition
+ (msg cond)←args
+ :If ~cond
+     ⎕SIGNAL⊂('EN' 11)('Message'('Assertion failed: ',msg))
+ :EndIf

@@ -1,0 +1,14 @@
+ actions←ns CallTick input;tid;r
+⍝ Call a rhobot's Tick function with timeout protection
+⍝ Returns actions namespace (direction turret fire state)
+ ⎕IO←0
+ :Trap 0
+     actions←ns.Tick input
+ :Else
+     ⍝ On error/timeout, bot does nothing
+     actions←⎕NS ''
+     actions.direction←input.turret  ⍝ keep current heading
+     actions.turret←input.turret
+     actions.fire←0
+     actions.state←input.state
+ :EndTrap

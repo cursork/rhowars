@@ -1,0 +1,13 @@
+ TestMatch dummy;m;finalSnap;nAlive
+⍝ Test a complete match between Spinner and RandomWalker
+ ⎕IO←0
+ m←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ Assert 'match is done' (m.done)
+ Assert 'history has entries' (0<≢m.history)
+ Assert 'turn count matches history' (m.turn=(≢m.history)-1)
+ nAlive←+/m.bots[;7]
+ Assert 'at most 1 alive or max turns' ((nAlive≤1)∨(m.turn≥##.Cfg.MAX_TURNS))
+ ⍝ Check history structure
+ finalSnap←⊃⌽m.history
+ Assert 'final snap has bots' (2 8≡⍴finalSnap.bots)
+ Assert 'final snap has turn' (m.turn=finalSnap.turn)

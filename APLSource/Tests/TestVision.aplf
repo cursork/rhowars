@@ -1,0 +1,30 @@
+ TestVision dummy;m;vis
+⍝ Test field of view computation
+ ⎕IO←0
+ m←⎕NS ''
+ m.bullets←0 5⍴0
+ ⍝ Bot 0 at (100,100) turret=0, Bot 1 at (100,200) — directly in front, dist=100
+ m.bots←2 8⍴ 1 100 100 0 0 100 0 1  2 100 200 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'sees one object' (1=≢vis)
+ Assert 'distance is 100' ((|100-vis[0;0])<0.01)
+ Assert 'offset near 0' ((|vis[0;1])<0.01)
+ Assert 'type is rhobot' (0=vis[0;2])
+ ⍝ Bot 1 behind bot 0 (turret=0 but target at y < self): should not see
+ m.bots←2 8⍴ 1 100 200 0 0 100 0 1  2 100 100 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'cannot see behind' (0=≢vis)
+ ⍝ Bot 1 out of range (dist=400 > VISION_RANGE=300): should not see
+ m.bots←2 8⍴ 1 100 100 0 0 100 0 1  2 100 500 0 0 100 0 1
+ vis←m ##.Engine.Vision 0
+ Assert 'out of range invisible' (0=≢vis)
+ ⍝ Dead bot should not be visible
+ m.bots←2 8⍴ 1 100 100 0 0 100 0 1  2 100 200 0 0 0 0 0
+ vis←m ##.Engine.Vision 0
+ Assert 'dead bot invisible' (0=≢vis)
+ ⍝ Bullet in cone should be visible with type=1
+ m.bots←1 8⍴ 1 100 100 0 0 100 0 1
+ m.bullets←1 5⍴ 100 150 0 20 99
+ vis←m ##.Engine.Vision 0
+ Assert 'sees bullet' (1=≢vis)
+ Assert 'bullet type is 1' (1=vis[0;2])

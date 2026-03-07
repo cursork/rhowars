@@ -1,0 +1,9 @@
+ bullets←MoveBullets bullets;xOk;yOk
+⍝ Advance all bullets by their velocity, remove out-of-bounds
+ ⎕IO←0
+ →(0=≢bullets)/0
+ bullets[;0 1]+←bullets[;2 3]
+ ⍝ Keep only bullets within arena bounds
+ xOk←(0≤bullets[;0])∧bullets[;0]≤⊃##.Cfg.ARENA
+ yOk←(0≤bullets[;1])∧bullets[;1]≤1⊃##.Cfg.ARENA
+ bullets←(xOk∧yOk)⌿bullets

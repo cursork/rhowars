@@ -1,0 +1,19 @@
+ r←RunAll;fns;tests;t;passed;failed
+⍝ Run all test functions in this namespace, report results
+ ⎕IO←0
+ fns←⎕NL ¯3
+ tests←(('Test'∘≡¨4↑¨fns)∧fns≢¨⊂'RunAll')/fns
+ passed←0 ⋄ failed←0
+ :For t :In tests
+     :Trap 0
+         (⍎t)⍬
+         passed+←1
+         ⎕←'  PASS  ',t
+     :Else
+         failed+←1
+         ⎕←'  FAIL  ',t,' → ',⎕DMX.Message
+     :EndTrap
+ :EndFor
+ ⎕←''
+ ⎕←(⍕passed),' passed, ',(⍕failed),' failed'
+ r←failed=0

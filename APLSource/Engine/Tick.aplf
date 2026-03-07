@@ -1,0 +1,64 @@
+ match←Tick match;bots;bullets;snap;alive;order;actions;i;idx;vis;input;act;ns;nAlive
+⍝ Execute one turn of the match
+ ⎕IO←0
+ bots←match.bots
+ bullets←match.bullets
+ ⍝ 1. Record snapshot for history
+ snap←⎕NS ''
+ snap.turn←match.turn
+ snap.bots←bots
+ snap.bullets←bullets
+ match.history,←⊂snap
+ ⍝ 2. Collect bot decisions
+ alive←⍸bots[;7]
+ order←alive[((≢alive)?≢alive)]
+ actions←(≢bots)⍴⊂⎕NS ''
+ ⍝ Initialize default actions for all bots
+ :For i :In ⍳≢bots
+     act←⎕NS ''
+     act.direction←bots[i;3]
+     act.turret←bots[i;4]
+     act.fire←0
+     act.state←i⊃match.states
+     actions[i]←⊂act
+ :EndFor
+ ⍝ Call each alive bot's Tick in random order
+ :For idx :In order
+     vis←match Vision idx
+     input←⎕NS ''
+     input.loc←bots[idx;1 2]
+     input.turret←bots[idx;4]
+     input.visible←vis
+     input.hp←bots[idx;5]
+     input.state←idx⊃match.states
+     ns←idx⊃match.botns
+     act←ns ##.Bot.CallTick input
+     actions[idx]←⊂act
+     match.states[idx]←⊂act.state
+ :EndFor
+ ⍝ 3. Apply turret and direction updates
+ :For i :In alive
+     bots[i;3]←(i⊃actions).direction
+     bots[i;4]←(i⊃actions).turret
+ :EndFor
+ ⍝ 4. Move all bots
+ bots←Move bots
+ ⍝ 5. Fire bullets
+ (bots bullets)←actions Shoot bots bullets
+ ⍝ 6. Move bullets
+ bullets←MoveBullets bullets
+ ⍝ 7. Collisions
+ (bots bullets _)←Collide bots bullets
+ ⍝ 8. Decrement cooldowns
+ bots[;6]←0⌈bots[;6]-1
+ ⍝ 9. Mark dead bots
+ bots[;7]←bots[;7]∧bots[;5]>0
+ ⍝ 10. Update match state
+ match.bots←bots
+ match.bullets←bullets
+ match.turn+←1
+ ⍝ 11. Check win condition
+ nAlive←+/bots[;7]
+ :If (nAlive≤1)∨(match.turn≥##.Cfg.MAX_TURNS)
+     match.done←1
+ :EndIf

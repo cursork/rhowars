@@ -1,0 +1,14 @@
+ TestInit dummy;m;s0;s1
+⍝ Test match initialization with real rhobots
+ ⎕IO←0
+ m←##.Engine.Init ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ Assert 'bots shape 2x8' (2 8≡⍴m.bots)
+ Assert 'all alive' (1 1≡m.bots[;7])
+ Assert 'all full hp' (∧/m.bots[;5]=##.Cfg.BOT_HP)
+ Assert 'turn is 0' (0=m.turn)
+ Assert 'not done' (0=m.done)
+ Assert 'two states' (2=≢m.states)
+ Assert 'bullets empty' (0=≢m.bullets)
+ s0←⊃m.states ⋄ s1←1⊃m.states
+ Assert 'spinner has dir' (0≠s0.⎕NC⊂'dir')
+ Assert 'walker has countdown' (0≠s1.⎕NC⊂'countdown')

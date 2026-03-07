@@ -1,0 +1,30 @@
+ TestCollide dummy;bots;bullets;r;events
+⍝ Test bullet-bot collision detection
+ ⎕IO←0
+ ⍝ Bullet right next to bot (within radius=10), different owner
+ bots←1 8⍴ 1 100 100 0 0 100 0 1
+ bullets←1 5⍴ 105 100 20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'bot took damage' (bots[0;5]=100-##.Cfg.BULLET_DAMAGE)
+ Assert 'bullet removed' (0=≢bullets)
+ ⍝ Bullet from self should not hit
+ bots←1 8⍴ 1 100 100 0 0 100 0 1
+ bullets←1 5⍴ 105 100 20 0 1
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'self bullet no damage' (bots[0;5]=100)
+ Assert 'self bullet not removed' (1=≢bullets)
+ ⍝ Bullet far away should miss
+ bots←1 8⍴ 1 100 100 0 0 100 0 1
+ bullets←1 5⍴ 500 500 20 0 99
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'far bullet no damage' (bots[0;5]=100)
+ Assert 'far bullet remains' (1=≢bullets)
+ ⍝ No bullets should not error
+ bots←1 8⍴ 1 100 100 0 0 100 0 1
+ bullets←0 5⍴0
+ r←##.Engine.Collide bots bullets
+ (bots bullets events)←r
+ Assert 'no bullets ok' (bots[0;5]=100)

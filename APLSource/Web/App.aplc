@@ -1,0 +1,102 @@
+:Class App
+⍝ rhowars web API — Stark-based REST server
+⍝
+⍝   app←⎕NEW rw.Web.App (StarkClass gameNS)
+⍝   app.Start 8080
+
+    :Field Private router
+    :Field Private lastMatch
+    :Field Private game
+
+    ∇ Make args;StarkClass
+      :Access Public
+      :Implements Constructor
+      (StarkClass game)←args
+      lastMatch←⍬
+      router←⎕NEW StarkClass
+      router.Handlers←⎕THIS
+      router.Info←(title: 'rhowars' ⋄ version: '0.1.0')
+      '/api/match' router.Post 'StartMatch'
+      '/api/match' router.Get 'GetMatch'
+      '/api/match/history' router.Get 'GetHistory'
+    ∇
+
+    ∇ Start port
+      :Access Public
+      router.ThreadMode←0
+      router.Start port
+    ∇
+
+    ∇ Stop
+      :Access Public
+      router.Stop
+    ∇
+
+    ∇ result←StartMatch req;body;names;botns;i;ns
+      :Access Public
+      ⎕IO←0
+      :Trap 0
+          body←req.Payload
+          names←body.bots
+          botns←⍬
+          :For i :In ⍳≢names
+              ns←(game.Rhobots⍎i⊃names)
+              botns,←ns
+          :EndFor
+          lastMatch←game.Engine.Run botns
+          req.StatusCode←201
+          result←MatchSummary lastMatch
+      :Else
+          req.Fail 500
+          result←(error: ⎕DMX.Message ⋄ at: ⎕DMX.DM)
+      :EndTrap
+    ∇
+
+    ∇ result←GetMatch req
+      :Access Public
+      ⎕IO←0
+      :If ⍬≡lastMatch
+          req.Fail 404
+          result←(detail: 'No match has been run yet')
+      :Else
+          result←MatchSummary lastMatch
+      :EndIf
+    ∇
+
+    ∇ result←GetHistory req;h;frames;s;f
+      :Access Public
+      ⎕IO←0
+      :If ⍬≡lastMatch
+          req.Fail 404
+          result←(detail: 'No match has been run yet')
+      :Else
+          frames←⍬
+          :For s :In lastMatch.history
+              f←⎕NS ''
+              f.turn←s.turn
+              f.bots←s.bots
+              f.bullets←s.bullets
+              frames,←⊂f
+          :EndFor
+          result←⎕NS ''
+          result.turns←lastMatch.turn
+          result.done←lastMatch.done
+          result.names←lastMatch.names
+          result.arena←game.Cfg.ARENA
+          result.botRadius←game.Cfg.BOT_RADIUS
+          result.frames←frames
+      :EndIf
+    ∇
+
+    ∇ result←MatchSummary m;b
+      ⎕IO←0
+      result←⎕NS ''
+      result.turn←m.turn
+      result.done←m.done
+      result.names←m.names
+      result.alive←m.bots[;7]
+      result.hp←m.bots[;5]
+      result.turns←≢m.history
+    ∇
+
+:EndClass

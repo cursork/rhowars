@@ -1,0 +1,19 @@
+ r←actions Shoot args;bots;bullets;firing;ids;turrets;rad;newBullets
+⍝ Process fire requests, create new bullets for bots with cooldown=0
+⍝ actions: vector of action namespaces (one per bot, with .fire field)
+⍝ args: (bots bullets)
+⍝ Returns: (bots bullets)
+ ⎕IO←0
+ (bots bullets)←args
+ ⍝ Find bots that want to fire, are alive, and have cooldown=0
+ firing←({⍵.fire}¨actions)∧(bots[;7])∧(bots[;6]=0)
+ :If ∨/firing
+     ids←firing/bots[;0]
+     turrets←firing/bots[;4]
+     rad←(○÷180)×turrets
+     newBullets←((firing/bots[;1]),⍪(firing/bots[;2]),⍪(##.Cfg.BULLET_SPEED×1○rad),⍪(##.Cfg.BULLET_SPEED×2○rad),⍪ids)
+     bullets←bullets⍪newBullets
+     ⍝ Reset cooldown for bots that fired
+     bots[;6]+←firing×##.Cfg.COOLDOWN
+ :EndIf
+ r←bots bullets

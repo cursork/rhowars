@@ -1,0 +1,35 @@
+ match←Init botns;N;positions;bots;states;i;state
+⍝ Initialize a match given a vector of rhobot namespaces
+⍝ Each namespace must have Init and Tick functions
+ ⎕IO←0
+ N←≢botns
+ match←⎕NS ''
+ match.botns←botns
+ match.names←{⍕⍵}¨botns
+ match.turn←0
+ match.done←0
+ match.history←⍬
+ ⍝ Place bots in arena
+ positions←Spawn N
+ ⍝ Build bot matrix: id x y direction turret hp cooldown alive
+ bots←N 8⍴0
+ bots[;0]←1+⍳N
+ bots[;1 2]←positions
+ bots[;3]←?N⍴360          ⍝ random initial direction
+ bots[;4]←?N⍴360          ⍝ random initial turret angle
+ bots[;5]←##.Cfg.BOT_HP
+ bots[;6]←0               ⍝ cooldown starts at 0 (ready to fire)
+ bots[;7]←1               ⍝ all alive
+ match.bots←bots
+ match.bullets←0 5⍴0
+ ⍝ Call each bot's Init to get persistent state
+ states←N⍴⊂⎕NS ''
+ :For i :In ⍳N
+     :Trap 0
+         state←(i⊃botns).Init
+     :Else
+         state←⎕NS ''
+     :EndTrap
+     states[i]←⊂state
+ :EndFor
+ match.states←states

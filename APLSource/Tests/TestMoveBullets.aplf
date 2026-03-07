@@ -1,0 +1,13 @@
+ TestMoveBullets dummy;bullets
+⍝ Test bullet movement and out-of-bounds removal
+ ⎕IO←0
+ ⍝ Two bullets: one stays in bounds, one exits
+ bullets←2 5⍴ 50 50 20 0 1  990 500 20 0 2
+ bullets←##.Engine.MoveBullets bullets
+ Assert 'one bullet removed' (1=≢bullets)
+ Assert 'remaining bullet advanced' (70=bullets[0;0])
+ Assert 'remaining bullet y unchanged' (50=bullets[0;1])
+ ⍝ Empty bullets should not error
+ bullets←0 5⍴0
+ bullets←##.Engine.MoveBullets bullets
+ Assert 'empty stays empty' (0=≢bullets)
