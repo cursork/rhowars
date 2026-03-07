@@ -149,6 +149,10 @@ Clockwise from 0° being up/north
 
 ## Game Parameters
 
+All parameters live in [Cfg.apln](APLSource/Cfg.apln) and playing with them
+is _encouraged_. The below are considered sub-optimal, and will be in flux
+until some arbitray 'are we happy?' point is reached.
+
 | Parameter    | Value |
 |--------------|-------|
 | Arena        | 1000 x 1000 |

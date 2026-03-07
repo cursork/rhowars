@@ -2,6 +2,7 @@
 	handle /api/* {
 		reverse_proxy localhost:8080
 	}
+	header Cache-Control "no-cache"
 	file_server {
 		root /Users/nk/dev/rhowars/static
 	}

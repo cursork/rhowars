@@ -142,8 +142,8 @@ function render() {
     ctx.stroke();
 
     // Vision cone (faint)
-    const vRange = 300 * scale;
-    const halfAngle = 45 * Math.PI / 180;
+    const vRange = data.visionRange * scale;
+    const halfAngle = data.visionHalfAngle * Math.PI / 180;
     ctx.fillStyle = color;
     ctx.globalAlpha = 0.05;
     ctx.beginPath();

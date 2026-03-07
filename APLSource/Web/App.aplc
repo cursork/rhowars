@@ -23,7 +23,6 @@
 
     ∇ Start port
       :Access Public
-      router.ThreadMode←0
       router.Start port
     ∇
 
@@ -84,6 +83,8 @@
           result.names←lastMatch.names
           result.arena←game.Cfg.ARENA
           result.botRadius←game.Cfg.BOT_RADIUS
+          result.visionRange←game.Cfg.VISION_RANGE
+          result.visionHalfAngle←game.Cfg.VISION_HALF_ANGLE
           result.frames←frames
       :EndIf
     ∇
