@@ -1,4 +1,4 @@
- match←Tick match;bots;bullets;snap;alive;order;actions;i;idx;vis;input;act;ns;nAlive
+ match←Tick match;bots;bullets;snap;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds
 ⍝ Execute one turn of the match
  ⎕IO←0
  bots←match.bots
@@ -30,6 +30,7 @@
      input.turret←bots[idx;4]
      input.visible←vis
      input.hp←bots[idx;5]
+     input.arena←##.Cfg.ARENA
      input.state←idx⊃match.states
      ns←idx⊃match.botns
      act←ns ##.Bot.CallTick input
@@ -41,8 +42,9 @@
      bots[i;3]←(i⊃actions).direction
      bots[i;4]←(i⊃actions).turret
  :EndFor
- ⍝ 4. Move all bots
- bots←Move bots
+ ⍝ 4. Move all bots (apply per-bot speed multiplier)
+ speeds←{6::1 ⋄ ⍵.speed}¨actions
+ bots←speeds Move bots
  ⍝ 5. Fire bullets
  (bots bullets)←actions Shoot bots bullets
  ⍝ 6. Move bullets

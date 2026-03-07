@@ -1,4 +1,3 @@
  state←Init
-⍝ Spinner: rotates turret, fires when ready, bounces off walls
+⍝ Spinner: no state needed
  state←⎕NS ''
- state.dir←?360

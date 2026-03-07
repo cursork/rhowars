@@ -10,5 +10,5 @@
  Assert 'two states' (2=≢m.states)
  Assert 'bullets empty' (0=≢m.bullets)
  s0←⊃m.states ⋄ s1←1⊃m.states
- Assert 'spinner has dir' (0≠s0.⎕NC⊂'dir')
+ Assert 'spinner state exists' (9.1=⎕NC⊂'s0')
  Assert 'walker has countdown' (0≠s1.⎕NC⊂'countdown')

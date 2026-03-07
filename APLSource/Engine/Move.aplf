@@ -1,11 +1,13 @@
- bots←Move bots;rad;alive
+ bots←speeds Move bots;rad;alive;spd
 ⍝ Move all alive bots based on their direction and speed
+⍝ speeds: per-bot speed multiplier (0=stay, 1=full speed)
 ⍝ Clamp to arena bounds accounting for hitbox radius
  ⎕IO←0
  alive←bots[;7]
+ spd←alive×speeds×##.Cfg.BOT_SPEED
  rad←(○÷180)×bots[;3]
- bots[;1]+←alive×##.Cfg.BOT_SPEED×1○rad
- bots[;2]+←alive×##.Cfg.BOT_SPEED×2○rad
+ bots[;1]+←spd×1○rad
+ bots[;2]+←spd×2○rad
  ⍝ Clamp to arena bounds
  bots[;1]⌈←##.Cfg.BOT_RADIUS
  bots[;1]⌊←(⊃##.Cfg.ARENA)-##.Cfg.BOT_RADIUS

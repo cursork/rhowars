@@ -1,22 +1,17 @@
- actions←Tick input;s
-⍝ Spinner: rotate turret 15° per turn, always try to fire, bounce off walls
+ actions←Tick input;centre;dx;dy
+⍝ Spinner: moves toward centre, rotates turret, fires when ready
  ⎕IO←0
  actions←⎕NS ''
- s←input.state
- ⍝ Rotate turret
  actions.turret←360|input.turret+15
- ⍝ Always try to fire (engine enforces cooldown)
  actions.fire←1
- ⍝ Bounce off walls when near edge
- :If (50≥⊃input.loc)∧(0<1○(○÷180)×s.dir>180)
-     s.dir←360|180-s.dir
- :ElseIf (950≤⊃input.loc)∧(0>1○(○÷180)×s.dir<180)
-     s.dir←360|180-s.dir
+ ⍝ Head toward centre of arena
+ centre←input.arena÷2
+ dx←(⊃centre)-⊃input.loc
+ dy←(1⊃centre)-1⊃input.loc
+ :If 1<(dx*2)+dy*2
+     actions.direction←(180÷○1)×12○(0J1×dx)+dy
+ :Else
+     actions.direction←input.turret
+     actions.speed←0
  :EndIf
- :If (50≥1⊃input.loc)∧(0<2○(○÷180)×s.dir>180)
-     s.dir←360|-s.dir
- :ElseIf (950≤1⊃input.loc)∧(0>2○(○÷180)×s.dir<180)
-     s.dir←360|-s.dir
- :EndIf
- actions.direction←s.dir
- actions.state←s
+ actions.state←input.state
