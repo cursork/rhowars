@@ -6,27 +6,41 @@
 
 **YOU ALSO CAN'T RUN IT, BECAUSE IT RELIES ON A PRIVATE DEPENDENCY**
 
-The code is public purely for ease of sharing. Current time spent is ~90 mins to get a proof of concept.
+The code is public purely for ease of sharing. Current time spent is ~90 mins
+to get a proof of concept, which is all this is, as it stands.
 
 ----
 
 A RoboWar-inspired game where bots ("rhobots") are programmed in Dyalog APL and
 battle in a free-for-all arena.
 
+[A small video of the proof of concept](demo.mp4) shows two rhobots battling it
+out. They are intentionally dumb. I want players to be cleverer in the code they
+write.
+
+1. [Spinner](APLSource/Rhobots/Spinner) - spin and fire indiscriminately, whilst
+   moving to the centre
+2. [RandomWalker](APLSource/Rhobots/RandomWalker) - just choose a random path
+   and if you get another rhobot in your sights, start firing
+
 ## Quick Start
 
-Link the source into a Dyalog session, then:
-
 ```apl
+⍝ Link
+]link.create rw /path/to/rhowars/APLSource
+⍝ NOTA BENE - not yet released!
+]link.create stark /path/to/Stark/APLSource
+
 ⍝ Run tests
 rw.Tests.RunAll
 
 ⍝ Run a match (headless)
 m←rw.Engine.Run rw.Rhobots.Spinner rw.Rhobots.RandomWalker
-m.bots[;5 7]   ⍝ HP and alive status
+m.bots[;6 8]   ⍝ HP and alive status
+⍝ Bot matrix columns: id x y direction turret hp cooldown alive
 
-⍝ Start the web server (requires Stark imported into #)
-app←⎕NEW rw.Web.App (#.Stark rw)
+⍝ Start the API
+app←⎕NEW rw.Web.App (stark.Stark rw)
 app.Start 8080
 ```
 
@@ -34,10 +48,11 @@ The web frontend is in `static/`. Use Caddy (or similar) to serve it alongside
 the API:
 
 ```
-caddy run --config Caddyfile
+caddy run
 ```
 
-Then open http://localhost:8000.
+Then open http://localhost:8000. **NOTA BENE** this is 8000 and _not_ the 8080
+that the APL API is running on.
 
 ## Writing Rhobots
 
@@ -102,8 +117,7 @@ actions.turret←360|input.turret+nearest[1]  ⍝ turn toward it
 
 #### Angles
 
-- 0° = up (+y), 90° = right (+x), 180° = down (-y), 270° = left (-x)
-- All angles wrap at 360°
+Clockwise from 0° being up/north
 
 ### Example: Minimal Bot
 
@@ -146,27 +160,3 @@ actions.turret←360|input.turret+nearest[1]  ⍝ turn toward it
 | Vision cone  | 45° half-angle, 300 range |
 | Shot cooldown| 5 turns |
 | Max turns    | 2000 |
-
-## Project Structure
-
-```
-APLSource/
-  Cfg.apln              Game constants
-  Engine/               Core engine (Init, Tick, Run, Move, Vision, etc.)
-  Bot/                  Bot loading and execution (CallTick)
-  Rhobots/              Sample bots
-    Spinner/            Moves to centre, spins turret, fires constantly
-    RandomWalker/       Random movement, aims at visible targets
-  Web/                  Stark-based REST API
-  Tests/                Test suite (run with Tests.RunAll)
-static/                 Web frontend (HTML5 Canvas replay viewer)
-Caddyfile               Caddy config: static files + API proxy
-```
-
-## API
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/match` | Start a match. Body: `{"bots":["Spinner","RandomWalker"]}` |
-| GET | `/api/match` | Latest match summary |
-| GET | `/api/match/history` | Full replay data (all frames) |
