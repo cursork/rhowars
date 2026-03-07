@@ -1,0 +1,18 @@
+ {ok}←LoadOne(author name);path;src;lines;ens
+⍝ Load a single user bot from disk into ##.UserBots.{author}.{name}
+ ⎕IO←0
+ path←##.Cfg.USER_BOTS_PATH,'/',author,'/',name,'.apln'
+ :Trap 0
+     src←⊃⎕NGET path 1
+     :If 0=##.⎕NC'UserBots'
+         'UserBots'##.⎕NS''
+     :EndIf
+     :If 0=##.UserBots.⎕NC⊂author
+         author ##.UserBots.⎕NS''
+     :EndIf
+     ens←##.UserBots⍎author
+     2 ens.⎕FIX src
+     ok←1
+ :Else
+     ok←0
+ :EndTrap

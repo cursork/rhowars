@@ -16,9 +16,13 @@
       router←⎕NEW StarkClass
       router.Handlers←⎕THIS
       router.Info←(title: 'rhowars' ⋄ version: '0.1.0')
+      game.BotLib.LoadAll
       '/api/match' router.Post 'StartMatch'
       '/api/match' router.Get 'GetMatch'
       '/api/match/history' router.Get 'GetHistory'
+      '/api/bots' router.Get 'ListBots'
+      '/api/bots' router.Post 'UploadBot'
+      '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
     ∇
 
     ∇ Start port
@@ -39,7 +43,7 @@
           names←body.bots
           botns←⍬
           :For i :In ⍳≢names
-              ns←(game.Rhobots⍎i⊃names)
+              ns←game.BotLib.Resolve(i⊃names)
               botns,←ns
           :EndFor
           lastMatch←game.Engine.Run botns
@@ -82,6 +86,50 @@
             frames: frames
           )
       :EndIf
+    ∇
+
+    ∇ result←ListBots req
+      :Access Public
+      result←game.BotLib.List
+    ∇
+
+    ∇ result←UploadBot req;body;author;name;source;avatar
+      :Access Public
+      ⎕IO←0
+      :Trap 0
+          body←req.Payload
+          author←body.author
+          name←body.name
+          source←body.source
+          avatar←''
+          :If 0≠⎕NC'body.avatar'
+              avatar←body.avatar
+          :EndIf
+          result←game.BotLib.Upload author name source avatar
+          req.SetStatus 201
+      :Else
+          req.Fail 400
+          result←(error: ⎕DMX.Message)
+      :EndTrap
+    ∇
+
+    ∇ result←DeleteBot req;author;name
+      :Access Public
+      ⎕IO←0
+      :Trap 6
+          author←req.PathParams.author
+          name←req.PathParams.name
+          :If 0≠game.Rhobots.⎕NC⊂name
+              req.Fail 400
+              result←(error: 'Cannot delete a built-in bot')
+              :Return
+          :EndIf
+          game.BotLib.Delete author name
+          result←(deleted: author,'/',name)
+      :Else
+          req.Fail 404
+          result←(error: ⎕DMX.Message)
+      :EndTrap
     ∇
 
     ∇ result←MatchSummary m;a;h

@@ -1,0 +1,45 @@
+ r←Upload(author name source avatar);lines;tmpns;ns;overwritten;dir;path;meta;ens
+⍝ Upload a user bot: validate, save to disk, install into runtime
+ ⎕IO←0
+ ⍝ Reject if name matches a built-in
+ :If 0≠##.Rhobots.⎕NC⊂name
+     ⎕SIGNAL⊂('EN' 11)('Message'('Name conflicts with built-in bot: ',name))
+ :EndIf
+ ⍝ Validate source by fixing into a temp namespace
+ lines←(⎕UCS 10)(≠⊆⊢)source
+ tmpns←⎕NS''
+ :Trap 0
+     2 tmpns.⎕FIX lines
+ :Else
+     ⎕SIGNAL⊂('EN' 11)('Message'('Source failed to fix: ',⎕DMX.Message))
+ :EndTrap
+ ⍝ Check Init and Tick exist with correct valence
+ ns←tmpns⍎name
+ :If 3≠ns.⎕NC'Init'
+     ⎕SIGNAL⊂('EN' 11)('Message' 'Bot must define Init as a function')
+ :EndIf
+ :If 3≠ns.⎕NC'Tick'
+     ⎕SIGNAL⊂('EN' 11)('Message' 'Bot must define Tick as a function')
+ :EndIf
+ ⍝ Check overwrite
+ path←##.Cfg.USER_BOTS_PATH,'/',author,'/',name,'.apln'
+ overwritten←⎕NEXISTS path
+ ⍝ Ensure author dir exists and write files
+ dir←##.Cfg.USER_BOTS_PATH,'/',author
+ 3 ⎕MKDIR dir
+ (⊂source)⎕NPUT path 1
+ :If (⎕NULL≡avatar)∨(0=≢avatar)
+     avatar←''
+ :EndIf
+ meta←⎕JSON(author: author ⋄ created: (⍕⎕TS) ⋄ avatar: avatar)
+ (⊂meta)⎕NPUT(dir,'/',name,'.json')1
+ ⍝ Install into runtime
+ :If 0=##.⎕NC'UserBots'
+     'UserBots'##.⎕NS''
+ :EndIf
+ :If 0=##.UserBots.⎕NC⊂author
+     author ##.UserBots.⎕NS''
+ :EndIf
+ ens←##.UserBots⍎author
+ 2 ens.⎕FIX lines
+ r←(name: name ⋄ author: author ⋄ overwritten: overwritten)

@@ -1,0 +1,27 @@
+ {ok}←Delete(author name);path;jsonpath;dir;remaining
+⍝ Delete a user bot from disk and runtime
+ ⎕IO←0
+ path←##.Cfg.USER_BOTS_PATH,'/',author,'/',name,'.apln'
+ :If ~⎕NEXISTS path
+     ⎕SIGNAL⊂('EN' 6)('Message'('Bot not found: ',author,'/',name))
+ :EndIf
+ jsonpath←##.Cfg.USER_BOTS_PATH,'/',author,'/',name,'.json'
+ ⎕NDELETE path
+ :If ⎕NEXISTS jsonpath
+     ⎕NDELETE jsonpath
+ :EndIf
+ ⍝ Remove from runtime
+ :If 0≠##.⎕NC'UserBots'
+     :If 0≠##.UserBots.⎕NC⊂author
+         :If 0≠(##.UserBots⍎author).⎕NC⊂name
+             (##.UserBots⍎author).⎕EX name
+         :EndIf
+     :EndIf
+ :EndIf
+ ⍝ Clean up empty author dir
+ dir←##.Cfg.USER_BOTS_PATH,'/',author
+ remaining←0 ⎕NINFO⍠1⊢dir,'/*'
+ :If 0=≢remaining
+     ⎕NDELETE dir
+ :EndIf
+ ok←1

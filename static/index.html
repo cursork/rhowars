@@ -15,6 +15,19 @@ button.active { background: #555; border-color: #888; }
 canvas { border: 1px solid #333; }
 #status { margin-top: 10px; font-size: 13px; color: #888; }
 select, input[type=range] { background: #222; color: #eee; border: 1px solid #555; padding: 4px; font-family: monospace; }
+#bot-section { margin-top: 20px; width: 600px; }
+#bot-section h2 { font-size: 16px; margin-bottom: 8px; }
+#bot-section h3 { font-size: 13px; color: #888; margin: 8px 0 4px; }
+.bot-list { list-style: none; margin-bottom: 10px; }
+.bot-list li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #222; }
+.bot-list li .bot-avatar { width: 24px; height: 24px; border-radius: 4px; background: #333; }
+.bot-list li .bot-name { flex: 1; }
+.bot-list li button { font-size: 11px; padding: 2px 8px; }
+#upload-form { border: 1px solid #333; padding: 12px; margin-top: 10px; }
+#upload-form label { display: block; margin: 6px 0 2px; font-size: 12px; color: #888; }
+#upload-form input, #upload-form textarea { width: 100%; background: #222; color: #eee; border: 1px solid #555; padding: 4px; font-family: monospace; font-size: 12px; }
+#upload-form textarea { height: 150px; resize: vertical; }
+#upload-status { margin-top: 8px; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -29,6 +42,31 @@ select, input[type=range] { background: #222; color: #eee; border: 1px solid #55
 <div id="info"></div>
 <canvas id="arena" width="600" height="600"></canvas>
 <div id="status"></div>
+
+<div id="bot-section">
+  <h2>Available Bots</h2>
+  <h3>Built-in</h3>
+  <ul id="builtin-bots" class="bot-list"></ul>
+  <h3>User Bots</h3>
+  <ul id="user-bots" class="bot-list"></ul>
+
+  <div id="upload-form">
+    <h3>Upload Bot</h3>
+    <label>Author</label>
+    <input type="text" id="upload-author" placeholder="your-name">
+    <label>Bot Name</label>
+    <input type="text" id="upload-name" placeholder="MyBot">
+    <label>Source (.apln)</label>
+    <textarea id="upload-source" placeholder=":Namespace MyBot&#10;    ∇ state←Init&#10;      state←⎕NS⍬&#10;    ∇&#10;    ∇ actions←Tick input&#10;      actions←⎕NS⍬&#10;      actions.state←input.state&#10;    ∇&#10;:EndNamespace"></textarea>
+    <label>Avatar (optional)</label>
+    <input type="file" id="upload-avatar" accept="image/*">
+    <div style="margin-top: 8px;">
+      <button id="btnUpload">Upload</button>
+    </div>
+    <div id="upload-status"></div>
+  </div>
+</div>
+
 <script src="arena.js"></script>
 </body>
 </html>

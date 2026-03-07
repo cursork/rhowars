@@ -183,6 +183,106 @@ function render() {
   document.getElementById('info').innerHTML = info;
 }
 
+// === Bot Management ===
+
+async function loadBots() {
+  try {
+    const resp = await fetch(`${API}/api/bots`);
+    const data = await resp.json();
+
+    const builtinList = document.getElementById('builtin-bots');
+    builtinList.innerHTML = '';
+    for (const bot of data.builtin) {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="bot-name">${bot.name}</span>`;
+      builtinList.appendChild(li);
+    }
+
+    const userList = document.getElementById('user-bots');
+    userList.innerHTML = '';
+    if (data.user.length === 0) {
+      userList.innerHTML = '<li style="color:#555">No user bots uploaded yet</li>';
+    } else {
+      for (const bot of data.user) {
+        const li = document.createElement('li');
+        const avatarHtml = bot.avatar && bot.avatar.length > 0
+          ? `<img class="bot-avatar" src="${bot.avatar}">`
+          : `<div class="bot-avatar"></div>`;
+        li.innerHTML = `${avatarHtml}<span class="bot-name">${bot.author}/${bot.name}</span>` +
+          `<button onclick="deleteBot('${bot.author}','${bot.name}')">Delete</button>`;
+        userList.appendChild(li);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load bots:', e);
+  }
+}
+
+document.getElementById('btnUpload').onclick = async () => {
+  const author = document.getElementById('upload-author').value.trim();
+  const name = document.getElementById('upload-name').value.trim();
+  const source = document.getElementById('upload-source').value;
+  const statusEl = document.getElementById('upload-status');
+
+  if (!author || !name || !source) {
+    statusEl.textContent = 'Please fill in author, name, and source.';
+    statusEl.style.color = '#f44';
+    return;
+  }
+
+  const payload = { author, name, source };
+
+  const fileInput = document.getElementById('upload-avatar');
+  if (fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    const dataUri = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+    payload.avatar = dataUri;
+  }
+
+  try {
+    const resp = await fetch(`${API}/api/bots`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+    if (resp.ok) {
+      statusEl.style.color = '#4f4';
+      statusEl.textContent = result.overwritten
+        ? `Updated ${result.author}/${result.name}`
+        : `Uploaded ${result.author}/${result.name}`;
+      loadBots();
+    } else {
+      statusEl.style.color = '#f44';
+      statusEl.textContent = result.error || 'Upload failed';
+    }
+  } catch (e) {
+    statusEl.style.color = '#f44';
+    statusEl.textContent = 'Error: ' + e.message;
+  }
+};
+
+async function deleteBot(author, name) {
+  if (!confirm(`Delete ${author}/${name}?`)) return;
+  try {
+    const resp = await fetch(`${API}/api/bots/${author}/${name}`, { method: 'DELETE' });
+    if (resp.ok) {
+      loadBots();
+    } else {
+      const result = await resp.json();
+      alert(result.error || 'Delete failed');
+    }
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+loadBots();
+
 // Handle keyboard
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {

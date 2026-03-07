@@ -1,0 +1,27 @@
+ {n}←LoadAll;base;items;a;parts;aname;files;f;name
+⍝ Load all user bots from disk into ##.UserBots
+ ⎕IO←0
+ n←0
+ base←##.Cfg.USER_BOTS_PATH
+ :If ~⎕NEXISTS base
+     :Return
+ :EndIf
+ :If 0=##.⎕NC'UserBots'
+     'UserBots'##.⎕NS''
+ :EndIf
+ items←⊃0 ⎕NINFO⍠1⊢base,'/*'
+ :For a :In items
+     parts←⎕NPARTS a
+     aname←1⊃parts
+     :If '.'=⊃aname
+         :Continue
+     :EndIf
+     files←⊃0 ⎕NINFO⍠1⊢a,'/*.apln'
+     :For f :In files
+         parts←⎕NPARTS f
+         name←1⊃parts
+         :If 1=LoadOne(aname name)
+             n+←1
+         :EndIf
+     :EndFor
+ :EndFor

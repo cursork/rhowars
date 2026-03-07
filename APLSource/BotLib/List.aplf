@@ -1,0 +1,34 @@
+ r←List;builtin;user;base;items;a;parts;aname;files;f;bname;meta;jsonpath;avatar
+⍝ List all available bots (built-in + user)
+ ⎕IO←0
+ builtin←{(name: ⍵)}¨##.Rhobots.⎕NL ¯9
+ user←⍬
+ base←##.Cfg.USER_BOTS_PATH
+ :If ⎕NEXISTS base
+     items←⊃0 ⎕NINFO⍠1⊢base,'/*'
+     :For a :In items
+         parts←⎕NPARTS a
+         aname←1⊃parts
+         :If '.'=⊃aname
+             :Continue
+         :EndIf
+         files←⊃0 ⎕NINFO⍠1⊢a,'/*.apln'
+         :For f :In files
+             parts←⎕NPARTS f
+             bname←1⊃parts
+             avatar←''
+             jsonpath←a,'/',bname,'.json'
+             :If ⎕NEXISTS jsonpath
+                 :Trap 0
+                     meta←⎕JSON⊃⎕NGET jsonpath 1
+                     :If 0≠⎕NC'meta.avatar'
+                         avatar←meta.avatar
+                     :EndIf
+                 :Else
+                 :EndTrap
+             :EndIf
+             user,←⊂(name: bname ⋄ author: aname ⋄ avatar: avatar)
+         :EndFor
+     :EndFor
+ :EndIf
+ r←(builtin: builtin ⋄ user: user)

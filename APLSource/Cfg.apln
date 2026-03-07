@@ -11,4 +11,5 @@
     COOLDOWN←5
     BOT_TIMEOUT←100
     MAX_TURNS←2000
+    USER_BOTS_PATH←'UserBots'
 :EndNamespace

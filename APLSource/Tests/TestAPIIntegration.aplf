@@ -1,4 +1,4 @@
- TestAPIIntegration dummy;app;r;body;port;base
+ TestAPIIntegration dummy;app;r;body;port;base;src;nl;payload
 ⍝ Integration tests for the API using HttpCommand against a running server
  ⎕IO←0
  ⎕SE.SALT.Load'HttpCommand'
@@ -58,8 +58,81 @@
      Assert 'POST 3 bots → 201' (201=r.HttpStatus)
      body←⎕JSON r.Data
      Assert '3 names' (3=≢body.names)
+
+     ⍝ ========== Bot CRUD tests ==========
+     nl←⎕UCS 10
+     src←':Namespace TestBot',nl,'∇ state←Init',nl,'state←⎕NS⍬',nl,'∇',nl,'∇ actions←Tick input',nl,'actions←⎕NS⍬',nl,'actions.state←input.state',nl,'∇',nl,':EndNamespace'
+
+     ⍝ --- GET /api/bots → 200, has builtin ---
+     r←HttpCommand.Get base,'/api/bots'
+     Assert 'GET bots → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'has builtin' (0≠⎕NC'body.builtin')
+     Assert 'has user' (0≠⎕NC'body.user')
+     Assert '2 builtin bots' (2=≢body.builtin)
+
+     ⍝ --- POST /api/bots with valid source → 201 ---
+     payload←⎕JSON(author: 'testuser' ⋄ name: 'TestBot' ⋄ source: src)
+     r←HttpCommand.Do'POST'(base,'/api/bots')payload('content-type' 'application/json')
+     Assert 'POST bot → 201' (201=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'not overwritten' (0=body.overwritten)
+     Assert 'name matches' ('TestBot'≡body.name)
+
+     ⍝ --- GET /api/bots → user array has uploaded bot ---
+     r←HttpCommand.Get base,'/api/bots'
+     body←⎕JSON r.Data
+     Assert 'user has 1 bot' (1=≢body.user)
+     Assert 'user bot name' ('TestBot'≡(⊃body.user).name)
+     Assert 'user bot author' ('testuser'≡(⊃body.user).author)
+
+     ⍝ --- POST /api/bots same name → 201, overwritten ---
+     r←HttpCommand.Do'POST'(base,'/api/bots')payload('content-type' 'application/json')
+     Assert 'POST bot overwrite → 201' (201=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'overwritten flag' (1=body.overwritten)
+
+     ⍝ --- POST /api/bots with built-in name → 400 ---
+     src←':Namespace Spinner',nl,'∇ state←Init',nl,'state←⎕NS⍬',nl,'∇',nl,'∇ actions←Tick input',nl,'actions←⎕NS⍬',nl,'∇',nl,':EndNamespace'
+     payload←⎕JSON(author: 'testuser' ⋄ name: 'Spinner' ⋄ source: src)
+     r←HttpCommand.Do'POST'(base,'/api/bots')payload('content-type' 'application/json')
+     Assert 'POST builtin name → 400' (400=r.HttpStatus)
+
+     ⍝ --- POST /api/bots with invalid source → 400 ---
+     payload←⎕JSON(author: 'testuser' ⋄ name: 'BadBot' ⋄ source: 'this is not valid APL')
+     r←HttpCommand.Do'POST'(base,'/api/bots')payload('content-type' 'application/json')
+     Assert 'POST invalid source → 400' (400=r.HttpStatus)
+
+     ⍝ --- POST /api/match with user bot → 201 ---
+     payload←⎕JSON(bots: 'Spinner' 'testuser/TestBot')
+     r←HttpCommand.Do'POST'(base,'/api/match')payload('content-type' 'application/json')
+     Assert 'POST match with user bot → 201' (201=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'match done' (1=body.done)
+
+     ⍝ --- DELETE /api/bots/testuser/TestBot → 200 ---
+     r←HttpCommand.Do'DELETE'(base,'/api/bots/testuser/TestBot')'' ''
+     Assert 'DELETE bot → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'deleted name' ('testuser/TestBot'≡body.deleted)
+
+     ⍝ --- DELETE again → 404 ---
+     r←HttpCommand.Do'DELETE'(base,'/api/bots/testuser/TestBot')'' ''
+     Assert 'DELETE again → 404' (404=r.HttpStatus)
+
+     ⍝ --- GET /api/bots → user array empty ---
+     r←HttpCommand.Get base,'/api/bots'
+     body←⎕JSON r.Data
+     Assert 'user empty after delete' (0=≢body.user)
+
  :Else
      app.Stop
      ⎕DMX.EM ⎕SIGNAL ⎕DMX.EN
+ :EndTrap
+ ⍝ Cleanup test bot files on success
+ :Trap 0
+     ⎕NDELETE'UserBots/testuser/TestBot.apln'
+     ⎕NDELETE'UserBots/testuser/TestBot.json'
+ :Else
  :EndTrap
  app.Stop

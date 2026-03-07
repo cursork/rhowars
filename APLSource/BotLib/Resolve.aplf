@@ -1,0 +1,24 @@
+ ns←Resolve name;parts;author;bot
+⍝ Resolve a bot name to its namespace
+⍝ "Spinner" → ##.Rhobots.Spinner (built-in)
+⍝ "cursork/RagingMadness" → ##.UserBots.cursork.RagingMadness (user)
+ ⎕IO←0
+ :If '/'∊name
+     parts←'/'(≠⊆⊢)name
+     (author bot)←parts
+     :If 0=##.⎕NC'UserBots'
+         ⎕SIGNAL⊂('EN' 6)('Message'('Bot not found: ',name))
+     :EndIf
+     :If 0=##.UserBots.⎕NC⊂author
+         ⎕SIGNAL⊂('EN' 6)('Message'('Bot not found: ',name))
+     :EndIf
+     :If 0=(##.UserBots⍎author).⎕NC⊂bot
+         ⎕SIGNAL⊂('EN' 6)('Message'('Bot not found: ',name))
+     :EndIf
+     ns←(##.UserBots⍎author)⍎bot
+ :Else
+     :If 0=##.Rhobots.⎕NC⊂name
+         ⎕SIGNAL⊂('EN' 6)('Message'('Bot not found: ',name))
+     :EndIf
+     ns←##.Rhobots⍎name
+ :EndIf
