@@ -1,4 +1,4 @@
- actions←Tick input;s;x;y;w;h;r;corners;dists;ci;cx;cy;dx;dy;vis;rhobots;nIdx;halfAngle;mask;tcx;tcy
+ actions←Tick input;s;x;y;w;h;r;corners;dists;ci;cx;cy;dx;dy;vis;rhobots;nIdx;halfAngle;mask;tcx;tcy;others
 ⍝ Coward: run to nearest corner, sweep turret over inward quadrant, fire and flee on sight
  ⎕IO←0
  actions←()
@@ -62,11 +62,10 @@
          nIdx←rhobots[;0]⍳⌊/rhobots[;0]
          actions.turret←360|input.turret+rhobots[nIdx;1]
          actions.fire←1
-         ⍝ Flee to nearest OTHER corner
-         dists←+/((corners-⍤1⊢x y)*2)
+         ⍝ Flee to a random OTHER corner
          mask←~∧/corners=⍤1⊢cx cy
-         dists←dists+((~mask)×1E10)
-         ci←dists⍳⌊/dists
+         others←⍸mask
+         ci←others[?≢others]
          s.desired←corners[ci;]
          actions.speed←1
          actions.state←s

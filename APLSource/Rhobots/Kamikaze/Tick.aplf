@@ -1,9 +1,10 @@
- actions←Tick input;s;vis;rhobots;nIdx;targetAngle
-⍝ Kamikaze: charge at nearest visible rhobot whilst firing
+ actions←Tick input;s;vis;rhobots;nIdx;targetAngle;x;y;w;h;r;spd;vr;diag;R;turnRate;margin;cx;cy;centreAngle;diff;nearWall
+⍝ Kamikaze: two patrol circles, charge at visible rhobots
  ⎕IO←0
  actions←()
  s←input.state
  vis←input.visible
+ ⍝ If we see a rhobot — charge straight at it and fire
  :If 0<≢vis
      rhobots←(vis[;2]=0)⌿vis
      :If 0<≢rhobots
@@ -12,12 +13,44 @@
          actions.direction←targetAngle
          actions.turret←targetAngle
          actions.fire←1
+         actions.speed←1
          actions.state←s
          :Return
      :EndIf
  :EndIf
- ⍝ Nothing visible — wander and sweep turret looking for targets
- actions.direction←s.dir
+ ⍝ No target — patrol in a circle
+ x y←input.loc
+ w h←input.arena
+ r←10 ⋄ spd←5 ⋄ vr←300
+ :If 0≠⎕NC'input.cfg'
+     r←input.cfg.botRadius
+     spd←input.cfg.botSpeed
+     vr←input.cfg.visionRange
+ :EndIf
+ ⍝ Pattern 0: tight circle near centre (R≈150)
+ ⍝ Pattern 1: wide circle that sees into corners (R = diagonal - visionRange)
+ diag←(((w÷2)*2)+((h÷2)*2))*0.5
+ :If s.pattern=0
+     R←50⌈diag×0.2
+ :Else
+     R←50⌈diag-vr
+ :EndIf
+ turnRate←(180÷○1)×spd÷R
+ ⍝ Steer toward centre when near walls to keep the circle inside the arena
+ margin←r×15
+ nearWall←(x<margin)∨(x>(w-margin))∨(y<margin)∨(y>(h-margin))
+ :If nearWall
+     cx←(w÷2)-x ⋄ cy←(h÷2)-y
+     centreAngle←(180÷○1)×12○(0J1×cx)+cy
+     diff←360|centreAngle-s.heading
+     :If diff>180 ⋄ diff←diff-360 ⋄ :EndIf
+     s.heading←360|s.heading+diff×0.3
+ :Else
+     s.heading←360|s.heading+turnRate
+ :EndIf
+ actions.direction←s.heading
+ actions.speed←1
+ ⍝ Sweep turret for wider coverage
  actions.turret←360|input.turret+s.sweepDir
  actions.fire←0
  actions.state←s

@@ -1,7 +1,8 @@
- bots←CollideBots bots;N;i;j;dx;dy;dist;sep;overlap;push
-⍝ Push overlapping alive bots apart (bounce back)
+ bots←CollideBots bots;N;i;j;dx;dy;dist;sep;bounce;push
+⍝ Push overlapping alive bots apart (hard bounce + damage)
  ⎕IO←0
  sep←2×##.Cfg.BOT_RADIUS
+ bounce←sep×##.Cfg.COLLISION_BOUNCE
  N←≢bots
  :For i :In ⍳N-1
      :If bots[i;7]
@@ -11,12 +12,14 @@
                  dy←bots[j;2]-bots[i;2]
                  dist←((dx*2)+dy*2)*0.5
                  :If dist<sep
+                     ⍝ Collision damage
+                     bots[i;5]-←##.Cfg.COLLISION_DAMAGE
+                     bots[j;5]-←##.Cfg.COLLISION_DAMAGE
                      :If dist=0
-                         bots[i;1]-←sep÷2
-                         bots[j;1]+←sep÷2
+                         bots[i;1]-←bounce÷2
+                         bots[j;1]+←bounce÷2
                      :Else
-                         overlap←(sep-dist)÷2
-                         push←overlap÷dist
+                         push←(bounce÷2)÷dist
                          bots[i;1]-←push×dx
                          bots[i;2]-←push×dy
                          bots[j;1]+←push×dx

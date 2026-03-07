@@ -44,4 +44,10 @@
  input.visible←0 3⍴0
  input.state←##.Rhobots.Coward.Init
  actions←##.Rhobots.Coward.Tick input
- Assert 'narrow cone sweep' (25=actions.state.sweepMax)
+ Assert 'narrow cone sweep wider' (actions.state.sweepMax≥45)
+ ⍝ Default config (halfAngle=45) should still sweep
+ cfg.visionHalfAngle←45
+ input.cfg←cfg
+ input.state←##.Rhobots.Coward.Init
+ actions←##.Rhobots.Coward.Tick input
+ Assert 'default config sweeps' (actions.state.sweepMax≥45)

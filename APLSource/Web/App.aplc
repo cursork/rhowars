@@ -161,6 +161,8 @@
         visionRange: game.Cfg.VISION_RANGE
         visionHalfAngle: game.Cfg.VISION_HALF_ANGLE
         cooldown: game.Cfg.COOLDOWN
+        collisionDamage: game.Cfg.COLLISION_DAMAGE
+        collisionBounce: game.Cfg.COLLISION_BOUNCE
         maxTurns: game.Cfg.MAX_TURNS
       )
     ∇
@@ -177,12 +179,15 @@
         VISION_RANGE: game.Cfg.VISION_RANGE
         VISION_HALF_ANGLE: game.Cfg.VISION_HALF_ANGLE
         COOLDOWN: game.Cfg.COOLDOWN
+        COLLISION_DAMAGE: game.Cfg.COLLISION_DAMAGE
+        COLLISION_BOUNCE: game.Cfg.COLLISION_BOUNCE
         MAX_TURNS: game.Cfg.MAX_TURNS
       )
     ∇
 
-    ∇ ApplyCfg cfg
+    ∇ {r}←ApplyCfg cfg
       :Access Private
+      r←⍬
       :If 0≠⎕NC'cfg.arena'          ⋄ game.Cfg.ARENA←cfg.arena                       ⋄ :EndIf
       :If 0≠⎕NC'cfg.botSpeed'       ⋄ game.Cfg.BOT_SPEED←cfg.botSpeed                ⋄ :EndIf
       :If 0≠⎕NC'cfg.botHP'          ⋄ game.Cfg.BOT_HP←cfg.botHP                      ⋄ :EndIf
@@ -192,6 +197,8 @@
       :If 0≠⎕NC'cfg.visionRange'    ⋄ game.Cfg.VISION_RANGE←cfg.visionRange           ⋄ :EndIf
       :If 0≠⎕NC'cfg.visionHalfAngle' ⋄ game.Cfg.VISION_HALF_ANGLE←cfg.visionHalfAngle ⋄ :EndIf
       :If 0≠⎕NC'cfg.cooldown'       ⋄ game.Cfg.COOLDOWN←cfg.cooldown                  ⋄ :EndIf
+      :If 0≠⎕NC'cfg.collisionDamage' ⋄ game.Cfg.COLLISION_DAMAGE←cfg.collisionDamage  ⋄ :EndIf
+      :If 0≠⎕NC'cfg.collisionBounce' ⋄ game.Cfg.COLLISION_BOUNCE←cfg.collisionBounce  ⋄ :EndIf
       :If 0≠⎕NC'cfg.maxTurns'       ⋄ game.Cfg.MAX_TURNS←cfg.maxTurns                 ⋄ :EndIf
     ∇
 
@@ -201,8 +208,9 @@
       result←GetConfig req
     ∇
 
-    ∇ RestoreCfg saved
+    ∇ {r}←RestoreCfg saved
       :Access Private
+      r←⍬
       game.Cfg.ARENA←saved.ARENA
       game.Cfg.BOT_SPEED←saved.BOT_SPEED
       game.Cfg.BOT_HP←saved.BOT_HP
@@ -212,6 +220,8 @@
       game.Cfg.VISION_RANGE←saved.VISION_RANGE
       game.Cfg.VISION_HALF_ANGLE←saved.VISION_HALF_ANGLE
       game.Cfg.COOLDOWN←saved.COOLDOWN
+      game.Cfg.COLLISION_DAMAGE←saved.COLLISION_DAMAGE
+      game.Cfg.COLLISION_BOUNCE←saved.COLLISION_BOUNCE
       game.Cfg.MAX_TURNS←saved.MAX_TURNS
     ∇
 

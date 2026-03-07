@@ -2,5 +2,5 @@
 INIT.md
 CLAUDE.md
 UserBots/*
-!UserBots/.gitkeep
 aplcore
+.earwig

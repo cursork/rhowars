@@ -1,0 +1,64 @@
+ actions←Tick input;s;vis;rhobots;nIdx;dist;offset;targetAngle;perpAngle;x;y;w;h;r;spd;vr;cx;cy;centreAngle;centreDist;orbitR;diff;margin;nearWall
+⍝ Orbiter: strafe around targets while firing, orbit centre when idle
+ ⎕IO←0
+ actions←()
+ s←input.state
+ x y←input.loc
+ w h←input.arena
+ r←10 ⋄ spd←5 ⋄ vr←300
+ :If 0≠⎕NC'input.cfg'
+     r←input.cfg.botRadius
+     spd←input.cfg.botSpeed
+     vr←input.cfg.visionRange
+ :EndIf
+ vis←input.visible
+ ⍝ If we see a rhobot — orbit around it while firing
+ :If 0<≢vis
+     rhobots←(vis[;2]=0)⌿vis
+     :If 0<≢rhobots
+         nIdx←rhobots[;0]⍳⌊/rhobots[;0]
+         dist←rhobots[nIdx;0]
+         offset←rhobots[nIdx;1]
+         targetAngle←360|input.turret+offset
+         actions.turret←targetAngle
+         actions.fire←1
+         ⍝ Move perpendicular to target (orbit), with slight inward/outward drift
+         perpAngle←360|targetAngle+(s.orbitDir×90)
+         ⍝ If too close, push outward; if too far, pull inward
+         :If dist<vr×0.4
+             perpAngle←360|perpAngle+(s.orbitDir×-30)
+         :ElseIf dist>vr×0.8
+             perpAngle←360|perpAngle+(s.orbitDir×30)
+         :EndIf
+         actions.direction←perpAngle
+         actions.speed←1
+         actions.state←s
+         :Return
+     :EndIf
+ :EndIf
+ ⍝ No target — orbit around arena centre
+ cx←(w÷2)-x ⋄ cy←(h÷2)-y
+ centreAngle←(180÷○1)×12○(0J1×cx)+cy
+ centreDist←((cx*2)+cy*2)*0.5
+ orbitR←(⌊/w h)×0.3
+ ⍝ Perpendicular to centre + drift inward/outward to hold radius
+ perpAngle←360|centreAngle+(s.orbitDir×90)
+ :If centreDist>orbitR+30
+     perpAngle←360|perpAngle+(s.orbitDir×-25)
+ :ElseIf centreDist<orbitR-30
+     perpAngle←360|perpAngle+(s.orbitDir×25)
+ :EndIf
+ ⍝ Wall avoidance — steer toward centre when near edges
+ margin←r×15
+ nearWall←(x<margin)∨(x>(w-margin))∨(y<margin)∨(y>(h-margin))
+ :If nearWall
+     diff←360|centreAngle-perpAngle
+     :If diff>180 ⋄ diff←diff-360 ⋄ :EndIf
+     perpAngle←360|perpAngle+diff×0.4
+ :EndIf
+ actions.direction←perpAngle
+ actions.speed←1
+ ⍝ Sweep turret forward looking for targets
+ actions.turret←360|input.turret+(s.orbitDir×5)
+ actions.fire←0
+ actions.state←s

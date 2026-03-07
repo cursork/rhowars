@@ -1,12 +1,18 @@
- TestCollideBots dummy;bots;r;sep
-⍝ Test bot-bot collision (push apart)
+ TestCollideBots dummy;bots;r;sep;dmg;expectedHP
+⍝ Test bot-bot collision (bounce + damage)
  ⎕IO←0
  sep←2×##.Cfg.BOT_RADIUS
- ⍝ Two overlapping bots — should be pushed apart
+ dmg←##.Cfg.COLLISION_DAMAGE
+ expectedHP←100-dmg
+ ⍝ Two overlapping bots — should bounce apart and take damage
  bots←2 8⍴ 1 100 100 0 0 100 0 1, 2 105 100 0 0 100 0 1
  r←##.Engine.CollideBots bots
  Assert 'bots pushed apart' (sep≤((((r[1;1]-r[0;1])*2)+(r[1;2]-r[0;2])*2)*0.5))
- ⍝ Two non-overlapping bots — should not move
+ Assert 'bot 0 took damage' (expectedHP=r[0;5])
+ Assert 'bot 1 took damage' (expectedHP=r[1;5])
+ ⍝ Bounce should exceed separation (COLLISION_BOUNCE > 1)
+ Assert 'bounce exceeds sep' (sep<((((r[1;1]-r[0;1])*2)+(r[1;2]-r[0;2])*2)*0.5))
+ ⍝ Two non-overlapping bots — should not move or take damage
  bots←2 8⍴ 1 100 100 0 0 100 0 1, 2 200 200 0 0 100 0 1
  r←##.Engine.CollideBots bots
  Assert 'far bots unchanged' (bots≡r)
@@ -18,3 +24,4 @@
  bots←2 8⍴ 1 100 100 0 0 100 0 1, 2 100 100 0 0 100 0 1
  r←##.Engine.CollideBots bots
  Assert 'same pos separated' (sep≤((((r[1;1]-r[0;1])*2)+(r[1;2]-r[0;2])*2)*0.5))
+ Assert 'same pos damage' (expectedHP=r[0;5])

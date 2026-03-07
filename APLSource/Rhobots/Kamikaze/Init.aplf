@@ -1,5 +1,7 @@
  state←Init
-⍝ Kamikaze: charge at visible rhobots, fire constantly
+⍝ Kamikaze: patrol in circles (centre or corner-sweep), charge on sight
+ ⎕IO←0
  state←()
- state.dir←?360
+ state.heading←?360
+ state.pattern←?2
  state.sweepDir←7

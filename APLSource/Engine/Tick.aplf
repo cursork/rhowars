@@ -20,7 +20,7 @@
      input.hp←bots[idx;5]
      input.arena←##.Cfg.ARENA
      input.state←idx⊃match.states
-     input.cfg←(botSpeed: ##.Cfg.BOT_SPEED ⋄ botHP: ##.Cfg.BOT_HP ⋄ botRadius: ##.Cfg.BOT_RADIUS ⋄ bulletSpeed: ##.Cfg.BULLET_SPEED ⋄ bulletDamage: ##.Cfg.BULLET_DAMAGE ⋄ visionRange: ##.Cfg.VISION_RANGE ⋄ visionHalfAngle: ##.Cfg.VISION_HALF_ANGLE ⋄ cooldown: ##.Cfg.COOLDOWN ⋄ maxTurns: ##.Cfg.MAX_TURNS)
+     input.cfg←(botSpeed: ##.Cfg.BOT_SPEED ⋄ botHP: ##.Cfg.BOT_HP ⋄ botRadius: ##.Cfg.BOT_RADIUS ⋄ bulletSpeed: ##.Cfg.BULLET_SPEED ⋄ bulletDamage: ##.Cfg.BULLET_DAMAGE ⋄ visionRange: ##.Cfg.VISION_RANGE ⋄ visionHalfAngle: ##.Cfg.VISION_HALF_ANGLE ⋄ cooldown: ##.Cfg.COOLDOWN ⋄ collisionDamage: ##.Cfg.COLLISION_DAMAGE ⋄ collisionBounce: ##.Cfg.COLLISION_BOUNCE ⋄ maxTurns: ##.Cfg.MAX_TURNS)
      ns←idx⊃match.botns
      act←ns ##.Bot.CallTick input
      actions[idx]←⊂act

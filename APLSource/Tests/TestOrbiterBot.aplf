@@ -1,0 +1,24 @@
+ TestOrbiterBot dummy;input;actions;cfg;d1;d2
+⍝ Test Orbiter bot behavior
+ ⎕IO←0
+ cfg←(botSpeed: 5 ⋄ botHP: 100 ⋄ botRadius: 10 ⋄ bulletSpeed: 20 ⋄ bulletDamage: 20 ⋄ visionRange: 300 ⋄ visionHalfAngle: 45 ⋄ cooldown: 5 ⋄ maxTurns: 2000)
+ input←(loc: 500 500 ⋄ direction: 0 ⋄ turret: 90 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ##.Rhobots.Orbiter.Init ⋄ cfg: cfg)
+ ⍝ No target — orbits centre, no fire
+ actions←##.Rhobots.Orbiter.Tick input
+ Assert 'no fire when blind' (0=actions.fire)
+ Assert 'moves when idle' (1=actions.speed)
+ d1←actions.direction
+ ⍝ Second tick from different position — direction changes
+ input.state←actions.state
+ input.loc←300 300
+ actions←##.Rhobots.Orbiter.Tick input
+ d2←actions.direction
+ Assert 'direction changes with position' (d1≠d2)
+ ⍝ Rhobot visible — fires and strafes
+ input.visible←1 3⍴ 200 15 0
+ actions←##.Rhobots.Orbiter.Tick input
+ Assert 'fires at target' (1=actions.fire)
+ Assert 'turret aims at target' (105=actions.turret)
+ Assert 'moves while fighting' (1=actions.speed)
+ ⍝ Direction should be roughly perpendicular to target, not straight at it
+ Assert 'not charging straight' (105≠actions.direction)

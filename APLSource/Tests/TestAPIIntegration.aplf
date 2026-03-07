@@ -1,7 +1,12 @@
- TestAPIIntegration dummy;app;r;body;port;base;src;nl;payload
+ TestAPIIntegration dummy;app;r;body;port;base;src;nl;payload;savedPath;tmpDir
 ⍝ Integration tests for the API using HttpCommand against a running server
  ⎕IO←0
  ⎕SE.SALT.Load'HttpCommand'
+ ⍝ Use a temp directory for UserBots so tests never touch real uploads
+ savedPath←##.Cfg.USER_BOTS_PATH
+ tmpDir←(739⌶0),'/rhowars-test-bots'
+ 3 ⎕MKDIR tmpDir
+ ##.Cfg.USER_BOTS_PATH←tmpDir
  port←18080+?100
  base←'http://localhost:',⍕port
  app←⎕NEW ##.Web.App (#.stark.Stark ##)
@@ -125,14 +130,29 @@
      body←⎕JSON r.Data
      Assert 'user empty after delete' (0=≢body.user)
 
+     ⍝ ========== Config endpoint tests ==========
+
+     ⍝ --- GET /api/config → 200, has all fields ---
+     r←HttpCommand.Get base,'/api/config'
+     Assert 'GET config → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'config has arena' (0≠⎕NC'body.arena')
+     Assert 'config has botSpeed' (0≠⎕NC'body.botSpeed')
+     Assert 'config has collisionDamage' (0≠⎕NC'body.collisionDamage')
+     Assert 'config has collisionBounce' (0≠⎕NC'body.collisionBounce')
+
+     ⍝ --- POST /api/config/reset → 200, returns config ---
+     r←HttpCommand.Do'POST'(base,'/api/config/reset')'' ''
+     Assert 'POST config/reset → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'reset returns arena' (0≠⎕NC'body.arena')
+
  :Else
      app.Stop
+     ##.Cfg.USER_BOTS_PATH←savedPath
+     3 ⎕NDELETE tmpDir
      ⎕DMX.EM ⎕SIGNAL ⎕DMX.EN
  :EndTrap
- ⍝ Cleanup test bot files on success
- :Trap 0
-     ⎕NDELETE'UserBots/testuser/TestBot.apln'
-     ⎕NDELETE'UserBots/testuser/TestBot.json'
- :Else
- :EndTrap
  app.Stop
+ ##.Cfg.USER_BOTS_PATH←savedPath
+ 3 ⎕NDELETE tmpDir

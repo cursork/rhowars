@@ -6,9 +6,19 @@ let frame = 0;
 let playing = false;
 let playTimer = null;
 let matchLineup = []; // array of bot identifiers for the match
+let deathTurns = [];  // per-bot death turn (-1 = alive)
 
 const BOT_COLORS = ['#4af', '#f44', '#4f4', '#ff4', '#f4f', '#4ff'];
 const BULLET_COLOR = '#fa0';
+
+function shortName(full) {
+  const parts = full.split('.');
+  // User bots: ...UserBots.author.Name → author/Name
+  const ub = parts.indexOf('UserBots');
+  if (ub !== -1 && parts.length > ub + 2) return parts[ub + 1] + '/' + parts[ub + 2];
+  // Built-in: last segment
+  return parts.pop();
+}
 
 const API = '';
 
@@ -54,7 +64,7 @@ function renderAvailableBots(elId, bots) {
         : `<div class="bot-avatar"></div>`;
     }
     html += `<span class="bot-name">${bot.builtin ? bot.name : bot.id}</span>`;
-    html += `<button class="bot-add" title="Add to match">+</button>`;
+    html += `<button class="bot-add" title="Add to rhowar">+</button>`;
     if (!bot.builtin) {
       html += `<button class="bot-delete" data-author="${bot.author}" data-name="${bot.name}" title="Delete bot">&times;</button>`;
     }
@@ -90,7 +100,7 @@ function renderLineup() {
   const ul = document.getElementById('lineup-list');
   ul.innerHTML = '';
   if (matchLineup.length === 0) {
-    ul.innerHTML = '<li class="bot-empty">Click + to add rhobots</li>';
+    ul.innerHTML = '<li class="bot-empty">Click + to add rhobots to the rhowar</li>';
   } else {
     matchLineup.forEach((id, i) => {
       const li = document.createElement('li');
@@ -110,7 +120,13 @@ function renderLineup() {
 
 document.getElementById('btnStartMatch').onclick = async () => {
   if (matchLineup.length < 2) return;
-  document.getElementById('status').textContent = 'Running match...';
+  document.getElementById('status').textContent = 'Running rhowar...';
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('timeline-row').style.display = 'none';
+  document.getElementById('loading-overlay').classList.remove('show');
+  document.getElementById('ready-overlay').classList.remove('show');
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('loading-overlay').classList.add('show');
   try {
     const matchResp = await fetch(`${API}/api/match`, {
       method: 'POST',
@@ -130,12 +146,36 @@ document.getElementById('btnStartMatch').onclick = async () => {
     clearInterval(playTimer);
     timeline.max = data.frames.length - 1;
     timeline.value = 0;
+    // Pre-compute death turns
+    deathTurns = new Array(data.names.length).fill(-1);
+    for (let t = 1; t < data.frames.length; t++) {
+      const prev = data.frames[t - 1].bots;
+      const curr = data.frames[t].bots;
+      for (let i = 0; i < data.names.length; i++) {
+        if (deathTurns[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
+          deathTurns[i] = curr[0].length ? t : t; // turn index
+        }
+      }
+    }
     document.getElementById('status').textContent =
-      `Match loaded: ${data.turns} turns, ${data.names.length} bots`;
+      `Rhowar loaded: ${data.turns} turns, ${data.names.length} rhobots`;
     render();
+    document.getElementById('loading-overlay').classList.remove('show');
+    document.getElementById('ready-overlay').classList.add('show');
   } catch (e) {
+    document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('status').textContent = 'Error: ' + e.message;
   }
+};
+
+document.getElementById('btnWatch').onclick = () => {
+  document.getElementById('ready-overlay').classList.remove('show');
+  document.getElementById('controls').style.display = 'flex';
+  document.getElementById('timeline-row').style.display = 'block';
+  frame = 0;
+  playing = true;
+  document.getElementById('btnPlay').textContent = 'Pause';
+  startPlayback();
 };
 
 // === Playback ===
@@ -146,17 +186,6 @@ document.getElementById('btnPlay').onclick = () => {
   document.getElementById('btnPlay').textContent = playing ? 'Pause' : 'Play';
   if (playing) startPlayback();
   else clearInterval(playTimer);
-};
-
-document.getElementById('btnStep').onclick = () => {
-  if (!data) return;
-  playing = false;
-  clearInterval(playTimer);
-  document.getElementById('btnPlay').textContent = 'Play';
-  if (frame < data.frames.length - 1) {
-    frame++;
-    render();
-  }
 };
 
 function startPlayback() {
@@ -374,7 +403,7 @@ function render() {
     ctx.fillStyle = '#888';
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(data.names[i], bx, by - r - 5);
+    ctx.fillText(shortName(data.names[i]), bx, by - r - 5);
   }
 
   document.getElementById('turnLabel').textContent = `Turn: ${f.turn}`;
@@ -389,11 +418,12 @@ function render() {
   let info = '';
   for (let i = 0; i < bots.length; i++) {
     const b = bots[i];
-    const name = data.names[i];
+    const name = shortName(data.names[i]);
     const color = BOT_COLORS[i % BOT_COLORS.length];
-    info += `<span style="color:${color}">${name}</span> HP:${b[5]} `;
+    const dead = !b[7];
+    const detail = dead ? `died turn ${deathTurns[i]}` : `HP:${b[5]}`;
+    info += `<span style="color:${dead ? '#555' : color}">${name} ${detail}</span>`;
   }
-  info += ` | Bullets: ${bullets.length}`;
   document.getElementById('info').innerHTML = info;
 }
 
@@ -402,26 +432,12 @@ function render() {
 function showResults() {
   if (!data) return;
 
-  // Find death turn for each bot by scanning frames
-  const n = data.names.length;
-  const deathTurn = new Array(n).fill(-1); // -1 = survived
-  for (let t = 1; t < data.frames.length; t++) {
-    const prev = data.frames[t - 1].bots;
-    const curr = data.frames[t].bots;
-    for (let i = 0; i < n; i++) {
-      if (deathTurn[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
-        deathTurn[i] = t;
-      }
-    }
-  }
-
-  // Build rankings: survivors first (sorted by remaining HP desc), then dead (sorted by death turn desc = died later is better)
   const lastFrame = data.frames[data.frames.length - 1];
   const entries = data.names.map((name, i) => ({
-    name, i,
+    name: shortName(name), i,
     alive: lastFrame.bots[i][7],
     hp: lastFrame.bots[i][5],
-    deathTurn: deathTurn[i],
+    deathTurn: deathTurns[i],
     color: BOT_COLORS[i % BOT_COLORS.length]
   }));
 
@@ -472,8 +488,9 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     document.getElementById('btnPlay').click();
   }
-  if (e.code === 'ArrowRight') {
-    document.getElementById('btnStep').click();
+  if (e.code === 'ArrowRight' && data && frame < data.frames.length - 1) {
+    frame++;
+    render();
   }
   if (e.code === 'ArrowLeft' && data && frame > 0) {
     frame--;
@@ -498,6 +515,8 @@ async function loadConfig() {
     document.getElementById('cfg-visionRange').value = cfg.visionRange;
     document.getElementById('cfg-visionHalfAngle').value = cfg.visionHalfAngle;
     document.getElementById('cfg-cooldown').value = cfg.cooldown;
+    document.getElementById('cfg-collisionDamage').value = cfg.collisionDamage;
+    document.getElementById('cfg-collisionBounce').value = cfg.collisionBounce;
     document.getElementById('cfg-maxTurns').value = cfg.maxTurns;
   } catch (e) {
     console.error('Failed to load config:', e);
@@ -516,6 +535,8 @@ function getConfig() {
     visionRange: v('cfg-visionRange'),
     visionHalfAngle: v('cfg-visionHalfAngle'),
     cooldown: v('cfg-cooldown'),
+    collisionDamage: v('cfg-collisionDamage'),
+    collisionBounce: parseFloat(document.getElementById('cfg-collisionBounce').value) || 0,
     maxTurns: v('cfg-maxTurns')
   };
 }

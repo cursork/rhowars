@@ -1,14 +1,42 @@
- TestKamikazeBot dummy;input;actions
+ TestKamikazeBot dummy;input;actions;cfg;s;h1;h2;cx;cy;inward;diff
 ⍝ Test Kamikaze bot behavior
  ⎕IO←0
- input←(loc: 500 500 ⋄ direction: 0 ⋄ turret: 90 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ##.Rhobots.Kamikaze.Init)
- ⍝ Nothing visible — wander, don't fire
+ cfg←(botSpeed: 5 ⋄ botHP: 100 ⋄ botRadius: 10 ⋄ bulletSpeed: 20 ⋄ bulletDamage: 20 ⋄ visionRange: 300 ⋄ visionHalfAngle: 45 ⋄ cooldown: 5 ⋄ maxTurns: 2000)
+ ⍝ Test pattern 0 (tight circle)
+ s←##.Rhobots.Kamikaze.Init
+ s.pattern←0
+ input←(loc: 500 500 ⋄ direction: 0 ⋄ turret: 90 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: s ⋄ cfg: cfg)
  actions←##.Rhobots.Kamikaze.Tick input
- Assert 'no fire when blind' (0=actions.fire)
- Assert 'has direction' (0≠⎕NC'actions.direction')
- ⍝ Rhobot visible at offset 30° — should charge and fire
+ Assert 'p0 no fire when blind' (0=actions.fire)
+ Assert 'p0 moves' (1=actions.speed)
+ h1←actions.state.heading
+ input.state←actions.state
+ actions←##.Rhobots.Kamikaze.Tick input
+ h2←actions.state.heading
+ Assert 'p0 heading changes' (h1≠h2)
+ ⍝ Test pattern 1 (wide circle)
+ s←##.Rhobots.Kamikaze.Init
+ s.pattern←1
+ input.state←s
+ actions←##.Rhobots.Kamikaze.Tick input
+ Assert 'p1 no fire when blind' (0=actions.fire)
+ Assert 'p1 moves' (1=actions.speed)
+ ⍝ Rhobot visible — should charge and fire
  input.visible←1 3⍴ 200 30 0
  actions←##.Rhobots.Kamikaze.Tick input
  Assert 'fires at target' (1=actions.fire)
  Assert 'charges at target' (120=actions.direction)
  Assert 'turret at target' (120=actions.turret)
+ ⍝ Near left wall — heading should steer toward centre
+ input.visible←0 3⍴0
+ s←##.Rhobots.Kamikaze.Init
+ s.pattern←0
+ s.heading←270
+ input.state←s
+ input.loc←10 500
+ actions←##.Rhobots.Kamikaze.Tick input
+ ⍝ Centre is at 500,500 from loc 10,500 → angle ~90° (east)
+ ⍝ Heading should have moved toward 90 from 270
+ diff←360|actions.state.heading-270
+ :If diff>180 ⋄ diff←360-diff ⋄ :EndIf
+ Assert 'wall steers toward centre' (diff>10)

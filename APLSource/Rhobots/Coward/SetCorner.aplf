@@ -4,6 +4,7 @@
  s.corner←corners[ci;]
  s.inward←(180÷○1)×12○(0J1×(w÷2)-⊃s.corner)+(h÷2)-1⊃s.corner
  s.sweep←0
- sweepRange←0⌈45-halfAngle
- s.sweepDir←{⍵=0:0 ⋄ 3}sweepRange
- s.sweepMax←sweepRange
+ ⍝ Sweep ±90° from inward to cover both walls at the corner
+ sweepRange←90-halfAngle
+ s.sweepDir←{⍵≤0:3 ⋄ 3}sweepRange
+ s.sweepMax←45⌈sweepRange

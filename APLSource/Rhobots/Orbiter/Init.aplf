@@ -1,0 +1,6 @@
+ state←Init
+⍝ Orbiter: circle targets at range while firing, orbit centre when idle
+ ⎕IO←0
+ state←()
+ state.heading←?360
+ state.orbitDir←1-2×?2
