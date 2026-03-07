@@ -1,5 +1,5 @@
  state←Init
 ⍝ RandomWalker: changes direction randomly, aims at visible rhobots
- state←⎕NS ''
+ state←()
  state.dir←?360
  state.countdown←0

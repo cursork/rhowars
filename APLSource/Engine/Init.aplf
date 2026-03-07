@@ -3,7 +3,7 @@
 ⍝ Each namespace must have Init and Tick functions
  ⎕IO←0
  N←≢botns
- match←⎕NS ''
+ match←()
  match.botns←botns
  match.names←{⍕⍵}¨botns
  match.turn←0
@@ -23,12 +23,12 @@
  match.bots←bots
  match.bullets←0 5⍴0
  ⍝ Call each bot's Init to get persistent state
- states←N⍴⊂⎕NS ''
+ states←N⍴⊂()
  :For i :In ⍳N
      :Trap 0
          state←(i⊃botns).Init
      :Else
-         state←⎕NS ''
+         state←()
      :EndTrap
      states[i]←⊂state
  :EndFor

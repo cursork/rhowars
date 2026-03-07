@@ -1,7 +1,7 @@
  actions←Tick input;s;vis;rhobots;nearest;nIdx
 ⍝ RandomWalker: random movement, aims turret at nearest visible rhobot
  ⎕IO←0
- actions←⎕NS ''
+ actions←()
  s←input.state
  ⍝ Random direction change on countdown
  s.countdown-←1

@@ -1,7 +1,7 @@
  TestVisionAngle dummy;m;vis
 ⍝ Test vision cone with angle wrapping (turret near 360/0 boundary)
  ⎕IO←0
- m←⎕NS ''
+ m←()
  m.bullets←0 5⍴0
  ⍝ Turret at 350°, target at angle ~10° (within 45° half-angle)
  ⍝ Bot0 at (500,500), Bot1 slightly to the right and above

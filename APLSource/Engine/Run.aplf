@@ -6,8 +6,4 @@
      match←Tick match
  :EndWhile
  ⍝ Record final snapshot
- snap←⎕NS ''
- snap.turn←match.turn
- snap.bots←match.bots
- snap.bullets←match.bullets
- match.history,←⊂snap
+ match.history,←⊂(turn: match.turn ⋄ bots: match.bots ⋄ bullets: match.bullets)

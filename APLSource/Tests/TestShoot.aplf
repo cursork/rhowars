@@ -4,7 +4,7 @@
  ⍝ One bot, turret at 90°, fires
  bots←1 8⍴ 1 500 500 0 90 100 0 1
  bullets←0 5⍴0
- a←⎕NS '' ⋄ a.fire←1
+ a←() ⋄ a.fire←1
  actions←⊂a
  r←actions ##.Engine.Shoot bots bullets
  (bots bullets)←r
@@ -15,7 +15,7 @@
  Assert 'bullet owner' (1=bullets[0;4])
  Assert 'cooldown set' (bots[0;6]=##.Cfg.COOLDOWN)
  ⍝ Bot with cooldown > 0 should not fire
- a←⎕NS '' ⋄ a.fire←1
+ a←() ⋄ a.fire←1
  actions←⊂a
  r←actions ##.Engine.Shoot bots bullets
  (bots bullets)←r

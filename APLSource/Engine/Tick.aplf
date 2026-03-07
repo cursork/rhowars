@@ -4,18 +4,14 @@
  bots←match.bots
  bullets←match.bullets
  ⍝ 1. Record snapshot for history
- snap←⎕NS ''
- snap.turn←match.turn
- snap.bots←bots
- snap.bullets←bullets
- match.history,←⊂snap
+ match.history,←⊂(turn: match.turn ⋄ bots: bots ⋄ bullets: bullets)
  ⍝ 2. Collect bot decisions
  alive←⍸bots[;7]
  order←alive[((≢alive)?≢alive)]
- actions←(≢bots)⍴⊂⎕NS ''
+ actions←(≢bots)⍴⊂()
  ⍝ Initialize default actions for all bots
  :For i :In ⍳≢bots
-     act←⎕NS ''
+     act←()
      act.direction←bots[i;3]
      act.turret←bots[i;4]
      act.fire←0
@@ -25,7 +21,7 @@
  ⍝ Call each alive bot's Tick in random order
  :For idx :In order
      vis←match Vision idx
-     input←⎕NS ''
+     input←()
      input.loc←bots[idx;1 2]
      input.turret←bots[idx;4]
      input.visible←vis

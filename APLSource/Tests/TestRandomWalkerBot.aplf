@@ -1,7 +1,7 @@
  TestRandomWalkerBot dummy;input;actions;vis
 ⍝ Test RandomWalker bot behavior
  ⎕IO←0
- input←⎕NS ''
+ input←()
  input.loc←500 500
  input.turret←0
  input.visible←0 3⍴0

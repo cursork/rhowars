@@ -43,7 +43,7 @@
               botns,←ns
           :EndFor
           lastMatch←game.Engine.Run botns
-          req.StatusCode←201
+          req.SetStatus 201
           result←MatchSummary lastMatch
       :Else
           req.Fail 500
@@ -69,35 +69,31 @@
           req.Fail 404
           result←(detail: 'No match has been run yet')
       :Else
-          frames←⍬
-          :For s :In lastMatch.history
-              f←⎕NS ''
-              f.turn←s.turn
-              f.bots←s.bots
-              f.bullets←s.bullets
-              frames,←⊂f
-          :EndFor
-          result←⎕NS ''
-          result.turns←lastMatch.turn
-          result.done←lastMatch.done
-          result.names←lastMatch.names
-          result.arena←game.Cfg.ARENA
-          result.botRadius←game.Cfg.BOT_RADIUS
-          result.visionRange←game.Cfg.VISION_RANGE
-          result.visionHalfAngle←game.Cfg.VISION_HALF_ANGLE
-          result.frames←frames
+          frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets)}¨lastMatch.history
+          result←(
+            turns: lastMatch.turn
+            done: lastMatch.done
+            names: lastMatch.names
+            arena: game.Cfg.ARENA
+            botRadius: game.Cfg.BOT_RADIUS
+            visionRange: game.Cfg.VISION_RANGE
+            visionHalfAngle: game.Cfg.VISION_HALF_ANGLE
+            frames: frames
+          )
       :EndIf
     ∇
 
-    ∇ result←MatchSummary m;b
+    ∇ result←MatchSummary m;a;h
       ⎕IO←0
-      result←⎕NS ''
-      result.turn←m.turn
-      result.done←m.done
-      result.names←m.names
-      result.alive←m.bots[;7]
-      result.hp←m.bots[;5]
-      result.turns←≢m.history
+      a←m.bots[;7] ⋄ h←m.bots[;5]
+      result←(
+        turn: m.turn
+        done: m.done
+        names: m.names
+        alive: a
+        hp: h
+        turns: ≢m.history
+      )
     ∇
 
 :EndClass

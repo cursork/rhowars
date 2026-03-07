@@ -1,7 +1,7 @@
  TestSpinnerBot dummy;input;actions
 ⍝ Test Spinner bot behavior
  ⎕IO←0
- input←⎕NS ''
+ input←()
  input.loc←200 300
  input.turret←45
  input.visible←0 3⍴0

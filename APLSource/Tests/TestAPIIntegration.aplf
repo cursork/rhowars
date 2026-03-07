@@ -1,0 +1,64 @@
+ TestAPIIntegration dummy;app;r;body;port;base
+⍝ Integration tests for the API using HttpCommand against a running server
+ ⎕IO←0
+ ⎕SE.SALT.Load'HttpCommand'
+ port←18080+?100
+ base←'http://localhost:',⍕port
+ app←⎕NEW ##.Web.App (#.stark.Stark ##)
+ app.Start port
+ :Trap 0
+     ⍝ --- GET /api/match before any match → 404 ---
+     r←HttpCommand.Get base,'/api/match'
+     Assert 'GET match empty → 404' (404=r.HttpStatus)
+
+     ⍝ --- GET /api/match/history before any match → 404 ---
+     r←HttpCommand.Get base,'/api/match/history'
+     Assert 'GET history empty → 404' (404=r.HttpStatus)
+
+     ⍝ --- POST /api/match with invalid bot → 500 ---
+     r←HttpCommand.Do'POST'(base,'/api/match')'{"bots":["Spinner","NonExistent"]}'('content-type' 'application/json')
+     Assert 'POST invalid bot → 500' (500=r.HttpStatus)
+
+     ⍝ --- POST /api/match → 201 ---
+     r←HttpCommand.Do'POST'(base,'/api/match')'{"bots":["Spinner","RandomWalker"]}'('content-type' 'application/json')
+     Assert 'POST match → 201' (201=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'response has done' (0≠⎕NC'body.done')
+     Assert 'response has names' (0≠⎕NC'body.names')
+     Assert 'response has turn' (0≠⎕NC'body.turn')
+     Assert 'response has hp' (0≠⎕NC'body.hp')
+     Assert 'response has alive' (0≠⎕NC'body.alive')
+     Assert 'match is done' (1=body.done)
+     Assert '2 names' (2=≢body.names)
+
+     ⍝ --- GET /api/match → 200 ---
+     r←HttpCommand.Get base,'/api/match'
+     Assert 'GET match → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'GET match done' (1=body.done)
+
+     ⍝ --- GET /api/match/history → 200 with all fields ---
+     r←HttpCommand.Get base,'/api/match/history'
+     Assert 'GET history → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'history has frames' (0<≢body.frames)
+     Assert 'history has turns' (body.turns>0)
+     Assert 'history has arena' (##.Cfg.ARENA≡body.arena)
+     Assert 'history has botRadius' (##.Cfg.BOT_RADIUS=body.botRadius)
+     Assert 'history has visionRange' (##.Cfg.VISION_RANGE=body.visionRange)
+     Assert 'history has visionHalfAngle' (##.Cfg.VISION_HALF_ANGLE=body.visionHalfAngle)
+     Assert 'history has 2 names' (2=≢body.names)
+     Assert 'frame 0 turn is 0' (0=(⊃body.frames).turn)
+     Assert 'frame 0 has 2 bots' (2=≢(⊃body.frames).bots)
+     Assert 'bot has 8 cols' (8=≢⊃(⊃body.frames).bots)
+
+     ⍝ --- POST /api/match with 3 bots ---
+     r←HttpCommand.Do'POST'(base,'/api/match')'{"bots":["Spinner","RandomWalker","Spinner"]}'('content-type' 'application/json')
+     Assert 'POST 3 bots → 201' (201=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert '3 names' (3=≢body.names)
+ :Else
+     app.Stop
+     ⎕DMX.EM ⎕SIGNAL ⎕DMX.EN
+ :EndTrap
+ app.Stop

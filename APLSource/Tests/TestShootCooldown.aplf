@@ -4,19 +4,19 @@
  ⍝ First shot succeeds, sets cooldown
  bots←1 8⍴ 1 500 500 0 90 100 0 1
  bullets←0 5⍴0
- a←⎕NS '' ⋄ a.fire←1
+ a←() ⋄ a.fire←1
  r←(⊂a)##.Engine.Shoot bots bullets
  (bots bullets)←r
  Assert 'first shot fires' (1=≢bullets)
  Assert 'cooldown set' (bots[0;6]=##.Cfg.COOLDOWN)
  ⍝ Immediate second shot blocked
- a←⎕NS '' ⋄ a.fire←1
+ a←() ⋄ a.fire←1
  r←(⊂a)##.Engine.Shoot bots (0 5⍴0)
  (bots bullets)←r
  Assert 'second shot blocked' (0=≢bullets)
  ⍝ After cooldown expires, can fire again
  bots[0;6]←0
- a←⎕NS '' ⋄ a.fire←1
+ a←() ⋄ a.fire←1
  r←(⊂a)##.Engine.Shoot bots (0 5⍴0)
  (bots bullets)←r
  Assert 'fires after cooldown' (1=≢bullets)

@@ -1,7 +1,7 @@
  TestVision dummy;m;vis
 ⍝ Test field of view computation
  ⎕IO←0
- m←⎕NS ''
+ m←()
  m.bullets←0 5⍴0
  ⍝ Bot 0 at (100,100) turret=0, Bot 1 at (100,200) — directly in front, dist=100
  m.bots←2 8⍴ 1 100 100 0 0 100 0 1  2 100 200 0 0 100 0 1

@@ -1,7 +1,7 @@
  actions←Tick input;centre;dx;dy
 ⍝ Spinner: moves toward centre, rotates turret, fires when ready
  ⎕IO←0
- actions←⎕NS ''
+ actions←()
  actions.turret←360|input.turret+15
  actions.fire←1
  ⍝ Head toward centre of arena
