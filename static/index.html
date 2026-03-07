@@ -5,65 +5,96 @@
 <title>rhowars</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #111; color: #eee; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-h1 { margin-bottom: 10px; letter-spacing: 2px; }
-#controls { margin: 10px 0; display: flex; gap: 10px; align-items: center; }
-button { background: #333; color: #eee; border: 1px solid #555; padding: 6px 14px; cursor: pointer; font-family: monospace; }
+body { background: #111; color: #eee; font-family: monospace; padding: 20px; }
+h1 { text-align: center; margin-bottom: 16px; letter-spacing: 2px; }
+
+#main { display: flex; gap: 20px; justify-content: center; }
+#sidebar { width: 260px; flex-shrink: 0; }
+#arena-col { display: flex; flex-direction: column; align-items: center; }
+
+/* Controls */
+#controls { margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
+button { background: #333; color: #eee; border: 1px solid #555; padding: 5px 12px; cursor: pointer; font-family: monospace; font-size: 12px; }
 button:hover { background: #444; }
-button.active { background: #555; border-color: #888; }
-#info { margin: 8px 0; font-size: 14px; }
+#info { margin-bottom: 6px; font-size: 13px; min-height: 1em; }
 canvas { border: 1px solid #333; }
-#status { margin-top: 10px; font-size: 13px; color: #888; }
-select, input[type=range] { background: #222; color: #eee; border: 1px solid #555; padding: 4px; font-family: monospace; }
-#bot-section { margin-top: 20px; width: 600px; }
-#bot-section h2 { font-size: 16px; margin-bottom: 8px; }
-#bot-section h3 { font-size: 13px; color: #888; margin: 8px 0 4px; }
-.bot-list { list-style: none; margin-bottom: 10px; }
-.bot-list li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #222; }
-.bot-list li .bot-avatar { width: 24px; height: 24px; border-radius: 4px; background: #333; }
-.bot-list li .bot-name { flex: 1; }
-.bot-list li button { font-size: 11px; padding: 2px 8px; }
-#upload-form { border: 1px solid #333; padding: 12px; margin-top: 10px; }
-#upload-form label { display: block; margin: 6px 0 2px; font-size: 12px; color: #888; }
-#upload-form input, #upload-form textarea { width: 100%; background: #222; color: #eee; border: 1px solid #555; padding: 4px; font-family: monospace; font-size: 12px; }
-#upload-form textarea { height: 150px; resize: vertical; }
-#upload-status { margin-top: 8px; font-size: 12px; }
+#status { margin-top: 8px; font-size: 12px; color: #888; }
+select, input[type=range] { background: #222; color: #eee; border: 1px solid #555; padding: 3px; font-family: monospace; font-size: 12px; }
+
+/* Sidebar */
+#sidebar h2 { font-size: 14px; margin-bottom: 6px; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 4px; }
+#sidebar h3 { font-size: 11px; color: #666; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+.bot-list { list-style: none; }
+.bot-list li { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 3px; font-size: 12px; }
+.bot-list li .bot-avatar { width: 20px; height: 20px; border-radius: 3px; background: #333; flex-shrink: 0; }
+.bot-list li .bot-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bot-list li .bot-add { font-size: 12px; padding: 0 5px; opacity: 0.4; line-height: 1; }
+.bot-list li .bot-add:hover { opacity: 1; background: #2a4a2a; border-color: #4a4; }
+.bot-list li .bot-delete { font-size: 12px; padding: 0 5px; opacity: 0.4; line-height: 1; }
+.bot-list li .bot-delete:hover { opacity: 1; background: #4a2a2a; border-color: #a44; }
+.bot-empty { color: #444; font-size: 11px; padding: 4px 6px; }
+.lineup-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+#match-setup { margin-top: 8px; display: flex; gap: 6px; }
+#btnStartMatch { flex: 1; padding: 8px; font-size: 13px; }
+#btnStartMatch:not(:disabled) { background: #2a4a2a; border-color: #4a4; }
+#btnStartMatch:disabled { opacity: 0.4; cursor: default; }
+
+/* Upload */
+#upload-toggle { margin-top: 12px; width: 100%; font-size: 11px; color: #888; background: none; border: 1px solid #333; }
+#upload-panel { display: none; margin-top: 8px; border: 1px solid #333; padding: 10px; border-radius: 3px; }
+#upload-panel.open { display: block; }
+#upload-panel label { display: block; margin: 6px 0 2px; font-size: 11px; color: #666; }
+#upload-panel input, #upload-panel textarea { width: 100%; background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 4px; font-family: monospace; font-size: 11px; }
+#upload-panel textarea { height: 120px; resize: vertical; }
+#upload-panel input[type=file] { border: none; padding: 2px 0; }
+#btnUpload { margin-top: 8px; width: 100%; }
+#upload-status { margin-top: 6px; font-size: 11px; }
 </style>
 </head>
 <body>
 <h1>rhowars</h1>
-<div id="controls">
-  <button id="btnStart">Start Match</button>
-  <button id="btnPlay">Play</button>
-  <button id="btnStep">&gt;</button>
-  <label>Speed: <input type="range" id="speed" min="1" max="100" value="20"></label>
-  <span id="turnLabel">Turn: 0</span>
-</div>
-<div id="info"></div>
-<canvas id="arena" width="600" height="600"></canvas>
-<div id="status"></div>
+<div id="main">
+  <div id="sidebar">
+    <h2>Bots</h2>
+    <h3>Built-in</h3>
+    <ul id="builtin-bots" class="bot-list"></ul>
+    <h3>User</h3>
+    <ul id="user-bots" class="bot-list"></ul>
 
-<div id="bot-section">
-  <h2>Available Bots</h2>
-  <h3>Built-in</h3>
-  <ul id="builtin-bots" class="bot-list"></ul>
-  <h3>User Bots</h3>
-  <ul id="user-bots" class="bot-list"></ul>
-
-  <div id="upload-form">
-    <h3>Upload Bot</h3>
-    <label>Author</label>
-    <input type="text" id="upload-author" placeholder="your-name">
-    <label>Bot Name</label>
-    <input type="text" id="upload-name" placeholder="MyBot">
-    <label>Source (.apln)</label>
-    <textarea id="upload-source" placeholder=":Namespace MyBot&#10;    ∇ state←Init&#10;      state←⎕NS⍬&#10;    ∇&#10;    ∇ actions←Tick input&#10;      actions←⎕NS⍬&#10;      actions.state←input.state&#10;    ∇&#10;:EndNamespace"></textarea>
-    <label>Avatar (optional)</label>
-    <input type="file" id="upload-avatar" accept="image/*">
-    <div style="margin-top: 8px;">
-      <button id="btnUpload">Upload</button>
+    <h3>Match Lineup</h3>
+    <ul id="lineup-list" class="bot-list"></ul>
+    <div id="match-setup">
+      <button id="btnStartMatch" disabled>Start Match</button>
+      <button id="btnClearLineup" onclick="clearLineup()" style="font-size:11px;padding:4px 8px">Clear</button>
     </div>
-    <div id="upload-status"></div>
+
+    <button id="upload-toggle">+ Upload Bot</button>
+    <div id="upload-panel">
+      <label>Author</label>
+      <input type="text" id="upload-author" placeholder="your-name">
+      <label>Bot Name</label>
+      <input type="text" id="upload-name" placeholder="MyBot">
+      <label>Source (.apln)</label>
+      <textarea id="upload-source" placeholder=":Namespace MyBot&#10;    ∇ state←Init&#10;      state←⎕NS⍬&#10;    ∇&#10;    ∇ actions←Tick input&#10;      actions←⎕NS⍬&#10;      actions.state←input.state&#10;    ∇&#10;:EndNamespace"></textarea>
+      <label>Avatar (optional)</label>
+      <input type="file" id="upload-avatar" accept="image/*">
+      <button id="btnUpload">Upload</button>
+      <div id="upload-status"></div>
+    </div>
+  </div>
+
+  <div id="arena-col">
+    <div id="controls">
+      <button id="btnPlay">Play</button>
+      <button id="btnStep">&gt;</button>
+      <label>Speed <input type="range" id="speed" min="1" max="100" value="20"></label>
+      <span id="turnLabel">Turn: 0</span>
+    </div>
+    <div id="info"></div>
+    <canvas id="arena" width="600" height="600"></canvas>
+    <div id="status"></div>
   </div>
 </div>
 

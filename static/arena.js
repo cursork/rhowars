@@ -7,23 +7,122 @@ let data = null;      // match history
 let frame = 0;
 let playing = false;
 let playTimer = null;
+let matchLineup = []; // array of bot identifiers for the match
 
 const BOT_COLORS = ['#4af', '#f44', '#4f4', '#ff4', '#f4f', '#4ff'];
 const BULLET_COLOR = '#fa0';
 
-// Bot matrix columns: id=0 x=1 y=2 dir=3 turret=4 hp=5 cooldown=6 alive=7
-// Bullet matrix columns: x=0 y=1 dx=2 dy=3 owner=4
-
 const API = '';
 
-document.getElementById('btnStart').onclick = async () => {
+// === Bot Management ===
+
+async function loadBots() {
+  const el = document.getElementById('builtin-bots');
+  try {
+    const resp = await fetch(`${API}/api/bots`);
+    if (!resp.ok) throw new Error(resp.statusText);
+    const bots = await resp.json();
+
+    renderAvailableBots('builtin-bots', bots.builtin.map(b => ({
+      id: b.name, name: b.name, builtin: true
+    })));
+
+    renderAvailableBots('user-bots', bots.user.map(b => ({
+      id: `${b.author}/${b.name}`, name: b.name, author: b.author,
+      avatar: b.avatar, builtin: false
+    })));
+  } catch (e) {
+    el.innerHTML = '<li class="bot-empty">Failed to load — is the server running?</li>';
+    console.error('Failed to load bots:', e);
+  }
+}
+
+function renderAvailableBots(elId, bots) {
+  const ul = document.getElementById(elId);
+  ul.innerHTML = '';
+  if (bots.length === 0) {
+    ul.innerHTML = '<li class="bot-empty">None</li>';
+    return;
+  }
+  for (const bot of bots) {
+    const li = document.createElement('li');
+
+    let html = '';
+    if (!bot.builtin) {
+      const hasAvatar = bot.avatar && bot.avatar.length > 0;
+      html += hasAvatar
+        ? `<img class="bot-avatar" src="${bot.avatar}">`
+        : `<div class="bot-avatar"></div>`;
+    }
+    html += `<span class="bot-name">${bot.builtin ? bot.name : bot.id}</span>`;
+    html += `<button class="bot-add" title="Add to match">+</button>`;
+    if (!bot.builtin) {
+      html += `<button class="bot-delete" data-author="${bot.author}" data-name="${bot.name}" title="Delete bot">&times;</button>`;
+    }
+    li.innerHTML = html;
+
+    li.querySelector('.bot-add').addEventListener('click', () => addToLineup(bot.id));
+
+    const delBtn = li.querySelector('.bot-delete');
+    if (delBtn) {
+      delBtn.addEventListener('click', () => deleteBot(delBtn.dataset.author, delBtn.dataset.name));
+    }
+
+    ul.appendChild(li);
+  }
+}
+
+function addToLineup(id) {
+  matchLineup.push(id);
+  renderLineup();
+}
+
+function removeFromLineup(index) {
+  matchLineup.splice(index, 1);
+  renderLineup();
+}
+
+function clearLineup() {
+  matchLineup = [];
+  renderLineup();
+}
+
+function renderLineup() {
+  const ul = document.getElementById('lineup-list');
+  ul.innerHTML = '';
+  if (matchLineup.length === 0) {
+    ul.innerHTML = '<li class="bot-empty">Click + to add bots</li>';
+  } else {
+    matchLineup.forEach((id, i) => {
+      const li = document.createElement('li');
+      const color = BOT_COLORS[i % BOT_COLORS.length];
+      li.innerHTML = `<span class="lineup-color" style="background:${color}"></span>` +
+        `<span class="bot-name">${id}</span>` +
+        `<button class="bot-delete" title="Remove">&times;</button>`;
+      li.querySelector('.bot-delete').addEventListener('click', () => removeFromLineup(i));
+      ul.appendChild(li);
+    });
+  }
+  const btn = document.getElementById('btnStartMatch');
+  btn.disabled = matchLineup.length < 2;
+}
+
+// === Match ===
+
+document.getElementById('btnStartMatch').onclick = async () => {
+  if (matchLineup.length < 2) return;
   document.getElementById('status').textContent = 'Running match...';
   try {
-    await fetch(`${API}/api/match`, {
+    const matchResp = await fetch(`${API}/api/match`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bots: ['Spinner', 'RandomWalker'] })
+      body: JSON.stringify({ bots: matchLineup })
     });
+    if (!matchResp.ok) {
+      const err = await matchResp.json();
+      document.getElementById('status').textContent = 'Error: ' + (err.error || matchResp.statusText);
+      return;
+    }
     const resp = await fetch(`${API}/api/match/history`);
     data = await resp.json();
     frame = 0;
@@ -36,6 +135,8 @@ document.getElementById('btnStart').onclick = async () => {
     document.getElementById('status').textContent = 'Error: ' + e.message;
   }
 };
+
+// === Playback ===
 
 document.getElementById('btnPlay').onclick = () => {
   if (!data) return;
@@ -75,148 +176,11 @@ document.getElementById('speed').oninput = () => {
   if (playing) startPlayback();
 };
 
-function render() {
-  if (!data || !data.frames[frame]) return;
+// === Upload ===
 
-  const f = data.frames[frame];
-  const bots = f.bots;
-  const bullets = f.bullets;
-  const arenaW = data.arena[0];
-  const arenaH = data.arena[1];
-  const scale = W / arenaW;
-  const r = data.botRadius * scale;
-
-  // Clear
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, W, H);
-
-  // Arena border
-  ctx.strokeStyle = '#333';
-  ctx.strokeRect(0, 0, W, H);
-
-  // Draw bullets
-  for (let i = 0; i < bullets.length; i++) {
-    const b = bullets[i];
-    const bx = b[0] * scale;
-    const by = H - b[1] * scale; // flip y so 0 is bottom
-    ctx.fillStyle = BULLET_COLOR;
-    ctx.beginPath();
-    ctx.arc(bx, by, 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Draw bots
-  for (let i = 0; i < bots.length; i++) {
-    const b = bots[i];
-    const alive = b[7];
-    if (!alive) continue;
-
-    const bx = b[1] * scale;
-    const by = H - b[2] * scale;
-    const dir = b[3];
-    const turret = b[4];
-    const hp = b[5];
-    const color = BOT_COLORS[i % BOT_COLORS.length];
-
-    // Bot body
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.3;
-    ctx.beginPath();
-    ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Turret line
-    const tRad = (-turret + 90) * Math.PI / 180; // convert to canvas coords
-    const tLen = r * 2;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(bx, by);
-    ctx.lineTo(bx + Math.cos(tRad) * tLen, by - Math.sin(tRad) * tLen);
-    ctx.stroke();
-
-    // Vision cone (faint)
-    const vRange = data.visionRange * scale;
-    const halfAngle = data.visionHalfAngle * Math.PI / 180;
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.05;
-    ctx.beginPath();
-    ctx.moveTo(bx, by);
-    ctx.arc(bx, by, vRange, -(tRad + halfAngle), -(tRad - halfAngle));
-    ctx.closePath();
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // HP bar
-    const barW = r * 2;
-    const barH = 3;
-    const barY = by + r + 5;
-    ctx.fillStyle = '#333';
-    ctx.fillRect(bx - barW / 2, barY, barW, barH);
-    const maxHP = data.botHP;
-    ctx.fillStyle = hp > maxHP/2 ? '#4f4' : hp > maxHP/4 ? '#ff4' : '#f44';
-    ctx.fillRect(bx - barW / 2, barY, barW * (hp / maxHP), barH);
-
-    // Name
-    ctx.fillStyle = '#888';
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(data.names[i], bx, by - r - 5);
-  }
-
-  // HUD
-  document.getElementById('turnLabel').textContent = `Turn: ${f.turn}`;
-  let info = '';
-  for (let i = 0; i < bots.length; i++) {
-    const b = bots[i];
-    const name = data.names[i];
-    const color = BOT_COLORS[i % BOT_COLORS.length];
-    info += `<span style="color:${color}">${name}</span> HP:${b[5]} `;
-  }
-  info += ` | Bullets: ${bullets.length}`;
-  document.getElementById('info').innerHTML = info;
-}
-
-// === Bot Management ===
-
-async function loadBots() {
-  try {
-    const resp = await fetch(`${API}/api/bots`);
-    const data = await resp.json();
-
-    const builtinList = document.getElementById('builtin-bots');
-    builtinList.innerHTML = '';
-    for (const bot of data.builtin) {
-      const li = document.createElement('li');
-      li.innerHTML = `<span class="bot-name">${bot.name}</span>`;
-      builtinList.appendChild(li);
-    }
-
-    const userList = document.getElementById('user-bots');
-    userList.innerHTML = '';
-    if (data.user.length === 0) {
-      userList.innerHTML = '<li style="color:#555">No user bots uploaded yet</li>';
-    } else {
-      for (const bot of data.user) {
-        const li = document.createElement('li');
-        const avatarHtml = bot.avatar && bot.avatar.length > 0
-          ? `<img class="bot-avatar" src="${bot.avatar}">`
-          : `<div class="bot-avatar"></div>`;
-        li.innerHTML = `${avatarHtml}<span class="bot-name">${bot.author}/${bot.name}</span>` +
-          `<button onclick="deleteBot('${bot.author}','${bot.name}')">Delete</button>`;
-        userList.appendChild(li);
-      }
-    }
-  } catch (e) {
-    console.error('Failed to load bots:', e);
-  }
-}
+document.getElementById('upload-toggle').onclick = () => {
+  document.getElementById('upload-panel').classList.toggle('open');
+};
 
 document.getElementById('btnUpload').onclick = async () => {
   const author = document.getElementById('upload-author').value.trim();
@@ -225,7 +189,7 @@ document.getElementById('btnUpload').onclick = async () => {
   const statusEl = document.getElementById('upload-status');
 
   if (!author || !name || !source) {
-    statusEl.textContent = 'Please fill in author, name, and source.';
+    statusEl.textContent = 'Fill in author, name, and source.';
     statusEl.style.color = '#f44';
     return;
   }
@@ -271,6 +235,8 @@ async function deleteBot(author, name) {
   try {
     const resp = await fetch(`${API}/api/bots/${author}/${name}`, { method: 'DELETE' });
     if (resp.ok) {
+      matchLineup = matchLineup.filter(id => id !== `${author}/${name}`);
+      renderLineup();
       loadBots();
     } else {
       const result = await resp.json();
@@ -281,9 +247,105 @@ async function deleteBot(author, name) {
   }
 }
 
-loadBots();
+// === Render ===
 
-// Handle keyboard
+function render() {
+  if (!data || !data.frames[frame]) return;
+
+  const f = data.frames[frame];
+  const bots = f.bots;
+  const bullets = f.bullets;
+  const arenaW = data.arena[0];
+  const scale = W / arenaW;
+  const r = data.botRadius * scale;
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#333';
+  ctx.strokeRect(0, 0, W, H);
+
+  for (let i = 0; i < bullets.length; i++) {
+    const b = bullets[i];
+    const bx = b[0] * scale;
+    const by = H - b[1] * scale;
+    ctx.fillStyle = BULLET_COLOR;
+    ctx.beginPath();
+    ctx.arc(bx, by, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  for (let i = 0; i < bots.length; i++) {
+    const b = bots[i];
+    const alive = b[7];
+    if (!alive) continue;
+
+    const bx = b[1] * scale;
+    const by = H - b[2] * scale;
+    const turret = b[4];
+    const hp = b[5];
+    const color = BOT_COLORS[i % BOT_COLORS.length];
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const tRad = (-turret + 90) * Math.PI / 180;
+    const tLen = r * 2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.lineTo(bx + Math.cos(tRad) * tLen, by - Math.sin(tRad) * tLen);
+    ctx.stroke();
+
+    const vRange = data.visionRange * scale;
+    const halfAngle = data.visionHalfAngle * Math.PI / 180;
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.05;
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.arc(bx, by, vRange, -(tRad + halfAngle), -(tRad - halfAngle));
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    const barW = r * 2;
+    const barH = 3;
+    const barY = by + r + 5;
+    ctx.fillStyle = '#333';
+    ctx.fillRect(bx - barW / 2, barY, barW, barH);
+    const maxHP = data.botHP;
+    ctx.fillStyle = hp > maxHP/2 ? '#4f4' : hp > maxHP/4 ? '#ff4' : '#f44';
+    ctx.fillRect(bx - barW / 2, barY, barW * (hp / maxHP), barH);
+
+    ctx.fillStyle = '#888';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(data.names[i], bx, by - r - 5);
+  }
+
+  document.getElementById('turnLabel').textContent = `Turn: ${f.turn}`;
+  let info = '';
+  for (let i = 0; i < bots.length; i++) {
+    const b = bots[i];
+    const name = data.names[i];
+    const color = BOT_COLORS[i % BOT_COLORS.length];
+    info += `<span style="color:${color}">${name}</span> HP:${b[5]} `;
+  }
+  info += ` | Bullets: ${bullets.length}`;
+  document.getElementById('info').innerHTML = info;
+}
+
+// === Keyboard ===
+
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault();
@@ -297,3 +359,8 @@ document.addEventListener('keydown', (e) => {
     render();
   }
 });
+
+// === Init ===
+
+loadBots();
+renderLineup();
