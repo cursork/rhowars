@@ -1,13 +1,22 @@
- actions←Tick input;s;vis;rhobots;nearest;nIdx
+ actions←Tick input;s;vis;rhobots;nearest;nIdx;x;y;w;h;margin;lo;hi
 ⍝ RandomWalker: random movement, aims turret at nearest visible rhobot
  ⎕IO←0
  actions←()
  s←input.state
- ⍝ Random direction change on countdown
+ ⍝ Random direction change on countdown or near boundary
+ x y←input.loc
+ w h←input.arena
+ margin←50
  s.countdown-←1
  :If s.countdown≤0
-     s.dir←?360
-     s.countdown←5+?10
+     ⍝ Near a wall? Pick a direction toward centre
+     :If (x<margin)∨(x>w-margin)∨(y<margin)∨(y>h-margin)
+         lo←(180÷○1)×12○(0J1×(w÷2)-x)+(h÷2)-y
+         s.dir←(360|lo-30)+?60
+     :Else
+         s.dir←?360
+     :EndIf
+     s.countdown←15+?30
  :EndIf
  actions.direction←s.dir
  ⍝ Look for visible rhobots (type=0)
