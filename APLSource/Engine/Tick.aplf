@@ -1,5 +1,6 @@
- match←Tick match;bots;bullets;snap;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds
+ match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v
 ⍝ Execute one turn of the match
+⍝ Action fields set to ⍬ (or missing) mean "no change"
  ⎕IO←0
  bots←match.bots
  bullets←match.bullets
@@ -9,20 +10,11 @@
  alive←⍸bots[;7]
  order←alive[((≢alive)?≢alive)]
  actions←(≢bots)⍴⊂()
- ⍝ Initialize default actions for all bots
- :For i :In ⍳≢bots
-     act←()
-     act.direction←bots[i;3]
-     act.turret←bots[i;4]
-     act.fire←0
-     act.state←i⊃match.states
-     actions[i]←⊂act
- :EndFor
- ⍝ Call each alive bot's Tick in random order
  :For idx :In order
      vis←match Vision idx
      input←()
      input.loc←bots[idx;1 2]
+     input.direction←bots[idx;3]
      input.turret←bots[idx;4]
      input.visible←vis
      input.hp←bots[idx;5]
@@ -31,15 +23,17 @@
      ns←idx⊃match.botns
      act←ns ##.Bot.CallTick input
      actions[idx]←⊂act
-     match.states[idx]←⊂act.state
  :EndFor
- ⍝ 3. Apply turret and direction updates
+ ⍝ 3. Apply per-field updates (⍬ = no change)
  :For i :In alive
-     bots[i;3]←(i⊃actions).direction
-     bots[i;4]←(i⊃actions).turret
+     act←i⊃actions
+     v←{6::⍬ ⋄ act⍎⍵}
+     :If ⍬≢v'direction' ⋄ bots[i;3]←v'direction' ⋄ :EndIf
+     :If ⍬≢v'turret'    ⋄ bots[i;4]←v'turret'    ⋄ :EndIf
+     :If ⍬≢v'state'     ⋄ match.states[i]←⊂v'state' ⋄ :EndIf
  :EndFor
- ⍝ 4. Move all bots (apply per-bot speed multiplier)
- speeds←{6::1 ⋄ ⍵.speed}¨actions
+ ⍝ 4. Move all bots
+ speeds←{6::1 ⋄ s←⍵⍎'speed' ⋄ ⍬≡s:1 ⋄ s}¨actions
  bots←speeds Move bots
  ⍝ 5. Fire bullets
  (bots bullets)←actions Shoot bots bullets

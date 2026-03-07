@@ -1,13 +1,7 @@
  TestRandomWalkerBot dummy;input;actions;vis
 ⍝ Test RandomWalker bot behavior
  ⎕IO←0
- input←()
- input.loc←500 500
- input.turret←0
- input.visible←0 3⍴0
- input.hp←100
- input.arena←1000 1000
- input.state←##.Rhobots.RandomWalker.Init
+ input←(loc: 500 500 ⋄ direction: 180 ⋄ turret: 0 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ##.Rhobots.RandomWalker.Init)
  ⍝ With nothing visible, should not fire
  actions←##.Rhobots.RandomWalker.Tick input
  Assert 'no fire when blind' (0=actions.fire)

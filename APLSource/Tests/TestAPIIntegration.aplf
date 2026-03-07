@@ -47,6 +47,7 @@
      Assert 'history has botRadius' (##.Cfg.BOT_RADIUS=body.botRadius)
      Assert 'history has visionRange' (##.Cfg.VISION_RANGE=body.visionRange)
      Assert 'history has visionHalfAngle' (##.Cfg.VISION_HALF_ANGLE=body.visionHalfAngle)
+     Assert 'history has botHP' (##.Cfg.BOT_HP=body.botHP)
      Assert 'history has 2 names' (2=≢body.names)
      Assert 'frame 0 turn is 0' (0=(⊃body.frames).turn)
      Assert 'frame 0 has 2 bots' (2=≢(⊃body.frames).bots)

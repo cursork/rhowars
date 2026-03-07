@@ -6,7 +6,7 @@
  ⎕IO←0
  (bots bullets)←args
  ⍝ Find bots that want to fire, are alive, and have cooldown=0
- firing←({⍵.fire}¨actions)∧(bots[;7])∧(bots[;6]=0)
+ firing←({6::0 ⋄ f←⍵.fire ⋄ ⍬≡f:0 ⋄ f}¨actions)∧(bots[;7])∧(bots[;6]=0)
  :If ∨/firing
      ids←firing/bots[;0]
      turrets←firing/bots[;4]

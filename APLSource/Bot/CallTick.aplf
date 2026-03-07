@@ -5,6 +5,5 @@
  :Trap 0
      actions←ns.Tick input
  :Else
-     ⍝ On error/timeout, bot does nothing
-     actions←(direction: input.turret ⋄ turret: input.turret ⋄ fire: 0 ⋄ state: input.state)
+     actions←()
  :EndTrap

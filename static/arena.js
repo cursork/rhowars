@@ -159,8 +159,9 @@ function render() {
     const barY = by + r + 5;
     ctx.fillStyle = '#333';
     ctx.fillRect(bx - barW / 2, barY, barW, barH);
-    ctx.fillStyle = hp > 50 ? '#4f4' : hp > 25 ? '#ff4' : '#f44';
-    ctx.fillRect(bx - barW / 2, barY, barW * (hp / 100), barH);
+    const maxHP = data.botHP;
+    ctx.fillStyle = hp > maxHP/2 ? '#4f4' : hp > maxHP/4 ? '#ff4' : '#f44';
+    ctx.fillRect(bx - barW / 2, barY, barW * (hp / maxHP), barH);
 
     // Name
     ctx.fillStyle = '#888';

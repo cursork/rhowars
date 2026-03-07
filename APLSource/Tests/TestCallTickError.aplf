@@ -1,0 +1,12 @@
+ TestCallTickError dummy;ns;input;actions
+⍝ Test that CallTick handles bot errors gracefully
+ ⎕IO←0
+ ⍝ Create a broken bot namespace
+ ns←()
+ ns.⎕FX'r←Tick input' 'r←÷0'
+ ⍝ Build input matching real API contract
+ input←(loc: 500 500 ⋄ direction: 45 ⋄ turret: 90 ⋄ visible: 0 3⍴0 ⋄ hp: 100 ⋄ arena: 1000 1000 ⋄ state: ())
+ ⍝ Should not error — returns empty namespace (all defaults)
+ actions←ns ##.Bot.CallTick input
+ Assert 'returns empty ns' (9.1=⎕NC⊂'actions')
+ Assert 'no fields' (0=≢actions.⎕NL-2)

@@ -78,6 +78,7 @@
             botRadius: game.Cfg.BOT_RADIUS
             visionRange: game.Cfg.VISION_RANGE
             visionHalfAngle: game.Cfg.VISION_HALF_ANGLE
+            botHP: game.Cfg.BOT_HP
             frames: frames
           )
       :EndIf

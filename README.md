@@ -65,7 +65,7 @@ each turn as persistent state.
 
 ```apl
  state←Init
- state←⎕NS ''
+ state←()
  state.mood←'aggressive'
  state.turnsSinceHit←0
 ```
@@ -77,11 +77,12 @@ Called every turn. Takes an input namespace, returns an actions namespace.
 ```apl
  actions←Tick input
  ⎕IO←0
- actions←⎕NS ''
- actions.direction←90        ⍝ movement heading in degrees
- actions.turret←input.turret ⍝ turret angle in degrees
- actions.fire←1              ⍝ 0 or 1 (engine enforces cooldown)
- actions.state←input.state   ⍝ updated persistent state
+ actions←(
+   direction: 90              ⍝ movement heading in degrees
+   turret: input.turret       ⍝ turret angle in degrees
+   fire: 1                    ⍝ 0 or 1 (engine enforces cooldown)
+   state: input.state         ⍝ updated persistent state
+ )
 ```
 
 #### Input fields
@@ -89,6 +90,7 @@ Called every turn. Takes an input namespace, returns an actions namespace.
 | Field     | Type      | Description |
 |-----------|-----------|-------------|
 | `loc`     | 2-vector  | Your (x, y) position |
+| `direction` | scalar  | Current movement heading in degrees |
 | `turret`  | scalar    | Current turret angle in degrees |
 | `visible` | K×3 matrix | Visible objects: (distance, angle_offset, type). Type: 0=rhobot, 1=bullet. Empty `0 3⍴0` if nothing visible |
 | `hp`      | scalar    | Current hit points |
@@ -115,6 +117,9 @@ actions.turret←360|input.turret+nearest[1]  ⍝ turn toward it
 | `state`     | namespace | Your updated persistent state |
 | `speed`     | 0 or 1    | Optional. 0 = stay still, 1 = move (default 1) |
 
+Any field set to `⍬` or omitted means "no change" — the engine keeps the
+current value. Return `()` to do nothing at all.
+
 #### Angles
 
 Clockwise from 0° being up/north
@@ -124,16 +129,17 @@ Clockwise from 0° being up/north
 ```apl
 ⍝ MyBot/Init.aplf
  state←Init
- state←⎕NS ''
+ state←()
 
 ⍝ MyBot/Tick.aplf
  actions←Tick input
  ⎕IO←0
- actions←⎕NS ''
- actions.direction←?360
- actions.turret←360|input.turret+5
- actions.fire←1
- actions.state←input.state
+ actions←(
+   direction: ?360
+   turret: 360|input.turret+5
+   fire: 1
+   state: input.state
+ )
 ```
 
 ### Tips
