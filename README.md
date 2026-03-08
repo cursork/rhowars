@@ -6,8 +6,7 @@
 
 **YOU ALSO CAN'T RUN IT, BECAUSE IT RELIES ON A PRIVATE DEPENDENCY**
 
-The code is public purely for ease of sharing. Current time spent is ~90 mins
-to get a proof of concept, which is all this is, as it stands.
+The code is public purely for ease of sharing.
 
 ----
 
@@ -18,10 +17,14 @@ battle in a free-for-all arena.
 out. They are intentionally dumb. I want players to be cleverer in the code they
 write.
 
-1. [Spinner](APLSource/Rhobots/Spinner) - spin and fire indiscriminately, whilst
-   moving to the centre
-2. [RandomWalker](APLSource/Rhobots/RandomWalker) - just choose a random path
-   and if you get another rhobot in your sights, start firing
+### Included Rhobots
+
+1. [Spinner](APLSource/Rhobots/Spinner) — spin and fire indiscriminately, move to the centre
+2. [RandomWalker](APLSource/Rhobots/RandomWalker) — random path, fire at anything in sight
+3. [Coward](APLSource/Rhobots/Coward) — hide in a corner, sweep inward, fire and flee on sight
+4. [Kamikaze](APLSource/Rhobots/Kamikaze) — spiral patrol (tight or wide), charge on sight
+5. [Camper](APLSource/Rhobots/Camper) — stay still, aim at centre, fire every tick
+6. [Orbiter](APLSource/Rhobots/Orbiter) — strafe around targets, orbit centre when idle
 
 ## Quick Start
 
@@ -56,7 +59,7 @@ that the APL API is running on.
 
 ## Writing Rhobots
 
-A rhobot is a directory under `APLSource/Rhobots/` containing two functions:
+A rhobot is a namespace containing Init and Tick:
 
 ### `Init.aplf`
 
@@ -96,6 +99,7 @@ Called every turn. Takes an input namespace, returns an actions namespace.
 | `hp`      | scalar    | Current hit points |
 | `arena`   | 2-vector  | Arena dimensions (width, height) |
 | `state`   | namespace | Your persistent state from previous turn |
+| `cfg`     | namespace | Game config (see below) |
 
 The `visible` matrix contains everything in your vision cone. `angle_offset` is
 relative to your turret — positive means the object is clockwise from where
@@ -107,7 +111,7 @@ nearest←rhobots[⊃⍒rhobots[;0];]   ⍝ closest one
 actions.turret←360|input.turret+nearest[1]  ⍝ turn toward it
 ```
 
-#### Output fields
+### Output fields
 
 | Field       | Type      | Description |
 |-------------|-----------|-------------|
@@ -118,29 +122,11 @@ actions.turret←360|input.turret+nearest[1]  ⍝ turn toward it
 | `speed`     | 0 or 1    | Optional. 0 = stay still, 1 = move (default 1) |
 
 Any field set to `⍬` or omitted means "no change" — the engine keeps the
-current value. Return `()` to do nothing at all.
+current value. Return `()` (or `⎕NS⍬` in namespace scripts) to do nothing.
 
-#### Angles
+### Angles
 
-Clockwise from 0° being up/north
-
-### Example: Minimal Bot
-
-```apl
-⍝ MyBot/Init.aplf
- state←Init
- state←()
-
-⍝ MyBot/Tick.aplf
- actions←Tick input
- ⎕IO←0
- actions←(
-   direction: ?360
-   turret: 360|input.turret+5
-   fire: 1
-   state: input.state
- )
-```
+Clockwise from 0° being up/north.
 
 ### Tips
 
@@ -152,21 +138,23 @@ Clockwise from 0° being up/north
 - Cooldown is 5 turns between shots. Every shot counts.
 - The arena has walls. Bots are clamped to the boundary.
 - Bullet damage is 20. You start with 100 HP. Five hits and you're dead.
+- Bots that collide bounce apart and take damage. Don't get cornered together.
 
 ## Game Parameters
 
-All parameters live in [Cfg.apln](APLSource/Cfg.apln) and playing with them
-is _encouraged_. The below are considered sub-optimal, and will be in flux
-until some arbitray 'are we happy?' point is reached.
+All parameters live in [Cfg.apln](APLSource/Cfg.apln) and can be tweaked from
+the web UI config panel. Changes persist until the server is restarted.
 
-| Parameter    | Value |
-|--------------|-------|
-| Arena        | 1000 x 1000 |
-| Bot speed    | 5 units/turn |
-| Bot HP       | 100 |
-| Bot radius   | 10 |
-| Bullet speed | 20 units/turn |
-| Bullet damage| 20 |
-| Vision cone  | 45° half-angle, 300 range |
-| Shot cooldown| 5 turns |
-| Max turns    | 2000 |
+| Parameter        | Default |
+|------------------|---------|
+| Arena            | 1000 × 1000 |
+| Bot speed        | 5 units/turn |
+| Bot HP           | 100 |
+| Bot radius       | 10 |
+| Bullet speed     | 20 units/turn |
+| Bullet damage    | 20 |
+| Vision cone      | 45° half-angle, 300 range |
+| Shot cooldown    | 5 turns |
+| Collision damage | 5 |
+| Collision bounce | 1.5× |
+| Max turns        | 2000 |

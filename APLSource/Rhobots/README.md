@@ -14,6 +14,10 @@ Tries to hide in corners.
 
 Once it sees a target, just goes towards them whilst firing.
 
+## Orbiter
+
+Attempts to orbit/strafe around its target.
+
 ## RandomWalker
 
 Walks randomly, but will lock on targets it sees.
