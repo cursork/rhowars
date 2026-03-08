@@ -1,0 +1,38 @@
+ manifest←Create(match botNames);i;bots;bot;name;ns;cfg;ver
+⍝ Build a record namespace from a completed match
+⍝ botNames: vector of resolvable name strings (e.g. 'Spinner' 'cursork/Rage')
+ ⎕IO←0
+ manifest←()
+ manifest.version←1
+ manifest.timestamp←⍕⎕TS
+ ⍝ Engine git hash
+ :Trap 0
+     manifest.engine←∊⎕SH'git -C "',##.Cfg.USER_BOTS_PATH,'/../" rev-parse --short HEAD'
+     manifest.engine←(manifest.engine≠⎕UCS 10 13)/manifest.engine
+ :Else
+     manifest.engine←'unknown'
+ :EndTrap
+ ⍝ Dyalog version
+ ver←1⊃'.'⎕WG'APLVersion'
+ manifest.dyalog←ver
+ manifest.seed←match.seed
+ ⍝ Bot info
+ bots←⍬
+ :For i :In ⍳≢botNames
+     name←i⊃botNames
+     bot←()
+     bot.name←name
+     :Trap 0
+         ns←##.BotLib.Resolve name
+         bot.hash←##.BotLib.HashSource ns
+     :Else
+         bot.hash←'unknown'
+     :EndTrap
+     bots,←⊂bot
+ :EndFor
+ manifest.bots←bots
+ ⍝ Config snapshot — all Cfg fields
+ cfg←⎕NS ##.Cfg
+ ⍝ Remove USER_BOTS_PATH (not a tunable config)
+ cfg.⎕EX'USER_BOTS_PATH'
+ manifest.config←cfg

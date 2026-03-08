@@ -1,0 +1,11 @@
+ hash←HashSource ns;fns;src;i;fn
+⍝ Hash a bot namespace's source code
+⍝ Returns a deterministic hash string from ⎕NR of all functions
+ ⎕IO←0
+ fns←ns.⎕NL ¯3
+ src←''
+ :For i :In ⍳≢fns
+     fn←i⊃fns
+     src,←∊ns.⎕NR fn
+ :EndFor
+ hash←⍕+/⎕UCS src

@@ -1,0 +1,23 @@
+ warnings←Validate manifest;i;bot;ns;hash;ver
+⍝ Validate a record against current environment
+⍝ Returns vector of warning strings (empty = all clear)
+ ⎕IO←0
+ warnings←⍬
+ ⍝ Check Dyalog version
+ ver←1⊃'.'⎕WG'APLVersion'
+ :If ver≢manifest.dyalog
+     warnings,←⊂'Dyalog version mismatch: manifest=',manifest.dyalog,' current=',ver
+ :EndIf
+ ⍝ Check each bot
+ :For i :In ⍳≢manifest.bots
+     bot←i⊃manifest.bots
+     :Trap 0
+         ns←##.BotLib.Resolve bot.name
+         hash←##.BotLib.HashSource ns
+         :If hash≢bot.hash
+             warnings,←⊂'Hash mismatch for ',bot.name,': manifest=',bot.hash,' current=',hash
+         :EndIf
+     :Else
+         warnings,←⊂'Bot not found: ',bot.name
+     :EndTrap
+ :EndFor

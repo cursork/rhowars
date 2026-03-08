@@ -130,6 +130,26 @@
      body←⎕JSON r.Data
      Assert 'user empty after delete' (0=≢body.user)
 
+     ⍝ ========== Record endpoint tests ==========
+
+     ⍝ --- GET /api/match/record → 200 ---
+     r←HttpCommand.Get base,'/api/match/record'
+     Assert 'GET record → 200' (200=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'record has version' (0≠⎕NC'body.version')
+     Assert 'record has seed' (0≠⎕NC'body.seed')
+     Assert 'record has bots' (0≠⎕NC'body.bots')
+     Assert 'record has config' (0≠⎕NC'body.config')
+     Assert 'record has dyalog' (0≠⎕NC'body.dyalog')
+
+     ⍝ --- POST /api/match/replay → 201 ---
+     r←HttpCommand.Do'POST'(base,'/api/match/replay')r.Data('content-type' 'application/json')
+     Assert 'POST replay → 201' (201=r.HttpStatus)
+     body←⎕JSON r.Data
+     Assert 'replay has match' (0≠⎕NC'body.match')
+     Assert 'replay has warnings' (0≠⎕NC'body.warnings')
+     Assert 'replay match done' (1=body.match.done)
+
      ⍝ ========== Config endpoint tests ==========
 
      ⍝ --- GET /api/config → 200, has all fields ---

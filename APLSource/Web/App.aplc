@@ -6,6 +6,7 @@
 
     :Field Private router
     :Field Private lastMatch
+    :Field Private lastBotNames
     :Field Private game
     :Field Private defaultCfg
 
@@ -14,14 +15,17 @@
       :Implements Constructor
       (StarkClass game)←args
       lastMatch←⍬
+      lastBotNames←⍬
       router←⎕NEW StarkClass
       router.Handlers←⎕THIS
       router.Info←(title: 'rhowars' ⋄ version: '0.1.0')
       defaultCfg←SaveCfg
       game.BotLib.LoadAll
+      '/api/match/record' router.Get 'GetRecord'
+      '/api/match/replay' router.Post 'ReplayRecord'
+      '/api/match/history' router.Get 'GetHistory'
       '/api/match' router.Post 'StartMatch'
       '/api/match' router.Get 'GetMatch'
-      '/api/match/history' router.Get 'GetHistory'
       '/api/bots' router.Get 'ListBots'
       '/api/bots' router.Post 'UploadBot'
       '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
@@ -54,6 +58,7 @@
               ns←game.BotLib.Resolve(i⊃names)
               botns,←ns
           :EndFor
+          lastBotNames←names
           lastMatch←game.Engine.Run botns
           req.SetStatus 201
           result←MatchSummary lastMatch
@@ -223,6 +228,62 @@
       game.Cfg.COLLISION_DAMAGE←saved.COLLISION_DAMAGE
       game.Cfg.COLLISION_BOUNCE←saved.COLLISION_BOUNCE
       game.Cfg.MAX_TURNS←saved.MAX_TURNS
+    ∇
+
+    ∇ result←GetRecord req
+      :Access Public
+      ⎕IO←0
+      :If ⍬≡lastMatch
+          req.Fail 404
+          result←(detail: 'No match has been run yet')
+      :Else
+          result←game.Record.Create lastMatch lastBotNames
+      :EndIf
+    ∇
+
+    ∇ result←ReplayRecord req;body;manifest;names;botns;i;ns;warnings;savedCfg;cfg
+      :Access Public
+      ⎕IO←0
+      :Trap 0
+          body←req.Payload
+          manifest←body
+          ⍝ Validate manifest
+          warnings←game.Record.Validate manifest
+          ⍝ Save current config and apply manifest config
+          savedCfg←SaveCfg
+          :Trap 0
+              cfg←manifest.config
+              :If 0≠⎕NC'cfg.ARENA'             ⋄ game.Cfg.ARENA←cfg.ARENA                         ⋄ :EndIf
+              :If 0≠⎕NC'cfg.BOT_SPEED'         ⋄ game.Cfg.BOT_SPEED←cfg.BOT_SPEED                 ⋄ :EndIf
+              :If 0≠⎕NC'cfg.BOT_HP'            ⋄ game.Cfg.BOT_HP←cfg.BOT_HP                       ⋄ :EndIf
+              :If 0≠⎕NC'cfg.BOT_RADIUS'        ⋄ game.Cfg.BOT_RADIUS←cfg.BOT_RADIUS               ⋄ :EndIf
+              :If 0≠⎕NC'cfg.BULLET_SPEED'      ⋄ game.Cfg.BULLET_SPEED←cfg.BULLET_SPEED           ⋄ :EndIf
+              :If 0≠⎕NC'cfg.BULLET_DAMAGE'     ⋄ game.Cfg.BULLET_DAMAGE←cfg.BULLET_DAMAGE         ⋄ :EndIf
+              :If 0≠⎕NC'cfg.VISION_RANGE'      ⋄ game.Cfg.VISION_RANGE←cfg.VISION_RANGE           ⋄ :EndIf
+              :If 0≠⎕NC'cfg.VISION_HALF_ANGLE' ⋄ game.Cfg.VISION_HALF_ANGLE←cfg.VISION_HALF_ANGLE ⋄ :EndIf
+              :If 0≠⎕NC'cfg.COOLDOWN'          ⋄ game.Cfg.COOLDOWN←cfg.COOLDOWN                   ⋄ :EndIf
+              :If 0≠⎕NC'cfg.COLLISION_DAMAGE'  ⋄ game.Cfg.COLLISION_DAMAGE←cfg.COLLISION_DAMAGE    ⋄ :EndIf
+              :If 0≠⎕NC'cfg.COLLISION_BOUNCE'  ⋄ game.Cfg.COLLISION_BOUNCE←cfg.COLLISION_BOUNCE    ⋄ :EndIf
+              :If 0≠⎕NC'cfg.MAX_TURNS'         ⋄ game.Cfg.MAX_TURNS←cfg.MAX_TURNS                 ⋄ :EndIf
+              ⍝ Resolve bots
+              names←{⍵.name}¨manifest.bots
+              botns←⍬
+              :For i :In ⍳≢names
+                  ns←game.BotLib.Resolve(i⊃names)
+                  botns,←ns
+              :EndFor
+              lastBotNames←names
+              lastMatch←manifest.seed game.Engine.Run botns
+              req.SetStatus 201
+              result←(match: MatchSummary lastMatch ⋄ warnings: warnings)
+          :Else
+              RestoreCfg savedCfg
+              ⎕DMX.EM ⎕SIGNAL ⎕DMX.EN
+          :EndTrap
+      :Else
+          req.Fail 500
+          result←(error: ⎕DMX.Message)
+      :EndTrap
     ∇
 
 :EndClass

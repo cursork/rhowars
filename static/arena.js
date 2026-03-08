@@ -159,6 +159,7 @@ document.getElementById('btnStartMatch').onclick = async () => {
     }
     document.getElementById('status').textContent =
       `Rhowar loaded: ${data.turns} turns, ${data.names.length} rhobots`;
+    document.getElementById('btnDownloadRecord').disabled = false;
     render();
     document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('ready-overlay').classList.add('show');
@@ -226,11 +227,13 @@ timeline.onmousedown = timeline.ontouchstart = () => {
 
 document.getElementById('upload-toggle').onclick = () => {
   document.getElementById('config-panel').classList.remove('open');
+  document.getElementById('record-panel').classList.remove('open');
   document.getElementById('upload-panel').classList.toggle('open');
 };
 
 document.getElementById('config-toggle').onclick = () => {
   document.getElementById('upload-panel').classList.remove('open');
+  document.getElementById('record-panel').classList.remove('open');
   document.getElementById('config-panel').classList.toggle('open');
 };
 
@@ -497,6 +500,104 @@ document.addEventListener('keydown', (e) => {
     render();
   }
 });
+
+// === Record ===
+
+document.getElementById('record-toggle').onclick = () => {
+  document.getElementById('upload-panel').classList.remove('open');
+  document.getElementById('config-panel').classList.remove('open');
+  document.getElementById('record-panel').classList.toggle('open');
+};
+
+document.getElementById('btnDownloadRecord').onclick = async () => {
+  try {
+    const resp = await fetch(`${API}/api/match/record`);
+    if (!resp.ok) throw new Error('No match to download');
+    const manifest = await resp.json();
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'rhowars-record.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    document.getElementById('record-status').textContent = 'Error: ' + e.message;
+    document.getElementById('record-status').style.color = '#f44';
+  }
+};
+
+document.getElementById('record-file').onchange = () => {
+  document.getElementById('btnReplayRecord').disabled =
+    document.getElementById('record-file').files.length === 0;
+};
+
+document.getElementById('btnReplayRecord').onclick = async () => {
+  const fileInput = document.getElementById('record-file');
+  const statusEl = document.getElementById('record-status');
+  if (fileInput.files.length === 0) return;
+
+  const text = await fileInput.files[0].text();
+  statusEl.textContent = 'Replaying...';
+  statusEl.style.color = '#888';
+
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('timeline-row').style.display = 'none';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('ready-overlay').classList.remove('show');
+  document.getElementById('loading-overlay').classList.add('show');
+
+  try {
+    const resp = await fetch(`${API}/api/match/replay`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: text
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error || resp.statusText);
+    }
+    const result = await resp.json();
+
+    // Show warnings if any
+    if (result.warnings && result.warnings.length > 0) {
+      statusEl.style.color = '#ff4';
+      statusEl.textContent = result.warnings.join('; ');
+    } else {
+      statusEl.style.color = '#4f4';
+      statusEl.textContent = 'Replay complete';
+    }
+
+    // Load history and show
+    const histResp = await fetch(`${API}/api/match/history`);
+    data = await histResp.json();
+    resizeArena(data.arena);
+    frame = 0;
+    playing = false;
+    clearInterval(playTimer);
+    timeline.max = data.frames.length - 1;
+    timeline.value = 0;
+    deathTurns = new Array(data.names.length).fill(-1);
+    for (let t = 1; t < data.frames.length; t++) {
+      const prev = data.frames[t - 1].bots;
+      const curr = data.frames[t].bots;
+      for (let i = 0; i < data.names.length; i++) {
+        if (deathTurns[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
+          deathTurns[i] = t;
+        }
+      }
+    }
+    render();
+    document.getElementById('loading-overlay').classList.remove('show');
+    document.getElementById('ready-overlay').classList.add('show');
+    document.getElementById('status').textContent =
+      `Replay loaded: ${data.turns} turns, ${data.names.length} rhobots`;
+  } catch (e) {
+    document.getElementById('loading-overlay').classList.remove('show');
+    statusEl.style.color = '#f44';
+    statusEl.textContent = 'Error: ' + e.message;
+  }
+};
 
 // === Config ===
 

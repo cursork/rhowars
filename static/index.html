@@ -163,6 +163,15 @@ output fields (all optional, ⍬ = no change):
       </details>
     </div>
 
+    <button id="record-toggle" class="sidebar-toggle">&#128196; Record</button>
+    <div id="record-panel" class="sidebar-panel">
+      <button id="btnDownloadRecord" style="width:100%;margin-bottom:8px" disabled>Download Record</button>
+      <label>Replay from Record</label>
+      <input type="file" id="record-file" accept=".json">
+      <button id="btnReplayRecord" style="width:100%;margin-top:6px" disabled>Replay</button>
+      <div id="record-status" style="margin-top:6px;font-size:11px"></div>
+    </div>
+
     <button id="config-toggle" class="sidebar-toggle">&#9881; Config</button>
     <div id="config-panel" class="sidebar-panel">
       <label>Arena (W × H)</label>

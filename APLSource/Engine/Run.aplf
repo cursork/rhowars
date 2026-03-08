@@ -1,7 +1,17 @@
- match←Run botns
+ match←{seed}Run botns;i
 ⍝ Run a complete match and return the result with history
+⍝ Optional left arg: seed for ⎕RL (for reproducible matches)
  ⎕IO←0
+ :If 0=⎕NC'seed'
+     seed←?2147483646
+ :EndIf
+ ⍝ Seed all relevant namespaces (⎕RL is per-namespace in Dyalog 20)
+ ⎕RL←seed
+ :For i :In ⍳≢botns
+     (i⊃botns).⎕RL←seed
+ :EndFor
  match←Init botns
+ match.seed←seed
  :While ~match.done
      match←Tick match
  :EndWhile

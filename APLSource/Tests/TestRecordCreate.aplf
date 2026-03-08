@@ -1,0 +1,18 @@
+ TestRecordCreate dummy;m;rec;names
+⍝ Test record creation has all required fields
+ ⎕IO←0
+ m←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ names←'Spinner' 'RandomWalker'
+ rec←##.Record.Create m names
+ Assert 'has version' (1=rec.version)
+ Assert 'has timestamp' (0<≢rec.timestamp)
+ Assert 'has engine' (0<≢rec.engine)
+ Assert 'has dyalog' (0<≢rec.dyalog)
+ Assert 'has seed' (0<≢rec.seed)
+ Assert 'has bots' (2=≢rec.bots)
+ Assert 'bot 0 name' ('Spinner'≡(⊃rec.bots).name)
+ Assert 'bot 0 has hash' (0<≢(⊃rec.bots).hash)
+ Assert 'has config' (0≠⎕NC'rec.config')
+ Assert 'config has ARENA' (0≠rec.config.⎕NC'ARENA')
+ Assert 'config has BOT_SPEED' (0≠rec.config.⎕NC'BOT_SPEED')
+ Assert 'config has MAX_TURNS' (0≠rec.config.⎕NC'MAX_TURNS')

@@ -1,0 +1,9 @@
+ TestBotHash dummy;h1;h2;h3
+⍝ Test bot hashing is deterministic and distinguishes different bots
+ ⎕IO←0
+ h1←##.BotLib.HashSource ##.Rhobots.Spinner
+ h2←##.BotLib.HashSource ##.Rhobots.Spinner
+ h3←##.BotLib.HashSource ##.Rhobots.RandomWalker
+ Assert 'same bot same hash' (h1≡h2)
+ Assert 'different bots different hash' (~h1≡h3)
+ Assert 'hash is character vector' ((∧/(' '=⊃0⍴⊃h1))∧0<≢h1)

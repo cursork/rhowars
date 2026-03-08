@@ -1,0 +1,8 @@
+ TestRecordReplay dummy;m1;m2
+⍝ Test that replaying with the same seed produces identical results
+ ⎕IO←0
+ m1←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ m2←m1.seed ##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.RandomWalker
+ Assert 'same turn count' (m1.turn=m2.turn)
+ Assert 'same final bots' (m1.bots≡m2.bots)
+ Assert 'same done flag' (m1.done≡m2.done)
