@@ -1,0 +1,37 @@
+:Namespace Remote
+⍝ Remote-controlled rhobot — blocks on ⎕TGET until an external
+⍝ agent posts an action via the /api/remote/action endpoint.
+
+    pendingInput←⍬
+    pendingAction←⍬
+    token←42
+    status←'idle'
+    tick←0
+
+    ∇ state←Init
+      ⎕IO←0
+      pendingInput←⍬
+      pendingAction←⍬
+      tick←0
+      status←'processing'
+      state←⎕NS⍬
+    ∇
+
+    ∇ actions←Tick input
+      ⎕IO←0
+      tick←tick+1
+      pendingInput←input
+      pendingAction←⍬
+      status←'waiting'
+      ⎕TGET token
+      status←'processing'
+      :If ⍬≡pendingAction
+          actions←⎕NS⍬
+      :Else
+          actions←pendingAction
+      :EndIf
+      pendingInput←⍬
+      actions.state←input.state
+    ∇
+
+:EndNamespace

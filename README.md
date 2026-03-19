@@ -25,6 +25,7 @@ write.
 4. [Kamikaze](APLSource/Rhobots/Kamikaze) — spiral patrol (tight or wide), charge on sight
 5. [Camper](APLSource/Rhobots/Camper) — stay still, aim at centre, fire every tick
 6. [Orbiter](APLSource/Rhobots/Orbiter) — strafe around targets, orbit centre when idle
+7. [Remote](APLSource/Rhobots/Remote.apln) — externally controlled via REST API (for Claude or any HTTP client)
 
 ## Quick Start
 

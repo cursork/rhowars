@@ -6,6 +6,10 @@
      ⎕SIGNAL⊂('EN' 11)('Message'('Name conflicts with built-in bot: ',name))
  :EndIf
  ⍝ Validate source by fixing into a temp namespace
+ ⍝ NOTE: if source is invalid, 2 ⎕FIX prints "error AC0040: could not fix function"
+ ⍝ to the session before signalling DOMAIN ERROR. This output cannot be suppressed
+ ⍝ by :Trap — it is diagnostic output from the interpreter, not an error signal.
+ ⍝ It is harmless noise. See AC0040 repo for details.
  lines←(⎕UCS 10)(≠⊆⊢)source
  tmpns←⎕NS''
  :Trap 0

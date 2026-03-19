@@ -9,6 +9,8 @@
     :Field Private lastBotNames
     :Field Private game
     :Field Private defaultCfg
+    :Field Private matches
+    :Field Private nextMatchId
 
     ∇ Make args;StarkClass
       :Access Public
@@ -16,11 +18,15 @@
       (StarkClass game)←args
       lastMatch←⍬
       lastBotNames←⍬
+      matches←⍬
+      nextMatchId←1
       router←⎕NEW StarkClass
       router.Handlers←⎕THIS
       router.Info←(title: 'rhowars' ⋄ version: '0.1.0')
       defaultCfg←SaveCfg
       game.BotLib.LoadAll
+      '/api/match/list' router.Get 'ListMatches'
+      '/api/match/{id}/history' router.Get 'GetMatchHistory'
       '/api/match/record' router.Get 'GetRecord'
       '/api/match/replay' router.Post 'ReplayRecord'
       '/api/match/history' router.Get 'GetHistory'
@@ -31,6 +37,8 @@
       '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
       '/api/config' router.Get 'GetConfig'
       '/api/config/reset' router.Post 'ResetConfig'
+      '/api/remote/state' router.Get 'GetRemoteState'
+      '/api/remote/action' router.Post 'PostRemoteAction'
     ∇
 
     ∇ Start port
@@ -43,7 +51,7 @@
       router.Stop
     ∇
 
-    ∇ result←StartMatch req;body;names;botns;i;ns
+    ∇ result←StartMatch req;body;names;botns;i;ns;rec
       :Access Public
       ⎕IO←0
       :Trap 0
@@ -59,9 +67,21 @@
               botns,←ns
           :EndFor
           lastBotNames←names
-          lastMatch←game.Engine.Run botns
-          req.SetStatus 201
-          result←MatchSummary lastMatch
+          rec←NewMatchRecord names
+          :If ∨/'Remote'∘≡¨names
+              lastMatch←⍬
+              game.Rhobots.Remote.status←'processing'
+              RunRemoteMatch&(botns rec)
+              req.SetStatus 202
+              result←(id: rec.id ⋄ status: 'running' ⋄ detail: 'Remote match started — poll GET /api/remote/state')
+          :Else
+              lastMatch←game.Engine.Run botns
+              rec.match←lastMatch
+              rec.done←1
+              req.SetStatus 201
+              result←MatchSummary lastMatch
+              result.id←rec.id
+          :EndIf
       :Else
           req.Fail 500
           result←(error: ⎕DMX.Message ⋄ at: ⎕DMX.DM)
@@ -284,6 +304,132 @@
           req.Fail 500
           result←(error: ⎕DMX.Message)
       :EndTrap
+    ∇
+
+    ∇ {r}←RunRemoteMatch args;botns;rec
+      :Access Private
+      r←⍬
+      (botns rec)←args
+      :Trap 0
+          lastMatch←game.Engine.Run botns
+          rec.match←lastMatch
+      :Else
+          ⍝ Match failed — ensure we don't hang
+      :EndTrap
+      rec.done←1
+      game.Rhobots.Remote.status←'done'
+    ∇
+
+    ∇ rec←NewMatchRecord names
+      :Access Private
+      rec←⎕NS⍬
+      rec.id←nextMatchId
+      rec.names←names
+      rec.match←⍬
+      rec.done←0
+      matches,←rec
+      nextMatchId←nextMatchId+1
+    ∇
+
+    ∇ result←ListMatches req
+      :Access Public
+      ⎕IO←0
+      result←(matches: {⎕IO←0 ⋄ ns←⎕NS⍬ ⋄ ns.id←⍵.id ⋄ ns.names←⍵.names ⋄ ns.done←⍵.done ⋄ ns.turns←{⍬≡⍵:0 ⋄ ⍵.turn}⍵.match ⋄ ns}¨matches)
+    ∇
+
+    ∇ result←GetMatchHistory req;id;valid;vals;idx;rec;frames
+      :Access Public
+      ⎕IO←0
+      (valid vals)←⎕VFI req.PathParams.id
+      :If ~∨/valid
+          req.Fail 400
+          result←(detail: 'Invalid match ID')
+          :Return
+      :EndIf
+      id←⊃valid/vals
+      idx←{⍵.id}¨matches
+      :If ~id∊idx
+          req.Fail 404
+          result←(detail: 'Match not found')
+          :Return
+      :EndIf
+      rec←(idx⍳id)⊃matches
+      :If ⍬≡rec.match
+          :If ~rec.done
+              result←(detail: 'Match not yet started' ⋄ id: id)
+          :Else
+              req.Fail 500
+              result←(detail: 'Match failed')
+          :EndIf
+          :Return
+      :EndIf
+      frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets)}¨rec.match.history
+      result←(
+        turns: rec.match.turn
+        done: rec.match.done
+        names: rec.match.names
+        arena: game.Cfg.ARENA
+        botRadius: game.Cfg.BOT_RADIUS
+        visionRange: game.Cfg.VISION_RANGE
+        visionHalfAngle: game.Cfg.VISION_HALF_ANGLE
+        botHP: game.Cfg.BOT_HP
+        frames: frames
+      )
+    ∇
+
+    ∇ result←GetRemoteState req;input;vis
+      :Access Public
+      ⎕IO←0
+      :Select game.Rhobots.Remote.status
+      :Case 'idle'
+          req.Fail 404
+          result←(detail: 'No remote match running')
+      :Case 'done'
+          result←(status: 'done' ⋄ turn: game.Rhobots.Remote.tick)
+      :Case 'processing'
+          result←(status: 'processing' ⋄ turn: game.Rhobots.Remote.tick)
+      :Case 'waiting'
+          input←game.Rhobots.Remote.pendingInput
+          result←⎕NS⍬
+          result.status←'active'
+          result.turn←game.Rhobots.Remote.pendingInput.turn
+          result.position←input.loc
+          result.direction←input.direction
+          result.turret←input.turret
+          result.hp←input.hp
+          result.arena←input.arena
+          result.config←input.cfg
+          vis←input.visible
+          :If 0<≢vis
+              result.visible←{ns←⎕NS⍬ ⋄ ns.type←(⍵[2])⊃'rhobot' 'bullet' ⋄ ns.distance←⍵[0] ⋄ ns.offset←⍵[1] ⋄ ns}¨↓vis
+          :Else
+              result.visible←⍬
+          :EndIf
+      :EndSelect
+    ∇
+
+    ∇ result←PostRemoteAction req;body;act
+      :Access Public
+      ⎕IO←0
+      :If 'waiting'≢game.Rhobots.Remote.status
+          :If 'done'≡game.Rhobots.Remote.status
+              result←(status: 'done' ⋄ turn: game.Rhobots.Remote.tick)
+          :Else
+              req.Fail 409
+              result←(detail: 'Remote bot is not waiting for input')
+          :EndIf
+          :Return
+      :EndIf
+      body←req.Payload
+      act←⎕NS⍬
+      :If 0≠body.⎕NC'direction' ⋄ act.direction←body.direction ⋄ :EndIf
+      :If 0≠body.⎕NC'turret' ⋄ act.turret←body.turret ⋄ :EndIf
+      :If 0≠body.⎕NC'fire' ⋄ act.fire←body.fire ⋄ :EndIf
+      :If 0≠body.⎕NC'speed' ⋄ act.speed←body.speed ⋄ :EndIf
+      act.state←game.Rhobots.Remote.pendingInput.state
+      game.Rhobots.Remote.pendingAction←act
+      ⎕TPUT game.Rhobots.Remote.token
+      result←(ok: 1 ⋄ turn: game.Rhobots.Remote.tick)
     ∇
 
 :EndClass

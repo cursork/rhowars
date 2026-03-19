@@ -106,6 +106,10 @@ select, input[type=range] { background: #222; color: #eee; border: 1px solid #55
       <button id="btnStartMatch" disabled>Start Rhowar</button>
       <button id="btnClearLineup" onclick="clearLineup()" style="font-size:11px;padding:4px 8px">Clear</button>
     </div>
+    <button id="matches-toggle" class="sidebar-toggle" style="margin-top:8px">Matches</button>
+    <div id="matches-panel" class="sidebar-panel">
+      <ul id="matches-list" class="bot-list"></ul>
+    </div>
 
     <button id="upload-toggle" class="sidebar-toggle">+ Create Rhobot</button>
     <div id="upload-panel" class="sidebar-panel">

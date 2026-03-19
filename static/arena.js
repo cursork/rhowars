@@ -139,28 +139,7 @@ document.getElementById('btnStartMatch').onclick = async () => {
       return;
     }
     const resp = await fetch(`${API}/api/match/history`);
-    data = await resp.json();
-    resizeArena(data.arena);
-    frame = 0;
-    playing = false;
-    clearInterval(playTimer);
-    timeline.max = data.frames.length - 1;
-    timeline.value = 0;
-    // Pre-compute death turns
-    deathTurns = new Array(data.names.length).fill(-1);
-    for (let t = 1; t < data.frames.length; t++) {
-      const prev = data.frames[t - 1].bots;
-      const curr = data.frames[t].bots;
-      for (let i = 0; i < data.names.length; i++) {
-        if (deathTurns[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
-          deathTurns[i] = curr[0].length ? t : t; // turn index
-        }
-      }
-    }
-    document.getElementById('status').textContent =
-      `Rhowar loaded: ${data.turns} turns, ${data.names.length} rhobots`;
-    document.getElementById('btnDownloadRecord').disabled = false;
-    render();
+    loadHistory(await resp.json());
     document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('ready-overlay').classList.add('show');
   } catch (e) {
@@ -168,6 +147,62 @@ document.getElementById('btnStartMatch').onclick = async () => {
     document.getElementById('status').textContent = 'Error: ' + e.message;
   }
 };
+
+// === Matches Panel ===
+
+document.getElementById('matches-toggle').onclick = () => {
+  document.getElementById('upload-panel').classList.remove('open');
+  document.getElementById('config-panel').classList.remove('open');
+  document.getElementById('record-panel').classList.remove('open');
+  const panel = document.getElementById('matches-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) loadMatches();
+};
+
+async function loadMatches() {
+  const el = document.getElementById('matches-list');
+  try {
+    const resp = await fetch(`${API}/api/match/list`);
+    const body = await resp.json();
+    const list = body.matches || [];
+    el.innerHTML = '';
+    if (list.length === 0) {
+      el.innerHTML = '<li class="bot-empty">No matches yet</li>';
+      return;
+    }
+    for (let i = list.length - 1; i >= 0; i--) {
+      const m = list[i];
+      const li = document.createElement('li');
+      const names = m.names.join(' vs ');
+      const status = m.done ? `${m.turns} turns` : 'running...';
+      li.innerHTML = `<span class="bot-name" style="font-size:11px">#${m.id} ${names}</span>` +
+        `<span class="result-detail">${status}</span>`;
+      if (m.done) {
+        li.style.cursor = 'pointer';
+        li.onclick = () => watchMatch(m.id);
+      } else {
+        li.style.opacity = '0.5';
+      }
+      el.appendChild(li);
+    }
+  } catch (e) {
+    el.innerHTML = '<li class="bot-empty">Failed to load matches</li>';
+  }
+}
+
+async function watchMatch(id) {
+  try {
+    const resp = await fetch(`${API}/api/match/${id}/history`);
+    if (!resp.ok) {
+      document.getElementById('status').textContent = 'Failed to load match';
+      return;
+    }
+    loadHistory(await resp.json());
+    document.getElementById('ready-overlay').classList.add('show');
+  } catch (e) {
+    document.getElementById('status').textContent = 'Error: ' + e.message;
+  }
+}
 
 document.getElementById('btnWatch').onclick = () => {
   document.getElementById('ready-overlay').classList.remove('show');
@@ -178,6 +213,30 @@ document.getElementById('btnWatch').onclick = () => {
   document.getElementById('btnPlay').textContent = 'Pause';
   startPlayback();
 };
+
+function loadHistory(histData) {
+  data = histData;
+  resizeArena(data.arena);
+  frame = 0;
+  playing = false;
+  clearInterval(playTimer);
+  timeline.max = data.frames.length - 1;
+  timeline.value = 0;
+  deathTurns = new Array(data.names.length).fill(-1);
+  for (let t = 1; t < data.frames.length; t++) {
+    const prev = data.frames[t - 1].bots;
+    const curr = data.frames[t].bots;
+    for (let i = 0; i < data.names.length; i++) {
+      if (deathTurns[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
+        deathTurns[i] = t;
+      }
+    }
+  }
+  document.getElementById('status').textContent =
+    `Rhowar loaded: ${data.turns} turns, ${data.names.length} rhobots`;
+  document.getElementById('btnDownloadRecord').disabled = false;
+  render();
+}
 
 // === Playback ===
 
@@ -228,12 +287,14 @@ timeline.onmousedown = timeline.ontouchstart = () => {
 document.getElementById('upload-toggle').onclick = () => {
   document.getElementById('config-panel').classList.remove('open');
   document.getElementById('record-panel').classList.remove('open');
+  document.getElementById('matches-panel').classList.remove('open');
   document.getElementById('upload-panel').classList.toggle('open');
 };
 
 document.getElementById('config-toggle').onclick = () => {
   document.getElementById('upload-panel').classList.remove('open');
   document.getElementById('record-panel').classList.remove('open');
+  document.getElementById('matches-panel').classList.remove('open');
   document.getElementById('config-panel').classList.toggle('open');
 };
 
@@ -506,6 +567,7 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('record-toggle').onclick = () => {
   document.getElementById('upload-panel').classList.remove('open');
   document.getElementById('config-panel').classList.remove('open');
+  document.getElementById('matches-panel').classList.remove('open');
   document.getElementById('record-panel').classList.toggle('open');
 };
 
@@ -570,24 +632,7 @@ document.getElementById('btnReplayRecord').onclick = async () => {
 
     // Load history and show
     const histResp = await fetch(`${API}/api/match/history`);
-    data = await histResp.json();
-    resizeArena(data.arena);
-    frame = 0;
-    playing = false;
-    clearInterval(playTimer);
-    timeline.max = data.frames.length - 1;
-    timeline.value = 0;
-    deathTurns = new Array(data.names.length).fill(-1);
-    for (let t = 1; t < data.frames.length; t++) {
-      const prev = data.frames[t - 1].bots;
-      const curr = data.frames[t].bots;
-      for (let i = 0; i < data.names.length; i++) {
-        if (deathTurns[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
-          deathTurns[i] = t;
-        }
-      }
-    }
-    render();
+    loadHistory(await histResp.json());
     document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('ready-overlay').classList.add('show');
     document.getElementById('status').textContent =
