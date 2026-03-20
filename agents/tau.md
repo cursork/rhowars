@@ -2,12 +2,18 @@
 
 I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bots. This file is my playbook — I read it before each battle and update it after with what I learned.
 
+## Context
+
+- Matches may have **many bots**, not just 1v1.
+- Opponents may be other Remote agents or built-in bots.
+- When the match ends, the `done` response includes my `hp` and `alive` status.
+
 ## Battle Record
 
 ### Battle 1 — 2026-03-20
-- **Opponent:** Unknown (slot 0) — possibly another Remote or a built-in bot
-- **Result:** LOSS (killed at turn 39 of 100)
-- **My final HP:** 0 (was 20 at turn 38, died turn 39)
+- **Opponent:** Rho (slot 0) — another Remote agent
+- **Result:** WIN (opponent killed at turn 39 of 100)
+- **My final HP:** 20 (the done endpoint didn't show HP at the time, so I incorrectly thought I lost)
 - **Damage taken:** 80 (4 hits of 20 each, at turns ~13, ~17, ~27, ~37)
 - **Shots fired:** ~7 shots (turns 0, 5, 10, 15, 20, 25, 30, 35)
 - **Hits confirmed:** Unknown — enemy HP not visible
@@ -22,52 +28,87 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - Turn 38: Fourth hit (HP 40->20). Killed next turn.
   - Pattern: I got hit every ~10 turns. Enemy was shooting me roughly every 10 turns but with cooldown 5, they fired every 5 turns and hit about half their shots.
 
+### Battle 2 — 2026-03-20
+- **Match type:** 5-bot FFA (I was slot 1)
+- **Result:** LOSS — ranked 4th of 5
+- **Death turn:** 42 of 2000
+- **Final HP:** -5
+- **Damage taken:** 105 (5 hits: turns ~23, ~35, ~37 (bullet+collision), ~40, ~41-42)
+- **Shots fired:** 4 (turns 10, 15, 25, 35) — too few, should have been ~8
+- **Hits confirmed:** 0 (no way to confirm without seeing enemy HP)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (105, 97) — bottom-left area
+- **Key moments:**
+  - Turn 1: Spotted first enemy at distance 250, offset -34.5. Snapped turret.
+  - Turns 1-20: Closed distance from 250 to 64 in a nearly straight line. Tracked enemy precisely (~0.3-1.8 degree offset).
+  - Turn 10: First shot fired at distance 161 — likely missed (8 turn travel time).
+  - Turn 15: Second shot at distance 113 — possible miss.
+  - Turn 23: HP 100->80. First hit from invisible bullet (outside vision cone).
+  - Turn 29: Spotted SECOND enemy — two rhobots visible simultaneously.
+  - Turn 30: Third shot at distance 44 — aimed poorly (11 degrees off due to moving perpendicular).
+  - Turn 35: HP 80->60. Fourth shot fired at distance 34 while taking damage. Also saw incoming bullet at distance 14.
+  - Turn 37: HP 60->35! Collision + bullet = 25 damage in one turn. Devastating.
+  - Turn 40: HP 35->15. Another hit. Fifth shot fired.
+  - Turn 42: Dead at -5 HP.
+- **Pattern:** I was being shot by bots I couldn't see. My vision cone (turret-facing) missed threats from behind/flanks. Closing distance made me an easy target for crossfire in FFA.
+
 ## Strategy
 
-### Current approach (v1 - needs improvement)
-1. **Snap turret to enemy on first sight** — set turret = turret + offset
-2. **Zigzag while advancing** — alternate between NE/NW or N/S directions each turn
-3. **Fire when cooldown is ready** — aim turret precisely (add offset) then fire
-4. **Try to close distance** — shorter distance means bullets arrive faster, harder to dodge
+### Current approach (v3 — circle-and-shoot)
+1. **Move to center first** — head toward (500, 500) to avoid corner traps and see more bots
+2. **Snap turret to closest enemy** — set turret = (turret + offset) % 360
+3. **Circle at 60-80 distance** — move perpendicular to turret angle to orbit the enemy. Harder to hit than straight-line approach
+4. **Fire ONLY when offset < 5 degrees AND cooldown ready** — compute turret adjustment before firing in the same action
+5. **Zigzag unpredictably** — alternate circling direction every 2-3 turns (not every turn — too predictable)
+6. **Dodge bullets aggressively** — if bullet distance < 40 and appears to be incoming (wasn't there last turn), make 90-degree direction change
+7. **Never charge straight at an enemy** — collision damage (5) + being easy to hit is too costly
+8. **In FFA (3+ bots), stay on the edge of fights** — let other bots damage each other, then engage the weakened survivor
 
-### What worked
-- Turret tracking was solid — I consistently had the enemy within 1-7 degrees offset
-- Zigzag movement kept me alive for 39 turns (survived about 8 enemy volleys, only got hit by 4)
-- Never lost sight of the enemy throughout the match
+### What worked (Battle 2)
+- Turret tracking remained excellent — consistently had enemy within 1-5 degrees offset during approach
+- Closed distance effectively (250 to 35 in ~30 turns)
+- Identified multiple enemies and tracked them
 
-### What failed
-- **My shots probably all missed** — at 80-115 distance, bullets take 4-6 turns to arrive. The enemy has plenty of time to move 20-30 pixels and dodge. Bot radius is only 10.
-- **Zigzag pattern was too predictable** — N/S oscillation at constant distance means the enemy can predict my position
-- **Never checked if the other bot had a pattern I could exploit** — e.g., Spinner moves to center and spins, I could lead my shots
-- **Distance never closed below ~75** — I zigzagged laterally instead of actually approaching
+### What failed (Battle 2)
+- **Took invisible hits** — enemy bullets came from outside my 90-degree vision cone. I never saw them until HP dropped.
+- **Closed too aggressively** — went from 50 to 28 distance and collided, taking 25 HP in one turn (bullet + collision)
+- **Erratic circling** — constantly changing direction between 6 different headings confused my own tracking more than the enemy's aim
+- **Wasted early shots** — fired at distance 160 and 113 which likely missed entirely
+- **Only fired 4 times in 42 turns** — cooldown 5 means I could have fired 8 times. Wasted potential.
+- **Never confirmed any hits** — no way to tell if bullets landed without seeing enemy HP drop
 
 ### Improvements for next battle
-1. **Lead shots** — Don't aim where the enemy IS, aim where they WILL BE. If enemy is moving, offset the turret by a few degrees in their direction of travel.
-2. **Close distance aggressively** — Move mostly TOWARD the enemy (direction ~= turret angle) with only slight perpendicular zigzag. At distance 40, bullets arrive in 2 turns, much harder to dodge.
-3. **Track enemy movement** — Compare enemy offset between turns to determine if they're moving clockwise or counterclockwise relative to me. Use this to lead shots.
-4. **When a close bullet is detected (distance < 30), make a SHARP perpendicular turn** — not a gentle zigzag. Move 90 degrees from the bullet's approach direction.
-5. **Fire only when offset < 2 degrees** — Don't waste cooldown on poor aim.
-6. **Consider circling at medium range (60-80)** — Harder target than straight-line approach.
+1. **Fire earlier and more often** — even at 150+ distance, fire to apply pressure. Don't wait for perfect range.
+2. **Keep distance at 50-80** — close enough for 2.5-4 turn bullet travel, far enough to avoid collision.
+3. **When circling, alternate direction every 3 turns** — not every turn, and not randomly.
+4. **Track bullet approach** — compare visible bullets between turns. If a bullet's distance DECREASED, it's incoming.
+5. **In FFA, don't tunnel on one target** — periodically sweep turret to check for threats from other bots.
+6. **Avoid moving directly toward the enemy** — always move at least 30 degrees off the turret angle.
 
 ## Lessons Learned
 
 ### Mechanics
-- `./rh` sometimes returns "processing" and requires 5-10 seconds of waiting before the state is ready
+- `./rh` sometimes returns "processing" — just poll again immediately, no sleep needed
 - Cooldown of 5 means I can fire at turns 0, 5, 10, 15, 20, 25, 30, 35...
 - Trying to fire during cooldown silently fails (no error, just no bullet)
 - Bullets visible at offset 0 and distance 20 are MY bullets just fired
 - Bullets I see moving away (increasing distance) are mine; decreasing distance means incoming
-- The "done" status response is minimal — no winner info in the polling endpoint
+- The "done" response includes: alive, deathTurn, hp, rank, totalBots, status, turn
 - botRadius=10 means a bullet must pass within 10 pixels to hit
+- Collision with enemy = 5 damage + 1.5 bounce (pushes you apart). AVOID getting within 20 pixels.
 
-### Timing
-- The enemy bot (slot 0) was slow to respond — "processing" delays of 5-10 seconds suggest it was also a Remote bot (possibly another AI agent or human)
-- With 100-turn max, I need to be more aggressive to kill the enemy before time runs out
+### FFA (Free-For-All)
+- Matches can have 5+ bots, not just 1v1
+- In Battle 2, ranked 4th/5 — died at turn 42 of a 2000-turn match
+- Multiple enemies can be visible simultaneously with different offsets
+- Other bots fight each other — I can benefit from letting them weaken each other
+- Don't tunnel on one target — other bots may be shooting me from outside my vision
 
 ### Dodging
 - Bullets at distance < 25 that are decreasing will likely hit next turn — must dodge immediately
-- My N/S zigzag at 5 pixels per turn (botSpeed=5) wasn't enough displacement to reliably dodge
+- My zigzag at 5 pixels per turn (botSpeed=5) wasn't enough displacement to reliably dodge
 - Need larger direction changes (90+ degree turns) and less predictable patterns
+- CRITICAL: Enemy bullets may come from OUTSIDE my 90-degree vision cone. HP drops with no visible warning.
 - Consider stopping (speed=0) occasionally — if the enemy leads their shots, stopping can cause misses
 
 ### Aiming
@@ -75,7 +116,10 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - With bulletSpeed=20 and enemy botSpeed=5, at distance 80 (4 turn travel), enemy can move 20 pixels — 2x their radius. Roughly 50% dodge chance.
 - At distance 40 (2 turn travel), enemy moves 10 pixels — just their radius. Much better hit rate.
 - Lead distance = (enemy_speed * distance) / bullet_speed = (5 * 80) / 20 = 20 pixels at distance 80
+- When posting an action, turret is set FIRST, then bullet fires at that turret angle. So I need to compute the correct turret angle WITH the offset correction in the same action as firing.
 
 ### Meta
-- I should figure out WHO my opponent is. The behavior pattern (staying at ~80-100 distance, hitting me every ~10 turns) could match Spinner, Camper, or another Remote.
-- Next time check if enemy distance stays constant (orbiting/stationary) or changes (approaching/fleeing) to identify the opponent type.
+- In FFA, figure out how many bots there are (totalBots in done response). If visible count < total-1, bots are behind me.
+- Identify opponent types: Spinner stays near center + spins turret. Camper sits in corner. Kamikaze charges. Coward flees. Orbiter circles.
+- In Battle 2, the enemy I tracked seemed nearly stationary (offset drifted slowly, distance decreased linearly as I approached). Could have been Spinner or Camper.
+- The bot that kept hitting me was likely someone else I never saw (outside my vision cone).

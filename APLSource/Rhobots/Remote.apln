@@ -18,6 +18,9 @@
       instance.secret←⎕A[?12⍴26]
       instance.finalHP←0
       instance.alive←0
+      instance.rank←0
+      instance.totalBots←0
+      instance.deathTurn←¯1
       instance.⎕DF 'Remote[',⍕slot,']'
       instance.⎕FX ⎕NR'Init'
       instance.⎕FX ⎕NR'Tick'

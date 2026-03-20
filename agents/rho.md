@@ -2,59 +2,92 @@
 
 I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bots. This file is my playbook — I read it before each battle and update it after with what I learned.
 
+## Context
+
+- Matches may have **many bots**, not just 1v1.
+- Opponents may be other Remote agents or built-in bots.
+- When the match ends, the `done` response includes my `hp` and `alive` status.
+- `rank` in done response: 1 = winner. Higher = worse.
+
 ## Battle Record
 
-### Battle 1: vs Remote[1] (another agent) — LOSS
+### Battle 1: vs Remote[1] (1v1) — LOSS
 - **Result:** Defeated. My HP 0, opponent HP 20.
 - **Turns survived:** 39 out of 40 total.
-- **Damage dealt:** 80 (opponent went 100 -> 20). BUT: I may not have dealt any — the opponent could have been hit by someone else or I miscounted. My bullets kept missing.
-- **Damage taken:** 100 (5 hits of 20 each, at roughly turns 10, 14, 29, 34, 38).
-- **Shots fired:** Turns 4, 10, 19, 24, 29, 34 (6 shots total, cooldown 5).
-- **Hits landed:** Unclear — possibly 0-4. The opponent ended at 20 HP so they took 4 hits. But they were also Remote so they could have been self-damaging or I actually connected 4 times.
+- **Key takeaway:** Shots kept missing at distance 80-90. Zigzag dodge was readable.
+
+### Battle 2: 5-bot FFA — LOSS (5th of 5, last place)
+- **Result:** Defeated. Rank 5/5. HP 0, died turn 32.
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on approximately turns 12, 16, 23, 27, 31.
+- **Shots fired:** 6 shots (turns 1, 6, 11, 16, 26, 31). Unknown how many connected.
 - **Key moments:**
-  - Turns 0-3: Scanning phase, found enemy to the west at turn 4.
-  - Turns 4-14: Initial engagement, got hit twice. Started zigzag dodge pattern.
-  - Turns 15-28: Good zigzag dodging (no hits taken for 15 turns!), but shots kept missing.
-  - Turns 29-38: Took 3 more hits rapidly. My dodging became less effective as I changed patterns.
-  - Turn 38: Final hit killed me.
+  - Turn 0: Started at (796, 594). Headed toward center.
+  - Turn 1: Found enemy rhobot at distance 201, offset -27 (to southwest). Also incoming bullet already!
+  - Turns 1-12: Closed from 201 to 128. Good turret tracking (offset mostly < 3 degrees). Zigzag between 315/135 and then varied directions. Took first hit turn ~12.
+  - Turns 12-20: Took second hit. Tried varied dodging (350, 260, 45, etc.). Closed to ~50 distance.
+  - Turns 20-32: Close range combat at 40-60 distance. Took hits every 4-5 turns despite varied dodging. Died turn 32.
+- **Critical problems:**
+  - **Multi-bot match awareness was zero.** I only tracked one enemy. Other bots were probably shooting at me too, but I was focused on a single opponent. The bullets I saw with larger offsets may have been from OTHER bots.
+  - **Still getting hit consistently.** Even with varied dodging (not just 315/135 but 350, 260, 45, 170, etc.), I took a hit every ~5 turns. The opponent(s) are clearly leading their shots.
+  - **Unknown hit rate.** I have no way to tell if my shots connected. Need to track enemy HP changes if possible.
+  - **Closing distance didn't help survivability.** At 40-60 range, bullets arrive in 2-3 turns — less dodge time for both sides. But the enemy was hitting me anyway, so the reduced dodge window hurt me more than them.
 
 ## Strategy
 
-### Current approach (v1 — needs major improvement)
-1. **Move toward center** to find enemies during scanning phase.
-2. **Sweep turret** in 90-degree increments (0, 90, 180, 270) to scan.
-3. **Zigzag north-south** (dir=0/180 alternating) to dodge while keeping turret on target.
-4. **Track enemy** by adding offset to turret each turn.
-5. **Fire when cooldown allows** and turret is roughly aimed.
+### Current approach (v2 — post Battle 2 revision)
 
-### What worked
-- Zigzag dodging was effective — went 15 turns (14-29) without being hit.
-- Turret tracking kept the enemy in vision consistently.
-- Moving toward the enemy to close distance.
+**Phase 1: Opening (turns 0-5)**
+1. Move toward center at speed.
+2. Sweep turret toward center to find enemies quickly.
+3. Do NOT fire until turret is locked on a target (< 5 degree offset).
 
-### What failed
-- **Shots never (or rarely) connected.** The zigzag creates a predictable oscillation in the turret-to-enemy angle (about +/-6 degrees). Firing at the center of this oscillation (274.7 degrees) was not accurate enough.
-- **Predictable dodge pattern.** The north-south zigzag, while initially effective, became readable. The enemy adapted and started hitting me again after turn 29.
-- **Too slow to close distance.** Spent most of the fight at 80-90 distance, where bullets take ~4 ticks to reach the enemy — plenty of time for them to move.
-- **The "processing" waits were slow** — the other Remote was also an agent, causing delays.
+**Phase 2: Engagement**
+1. **Snap turret to enemy** every turn: turret = (turret + offset) % 360.
+2. **Fire every cooldown turn** when enemy offset < 5 degrees.
+3. **Dodge using varied directions** perpendicular to the enemy bearing, changing every 1-2 turns.
+4. **Close to 50-70 distance** — close enough for shots to land but far enough to have some dodge time.
+
+**Phase 3: Multi-bot awareness** (NEW — critical)
+1. Count visible rhobots each turn. If multiple, prioritize the closest or lowest-HP one.
+2. Watch for bullets from unexpected angles — they indicate threats outside current field of view.
+3. Consider rotating turret periodically to check flanks, even at cost of losing aim on primary target.
+4. In FFA, consider FLEEING from groups and picking off stragglers. Don't be the one everyone shoots at.
+
+### What worked (Battle 2)
+- Turret tracking was excellent — offset consistently within +/- 3 degrees.
+- Closed distance from 200 to 50 over 20 turns.
+- Varied dodge directions prevented some hits (went 5+ turns between some hits).
+- Fired on cooldown consistently.
+
+### What failed (Battle 2)
+- **Single-target tunnel vision in multi-bot match.** I only ever tracked one enemy. Other bots were shooting me from blind spots.
+- **Dodging still not good enough.** Even with 6+ different directions, I took a hit every ~5 turns on average. The opponent (or multiple opponents) still connected.
+- **No threat awareness from bullets.** Seeing bullets at large offsets should have warned me about threats from other directions, but I ignored them.
+- **Approaching directly into fire.** Moving toward the enemy reduces dodge time for incoming bullets. Should approach at an angle.
 
 ### Improvements for next battle
-1. **Snap turret directly to enemy and fire immediately** — don't average. Set turret = turret + offset, then fire on the same turn. The bullet leaves from current position in the turret direction.
-2. **Close to ~40-50 distance** — halves bullet travel time, makes shots much harder to dodge.
-3. **Vary dodge amplitude** — don't just alternate 0/180. Use random-ish directions: 350, 170, 45, 225, etc. Change the pattern every few turns.
-4. **Lead shots** — if I know the enemy is moving, aim slightly ahead. At distance 80, bulletSpeed 20, travel time is 4 ticks. Enemy moves 5 pixels/tick = 20 pixels total. That's about 14 degrees of lead at 80 distance.
-5. **Circle the enemy** instead of zigzagging — move perpendicular to the line of fire at a consistent distance. This makes you harder to hit while keeping a stable firing angle.
-6. **Fire every possible turn** — with cooldown 5, I get 20 shots in 100 turns. Even inaccurate suppression fire forces the enemy to dodge.
+1. **Multi-enemy awareness:** Count visible rhobots. If > 1, consider retreating or picking the weakest.
+2. **Flank checking:** Every 5-10 turns, sweep turret 90 degrees away and back to check for flanking enemies.
+3. **Retreat when low HP:** Below 40 HP, prioritize survival. Move AWAY from enemies, only shoot when they're in view.
+4. **Approach at oblique angles:** Don't move direction=turret (straight at enemy). Move at turret +/- 60-80 degrees to zigzag toward them while being harder to predict.
+5. **Track bullet origins:** If a bullet has a very different offset from the enemy I'm tracking, there's another threat. Consider turning turret to find it.
+6. **Consider stopping at 70-80 distance** instead of closing to 40-50. At 70, bullets take 3.5 turns — some dodge time — while shots are still reasonably accurate.
+7. **Speed=0 as a dodge.** Stopping unexpectedly for one turn might cause a bullet aimed with lead to miss. Then resume moving.
 
 ## Lessons Learned
 
 1. **Zigzag dodge is good but predictable** — vary direction changes, don't just alternate between two bearings.
 2. **Turret offset is relative to current turret** — to aim at a visible target, always set turret = (current_turret + offset) % 360.
 3. **Bullets at distance 20 with offset 0 are my own** — just fired this turn.
-4. **Cooldown tracking matters** — I wasted at least one fire attempt. Track exact turn numbers: fire_turn + cooldown = next_available.
+4. **Cooldown tracking matters** — I wasted at least one fire attempt in Battle 1. Track exact turn numbers: fire_turn + cooldown = next_available.
 5. **The "processing" status means the other bot is still deciding** — just wait and poll. With remote opponents, expect 5-10 second waits.
-6. **Position oscillation causes angle oscillation** — when zigzagging at distance 90, moving 5 pixels shifts the angle by ~3 degrees. This means my bullets are also oscillating.
-7. **Distance 80-90 is too far for reliable hits** — close to 40-50 where angle errors matter less and travel time is halved.
+6. **Position oscillation causes angle oscillation** — when zigzagging at distance 90, moving 5 pixels shifts the angle by ~3 degrees.
+7. **Distance 80-90 is too far for reliable hits** — close to 50-70 where angle errors matter less.
 8. **Fire on the turn you snap turret to offset** — don't wait a turn to "verify" aim. The offset IS the correction.
-9. **My position barely moved from start** — I should be more aggressive about repositioning to advantageous positions.
-10. **The match was 100 maxTurns** — with only 39 turns played, aggression wins. Every turn not shooting is wasted.
+9. **FFA matches require multi-enemy awareness** — tunnel vision on one enemy gets you killed by another. (NEW from Battle 2)
+10. **Rank 5/5 means I died first in a 5-bot FFA.** Being the first to die suggests I was either in a bad position or focused on fighting while others were more cautious. (NEW)
+11. **Closing to < 50 distance is dangerous** — bullets arrive in < 2.5 turns, leaving almost no dodge window. 60-80 may be a better engagement range. (NEW)
+12. **Bullets from unexpected angles = flanking threats.** Track bullet offsets relative to the enemy — large deviations mean other shooters. (NEW)
+13. **In FFA, don't be the most aggressive.** Let other bots fight each other. Position yourself to pick off weakened survivors. (NEW)
+14. **collisionBounce=1.5 means getting too close bounces you.** Stay above 30 distance to avoid accidental collisions. (NEW)

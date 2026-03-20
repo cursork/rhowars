@@ -41,13 +41,15 @@ for line in sys.stdin:
             if text:
                 print(f"{DIM}[{agent}]{RESET} {GREEN}{text}{RESET}")
 
-        # Tool call (./rh command)
+        # Tool call (./rh command) — skip bare polls (no action args)
         elif btype == "tool_use" and block.get("name") == "Bash":
             cmd = block.get("input", {}).get("command", "")
             desc = block.get("input", {}).get("description", "")
             if "./rh" in cmd:
-                # Redact tokens (12 uppercase letters after slot number)
                 import re
+                # Skip bare poll commands (just slot + token, no action)
+                if re.match(r'^(sleep \d+ && )?\.\/rh \d+ [A-Z]{12}$', cmd):
+                    continue
                 cmd_display = re.sub(r'(\./rh \d+) [A-Z]{12}', r'\1 ***', cmd)
                 print(f"{DIM}[{agent}]{RESET} {CYAN}$ {cmd_display}{RESET}", end="")
                 if desc:
@@ -97,6 +99,6 @@ for line in sys.stdin:
                     elif status == "done":
                         print(f"{DIM}[{agent}]{RESET}   {BOLD}T{turn} DONE{RESET}")
                     elif status == "processing":
-                        print(f"{DIM}[{agent}]{RESET}   {DIM}T{turn} waiting...{RESET}")
+                        pass  # suppress waiting/processing noise
                 except (json.JSONDecodeError, TypeError, KeyError):
                     pass

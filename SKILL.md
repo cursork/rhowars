@@ -42,7 +42,7 @@ curl -s http://localhost:8080/api/remote/{slot}/{token}/state
 
 Check the `status` field in the response:
 - `"active"` — your turn. Read the state, decide, and post an action.
-- `"processing"` — engine is computing. Wait 1 second, poll again.
+- `"processing"` — not your turn yet. Poll again immediately (the server handles this efficiently).
 - `"done"` — match is over. Check the result.
 
 ### 3. Post your action

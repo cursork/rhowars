@@ -322,9 +322,10 @@
       :EndTrap
     ∇
 
-    ∇ {r}←RunRemoteMatch args;botns;rec;matchRemotes;rem
+    ∇ {r}←RunRemoteMatch args;botns;rec;matchRemotes;rem;finalAlive;finalHP;nBots;frames;alivePerFrame;deathFrames;scores;ranks;idx;dt
       :Access Private
       r←⍬
+      ⎕IO←0
       (botns rec matchRemotes)←args
       :Trap 0
           lastMatch←game.Engine.Run botns
@@ -333,13 +334,38 @@
           ⍝ Match failed — ensure we don't hang
       :EndTrap
       rec.done←1
-      :For rem :In matchRemotes
-          :If 0≠⎕NC'lastMatch.bots'
-              rem.finalHP←lastMatch.bots[rem.botIndex;5]
-              rem.alive←lastMatch.bots[rem.botIndex;7]
-          :EndIf
-          rem.status←'done'
-      :EndFor
+      :If 0≠⎕NC'lastMatch.bots'
+          finalAlive←lastMatch.bots[;7]
+          finalHP←lastMatch.bots[;5]
+          nBots←≢finalAlive
+          ⍝ Compute death frame for each bot
+          frames←lastMatch.history
+          alivePerFrame←↑{⍵.bots[;7]}¨frames
+          deathFrames←{⍵⍳0}¨↓⍉alivePerFrame
+          ⍝ Rank: alive bots by HP (desc), dead bots by survival time (desc)
+          scores←(finalAlive×10000)+(finalAlive×finalHP)+((1-finalAlive)×deathFrames)
+          ranks←1+⍋⍋-scores
+          :For rem :In matchRemotes
+              idx←rem.botIndex
+              rem.finalHP←finalHP[idx]
+              rem.alive←finalAlive[idx]
+              rem.totalBots←nBots
+              rem.rank←idx⊃ranks
+              :If ~rem.alive
+                  dt←idx⊃deathFrames
+                  :If dt<≢frames
+                      rem.deathTurn←(dt⊃frames).turn
+                  :Else
+                      rem.deathTurn←lastMatch.turn
+                  :EndIf
+              :EndIf
+              rem.status←'done'
+          :EndFor
+      :Else
+          :For rem :In matchRemotes
+              rem.status←'done'
+          :EndFor
+      :EndIf
     ∇
 
     ∇ rec←NewMatchRecord names
@@ -439,7 +465,16 @@
           req.Fail 404
           result←(detail: 'Remote not yet started')
       :Case 'done'
-          result←(status: 'done' ⋄ turn: rem.tick ⋄ hp: rem.finalHP ⋄ alive: rem.alive)
+          result←⎕NS⍬
+          result.status←'done'
+          result.turn←rem.tick
+          result.hp←rem.finalHP
+          result.alive←rem.alive
+          result.rank←rem.rank
+          result.totalBots←rem.totalBots
+          :If ¯1≢rem.deathTurn
+              result.deathTurn←rem.deathTurn
+          :EndIf
       :Case 'processing'
           result←(status: 'processing' ⋄ turn: rem.tick)
       :Case 'waiting'
