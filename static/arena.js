@@ -141,8 +141,17 @@ document.getElementById('btnStartMatch').onclick = async () => {
     }
     const matchResult = await matchResp.json();
     currentMatchId = matchResult.id;
-    const resp = await fetch(`${API}/api/match/${currentMatchId}/history`);
-    loadHistory(await resp.json());
+    // Poll until match has history data (non-Remote matches complete in ms)
+    let histData;
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const resp = await fetch(`${API}/api/match/${currentMatchId}/history`);
+      if (resp.ok) {
+        histData = await resp.json();
+        if (histData.frames && histData.frames.length > 0) break;
+      }
+      await new Promise(r => setTimeout(r, 200));
+    }
+    if (histData) loadHistory(histData);
     document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('ready-overlay').classList.add('show');
   } catch (e) {
@@ -180,11 +189,10 @@ async function loadMatches() {
       const status = m.done ? `${m.turns} turns` : 'running...';
       li.innerHTML = `<span class="bot-name" style="font-size:11px">#${m.id} ${names}</span>` +
         `<span class="result-detail">${status}</span>`;
-      if (m.done) {
-        li.style.cursor = 'pointer';
-        li.onclick = () => watchMatch(m.id);
-      } else {
-        li.style.opacity = '0.5';
+      li.style.cursor = 'pointer';
+      li.onclick = () => watchMatch(m.id);
+      if (!m.done) {
+        li.style.borderLeft = '3px solid #4f4';
       }
       el.appendChild(li);
     }
@@ -216,6 +224,41 @@ document.getElementById('btnWatch').onclick = () => {
   playing = true;
   document.getElementById('btnPlay').textContent = 'Pause';
   startPlayback();
+};
+
+document.getElementById('btnLiveRefresh').onclick = async () => {
+  if (!currentMatchId) return;
+  const oldFrameCount = data.frames.length;
+  const resp = await fetch(`${API}/api/match/${currentMatchId}/history`);
+  if (!resp.ok) return;
+  const histData = await resp.json();
+  data = histData;
+  timeline.max = data.frames.length - 1;
+  // Recalculate death turns with new frames
+  deathTurns = new Array(data.names.length).fill(-1);
+  for (let t = 1; t < data.frames.length; t++) {
+    const prev = data.frames[t - 1].bots;
+    const curr = data.frames[t].bots;
+    for (let i = 0; i < data.names.length; i++) {
+      if (deathTurns[i] === -1 && prev[i][7] === 1 && curr[i][7] === 0) {
+        deathTurns[i] = t;
+      }
+    }
+  }
+  if (data.frames.length > oldFrameCount || data.done) {
+    document.getElementById('live-refresh').classList.remove('show');
+    // New frames or match finished — resume playback
+    if (data.frames.length > oldFrameCount) {
+      playing = true;
+      document.getElementById('btnPlay').textContent = 'Pause';
+      startPlayback();
+    }
+    // Match finished while we were watching
+    if (data.done && frame >= data.frames.length - 1) {
+      showResults();
+    }
+  }
+  // No new frames and not done — overlay stays
 };
 
 function loadHistory(histData) {
@@ -263,6 +306,9 @@ function startPlayback() {
       playing = false;
       clearInterval(playTimer);
       document.getElementById('btnPlay').textContent = 'Play';
+      if (!data.done) {
+        document.getElementById('live-refresh').classList.add('show');
+      }
     }
   }, ms);
 }
@@ -472,13 +518,29 @@ function render() {
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(shortName(data.names[i]), bx, by - r - 5);
+
+    // Thought bubble — show current frame's thought only
+    const thoughts = f.thoughts || [];
+    const thought = (thoughts[i] || '').toString();
+    if (thought) {
+      const maxLen = 30;
+      const display = thought.length > maxLen ? thought.slice(0, maxLen - 1) + '\u2026' : thought;
+      ctx.font = '9px monospace';
+      const tw = ctx.measureText(display).width + 8;
+      const tx = bx - tw / 2;
+      const ty = by - r - 20;
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(tx, ty - 10, tw, 13);
+      ctx.fillStyle = BOT_COLORS[i % BOT_COLORS.length];
+      ctx.fillText(display, bx, ty);
+    }
   }
 
   document.getElementById('turnLabel').textContent = `Turn: ${f.turn}`;
   timeline.value = frame;
 
-  // Show results on last frame
-  if (frame === data.frames.length - 1) {
+  // Show results on last frame (only if match is complete)
+  if (frame === data.frames.length - 1 && data.done) {
     showResults();
   } else {
     document.getElementById('results').classList.remove('show');
@@ -489,7 +551,7 @@ function render() {
     const name = shortName(data.names[i]);
     const color = BOT_COLORS[i % BOT_COLORS.length];
     const dead = !b[7];
-    const detail = dead ? `died turn ${deathTurns[i]}` : `HP:${b[5]}`;
+    const detail = dead ? (deathTurns[i] >= 0 ? `died turn ${deathTurns[i]}` : 'dead') : `HP:${b[5]}`;
     info += `<span style="color:${dead ? '#555' : color}">${name} ${detail}</span>`;
   }
   document.getElementById('info').innerHTML = info;
@@ -522,6 +584,9 @@ function showResults() {
     titleEl.textContent = 'DRAW';
     titleEl.className = 'draw';
   } else if (survivors.length === 1) {
+    titleEl.textContent = 'WINNER';
+    titleEl.className = 'winner';
+  } else if (survivors[0].hp > survivors[1].hp) {
     titleEl.textContent = 'WINNER';
     titleEl.className = 'winner';
   } else {

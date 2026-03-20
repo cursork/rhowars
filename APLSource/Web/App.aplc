@@ -82,21 +82,13 @@
           :EndFor
           lastBotNames←names
           rec←NewMatchRecord names
+          RunMatch&(botns rec matchRemotes)
+          req.SetStatus 202
+          result←⎕NS⍬
+          result.id←rec.id
+          result.status←'running'
           :If 0<≢matchRemotes
-              lastMatch←⍬
-              RunRemoteMatch&(botns rec matchRemotes)
-              req.SetStatus 202
-              result←⎕NS⍬
-              result.id←rec.id
-              result.status←'running'
               result.remotes←{⎕IO←0 ⋄ ns←⎕NS⍬ ⋄ ns.slot←⍵.slot ⋄ ns.token←⍵.secret ⋄ ns}¨matchRemotes
-          :Else
-              lastMatch←game.Engine.Run botns
-              rec.match←lastMatch
-              rec.done←1
-              req.SetStatus 201
-              result←MatchSummary lastMatch
-              result.id←rec.id
           :EndIf
       :Else
           req.Fail 500
@@ -339,14 +331,26 @@
       :EndTrap
     ∇
 
-    ∇ {r}←RunRemoteMatch args;botns;rec;matchRemotes;rem;finalAlive;finalHP;nBots;frames;alivePerFrame;deathFrames;scores;ranks;idx;dt
+    ∇ {r}←RunMatch args;botns;rec;matchRemotes;rem;finalAlive;finalHP;nBots;frames;alivePerFrame;deathFrames;scores;ranks;idx;dt;match;seed;i
       :Access Private
       r←⍬
       ⎕IO←0
       (botns rec matchRemotes)←args
       :Trap 0
-          lastMatch←game.Engine.Run botns
-          rec.match←lastMatch
+          ⍝ Inline Engine.Run so rec.match is live during execution
+          seed←?2147483646
+          ⎕RL←seed
+          :For i :In ⍳≢botns
+              (i⊃botns).⎕RL←seed
+          :EndFor
+          match←game.Engine.Init botns
+          match.seed←seed
+          rec.match←match
+          :While ~match.done
+              match←game.Engine.Tick match
+          :EndWhile
+          match.history,←⊂(turn: match.turn ⋄ bots: match.bots ⋄ bullets: match.bullets ⋄ thoughts: match.thoughts)
+          lastMatch←match
       :Else
           ⍝ Match failed — ensure we don't hang
       :EndTrap
@@ -383,6 +387,7 @@
               rem.status←'done'
           :EndFor
       :EndIf
+      SaveMatch rec
     ∇
 
     ∇ rec←NewMatchRecord names
@@ -394,6 +399,32 @@
       rec.done←0
       matches,←rec
       nextMatchId←nextMatchId+1
+    ∇
+
+    ∇ {r}←SaveMatch rec;hist;frames;path;json
+      :Access Private
+      ⎕IO←0
+      r←⍬
+      :Trap 0
+          frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets ⋄ thoughts: {6::⍬ ⋄ ⍵.thoughts}⍵)}¨rec.match.history
+          hist←⎕NS⍬
+          hist.id←rec.id
+          hist.turns←rec.match.turn
+          hist.done←rec.match.done
+          hist.names←rec.match.names
+          hist.seed←rec.match.seed
+          hist.arena←game.Cfg.ARENA
+          hist.botRadius←game.Cfg.BOT_RADIUS
+          hist.visionRange←game.Cfg.VISION_RANGE
+          hist.visionHalfAngle←game.Cfg.VISION_HALF_ANGLE
+          hist.botHP←game.Cfg.BOT_HP
+          hist.frames←frames
+          json←⎕JSON hist
+          path←'matches/match-',(⍕rec.id),'.json'
+          (⊂json)⎕NPUT path 1
+      :Else
+          ⍝ Save failed — non-fatal
+      :EndTrap
     ∇
 
     ∇ result←ListMatches req

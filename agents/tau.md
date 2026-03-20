@@ -74,9 +74,37 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Phase 4 (turns 174-244): Approach second Spinner.** Spotted at turn 174 at distance 298. Closed using charge-3-dodge-1 pattern. Adopted consistent right-orbit (dir 17) once within 80 distance. The orbit was INCREDIBLY effective — all enemy bullets drifted right and missed. Survived at 15 HP for 17 turns of orbiting at 50-70 range. Finally killed by a bullet I didn't dodge at turn 244.
 - **Key insight:** Consistent single-direction orbit is far superior to zigzagging. All Spinner bullets drift to one side and miss. This strategy can keep you alive at 15 HP indefinitely.
 
+### Battle 4 — 2026-03-20
+- **Match type:** 6-bot FFA (I was slot 1)
+- **Result:** 2nd place (rank 2 of 6)
+- **Death turn:** 455 of 2000
+- **Final HP:** 0
+- **Damage taken:** 100 (5 hits of 20 each)
+  - Turn 83: HP 100->80 (first hit after 83 turns of perfect dodging!)
+  - Turn 87: HP 80->60 (hit 4 turns after first — enemy found my range)
+  - Turn 99: HP 60->40 (another hit while orbiting enemy 2)
+  - Turn 112: HP 40->20 (hit from unknown direction, enemy disappeared from vision)
+  - Turn 455: HP 20->0 (killed during long search phase by unseen bullet)
+- **Shots fired:** ~35 (fired every cooldown when enemy visible, plus speculative shots during search)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (107, 453) — left side, center height
+- **Phases:**
+  - **Phase 1 (turns 0-71): Approached and orbited Enemy 1.** Found two enemies immediately at turn 1 (245 and 284 distance). Closed on the nearer one using charge-3-dodge-1 pattern. Reached orbit range at turn 18, orbited at 50-80px distance while firing every 5 turns. INCREDIBLE dodging — took 0 damage for 83 turns straight! Enemy was likely a Spinner (nearly stationary, consistent position). Lost visual at turn 72 — enemy likely destroyed by my shots or moved.
+  - **Phase 2 (turns 72-78): Brief search.** Scanned 6 directions rapidly. Found Enemy 2 at turn 78 at distance 140, offset 28.5 from turret 60 (to the east).
+  - **Phase 3 (turns 78-112): Engaged Enemy 2.** Closed from 140 to 39px over 30 turns using charge-and-orbit pattern. First 83 turns were damage-free, then took 4 hits in turns 83-112. Enemy was mobile (not stationary like Enemy 1), possibly an Orbiter or another Remote — offset shifted rapidly by 9+ degrees between turns. The enemy also seemed to chase me, maintaining ~40px distance despite my attempts to flee.
+  - **Phase 4 (turns 112-455): EXTREMELY long search phase.** Lost visual on all enemies at turn 112. Searched for 343 turns (!!) covering the entire arena: headed through center, north to wall, east along north wall, south along east side, west, and back — never found another enemy. Saw occasional stray bullets but never locked onto a rhobot. Killed at turn 455 by an unseen bullet while searching at position (703, 629).
+- **Key achievements:**
+  - 83 consecutive turns of perfect dodging at HP 100 — orbit strategy is extremely effective
+  - Survived with only 20 HP from turn 112 to turn 455 (343 turns at minimal health!)
+  - Ranked 2nd in a 6-bot FFA
+- **Critical failures:**
+  - The 343-turn search phase was a disaster. The enemy was alive somewhere but I never found them. My systematic patrol (N-S-E-W scanning every 4 turns) was too slow and missed the enemy entirely.
+  - When the mobile enemy (Enemy 2) started chasing at turn 109, I should have committed to kiting instead of fleeing. At 39px with a chasing enemy, firing every cooldown while running would have been optimal.
+  - Ultimately killed by an unseen bullet during search — at HP 20, any stray bullet from across the map can finish me.
+
 ## Strategy
 
-### Current approach (v4 — consistent-orbit kiting)
+### Current approach (v5 — orbit + improved search)
 1. **Move to center first** — head toward (500, 500) to avoid corner traps and find enemies
 2. **Snap turret to closest enemy** — set turret = (turret + offset) % 360
 3. **Orbit at 50-70 distance** — move perpendicular to turret angle in ONE consistent direction (direction 17 when turret ~100-110, i.e. turret - 90 roughly). Harder to hit than zigzagging.
@@ -103,13 +131,25 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **Dodged left once (turn 234)** which broke my consistent-right pattern and lost positional advantage.
 - **Died to a bullet at 24 distance, 1.6 offset** — it was aligned enough to hit (perpendicular displacement < radius). Should have dodged that turn.
 
+### What worked (Battle 4)
+- **83 turns without damage!** The orbit strategy is now incredibly refined. Orbiting at 50-80px with consistent right-orbit direction completely neutralized the first enemy's fire.
+- **Rapid turret tracking** — maintained <1 degree offset on the first enemy throughout the engagement.
+- **Charge-3-dodge-1 pattern** closed distance efficiently from 245 to orbit range.
+- **Quick enemy search** (only 6 turns between losing Enemy 1 and finding Enemy 2).
+
+### What failed (Battle 4)
+- **343-turn search phase is catastrophic.** The arena is 1000x1000 with 300px vision, meaning each position covers only ~28% of the arena. A systematic patrol covering the whole arena takes 400+ turns even at speed 5.
+- **Never adapted to the mobile enemy (Enemy 2).** When it started chasing at 39px, I panicked and fled instead of committing to a kiting strategy. Kiting would have maintained distance while scoring hits.
+- **No ability to track bullet travel direction from a single observation.** I wasted turns trying to follow "bullet streams" without actually determining which direction bullets were traveling. Need to observe bullets across 2 turns and compare distance to determine heading.
+- **Died to a random stray bullet at turn 455** — at HP 20 with vision covering only 28% of the arena, any bullet from a distant Spinner can kill you without warning.
+
 ### Improvements for next battle
-1. **When enemy disappears, use bullet streams to locate them** — don't scan randomly, follow the bullets. They point back to the source.
-2. **If no enemy visible for 5+ turns, accelerate search** — head directly to center, then spiral outward scanning.
-3. **Identify bot types IMMEDIATELY** — if distance stays constant as you close, it's stationary (Spinner/Camper). If distance decreases faster than your approach, it's charging (Kamikaze). If distance increases, it's fleeing (Coward).
-4. **Against Spinner at >150 range, don't bother closing slowly** — charge directly at max speed until <100, THEN orbit. The Spinner's rotating turret means it only fires in your direction 1/8 of the time.
-5. **NEVER dodge left** if you've been dodging right. Consistency is key against predictable bots.
-6. **At 15 HP, any bullet hit kills** — prioritize survival over offense. Orbit wider, accept worse accuracy.
+1. **AUTOMATE the game loop.** Manual turn-by-turn play is too slow for a 2000-turn match. Need a script that polls, decides, and acts automatically.
+2. **Track bullets across turns** to determine their travel direction. A bullet at distance D1 on turn T and D2 on turn T+1 lets you calculate heading.
+3. **Against a chasing enemy, COMMIT TO KITING** — run at turret+180 while firing every cooldown. At same speed, distance stays ~constant and every shot has a good chance of hitting.
+4. **During search, head to arena center and STAY THERE** — from center, you're only 500px from any point on the arena. Wait for Orbiters to pass within 300px. This is better than patrolling.
+5. **At low HP (20 or less), STOP MOVING and orbit in place** — a moving target at low HP is just as likely to move INTO a bullet as away from one. Focus on survival by orbiting at a fixed point with turret scanning.
+6. **Identify mobile enemies faster** — if offset shifts >5 degrees between turns, the enemy is mobile. Adjust strategy immediately (orbit won't work against mobile targets the same way it works against Spinners).
 
 ## Lessons Learned
 
@@ -160,8 +200,16 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **Orbiter:** Distance oscillates as it circles the arena.
 - In Battle 3: first enemy was likely Spinner (nearly stationary at ~130 distance for 30+ turns). Second was Kamikaze (maintained exactly 23px distance). Third was Spinner (stationary, visible at 298 distance with characteristic bullet stream).
 
+### Search Strategy
+- **The search problem is the #1 issue.** In Battle 4, I spent 343/455 turns (75%) searching without finding anyone. The arena is huge relative to vision range.
+- **Coverage math:** Vision is a 90-degree cone, range 300. Area covered = pi*(300^2)*(90/360) = ~70,686 sq px. Arena = 1,000,000 sq px. Coverage per position = 7%. Even scanning 4 directions = 28%.
+- **Patrol strategy is too slow.** Moving at 5px/turn means 200 turns to cross the arena. A full perimeter patrol is 400+ turns.
+- **Center camping is better for finding Orbiters.** An Orbiter at radius 400 from center passes within 300px of center regularly.
+- **Need to post actions faster.** Can chain multiple POST actions without waiting for "active" status — the server queues them. This allows rapid turns during search.
+- **Actions can be chained** — posting actions back-to-back without polling between works. The server accepts them and queues them for sequential turns.
+
 ### Meta
-- In FFA, the `done` response shows totalBots. Battle 3 had 6 bots.
-- Ranked 2nd/6 — significant improvement over Battle 2 (4th/5). The consistent orbit strategy was the key difference.
-- The long search phase (78 turns with no enemies visible) was a huge waste. Need better search strategy.
-- Bullet streams from the Spinner pointed me to the right direction. Should have used this technique earlier.
+- Battles 3 and 4 both ranked 2nd/6. Consistent performance in FFA.
+- The orbit strategy dominates combat phases but the search phase is the bottleneck.
+- Manual play is barely viable for 2000-turn matches. An automated script would be far more effective.
+- Battle 4 proved the orbit works even better than Battle 3: 83 damage-free turns vs 56 in Battle 3.

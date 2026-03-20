@@ -33,6 +33,34 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Unknown hit rate.** I have no way to tell if my shots connected. Need to track enemy HP changes if possible.
   - **Closing distance didn't help survivability.** At 40-60 range, bullets arrive in 2-3 turns — less dodge time for both sides. But the enemy was hitting me anyway, so the reduced dodge window hurt me more than them.
 
+### Battle 4: 6-bot FFA — LOSS (died turn 103)
+- **Result:** Defeated. HP 0, died turn 103 of 105+ (match continued after my death).
+- **Match:** Kamikaze, Spinner, Coward, Orbiter, Remote[me slot 0], Remote[opponent slot 1].
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on approximately turns 61, 93, 97, 100, 103.
+- **Shots fired:** 21 shots across 103 turns. ~1 every 5 turns (perfect cooldown usage). Zero confirmed hits.
+- **Key moments:**
+  - Turn 0: Started at (388, 400). No enemies visible. Swept turret.
+  - Turn 1: Found enemy at d=145, offset -20. Snapped turret, fired immediately.
+  - Turns 1-60: **60 TURNS WITHOUT TAKING DAMAGE.** Personal best by far. Turret tracking excellent (offset <3 deg consistently). Zigzag N-S dodging, oblique approaches.
+  - Turn 10: Discovered second enemy at d=243 (multi-bot match).
+  - Turns 10-28: Tracked enemy 1 (Coward at d=135-150, maintained distance). Switched target to enemy 2 at turn 28 when enemy 2 closed to d=139.
+  - Turn 61: First hit. HP 100->80. Had been dodging well for 60 turns.
+  - Turns 61-90: Distance slowly closed from 150 to 130 then 100. Started leading shots (+3 to +8 degrees).
+  - Turn 93: Second hit. HP 80->60. Enemy at d=113.
+  - Turn 96: Under 100 distance! d=97. Fired shot 20.
+  - Turn 97: Third hit. HP 60->40.
+  - Turn 100: Fourth hit. HP 40->20. d=80.
+  - Turn 101: Fired desperate shot at d=79. Radical evasion.
+  - Turn 103: Fifth hit. HP 20->0. Dead. d=65.
+- **Critical analysis:**
+  - **Dodging mastery reached new level.** 60 turns without damage in a 6-bot FFA is exceptional. The N-S zigzag at ~120-150 range was nearly impenetrable.
+  - **Shot leading was calculated but ineffective.** Computed enemy movement vector (+2, +4 per turn = NNE) and calculated +5-8 degree lead angles. At d=120-170, even calibrated lead shots missed because the enemy also dodges.
+  - **Closing below 100 was too late.** By the time I reached d=90-100, I'd already taken hits and was at 60 HP. The enemy's shots connected more reliably at close range (4-5 turn bullet travel) and I died fast.
+  - **All 5 hits came in a 42-turn burst (turns 61-103).** The first 60 turns were damage-free, then I took hits every ~10 turns. The enemy may have adapted their aim or I became more predictable while closing.
+  - **Zero confirmed hits in 21 shots.** Despite excellent aim (offset <5 deg for most shots), consistent firing every 5 turns, and lead attempts, I never confirmed a hit. The enemies dodge as well as I do.
+  - **6-bot match but I mostly saw 2-3 at a time.** Vision cone limits awareness. The hits may have come from bots I wasn't tracking.
+
 ### Battle 3: vs Remote[opponent] (1v1) — INCONCLUSIVE (match stuck)
 - **Result:** Match stuck on "processing" at turn 52. HP 20 when last active (turn 51). The polling script was removed during the long wait, ending my ability to poll.
 - **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
@@ -58,7 +86,7 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 
 ## Strategy
 
-### Current approach (v3 — post Battle 3 revision)
+### Current approach (v4 — post Battle 4 revision)
 
 **Phase 1: Opening (turns 0-5)**
 1. Move toward center at speed.
@@ -90,25 +118,30 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 3. In FFA, be cautious early. Let other bots fight. Position yourself to pick off weakened survivors.
 4. Every 5-10 turns, sweep turret 90 degrees to check flanks.
 
-### What worked (Battle 3)
-- **Turret tracking remained excellent** — offset consistently < 3 degrees.
-- **Early dodging was superb** — 26 turns without taking damage (zigzag + oblique approach).
-- **Radical direction changes at low HP** — survived from turn 46 to 51 at HP 20, dodging at least 6 close bullets using completely unpredictable movement.
-- **Scanning on opening** — sweeping turret through multiple bearings found enemy quickly.
-- **Firing on cooldown consistently** — 8 shots in 48 turns, didn't waste any cooldowns.
+### What worked (Battle 4)
+- **60 turns without damage in a 6-bot FFA.** N-S zigzag at 120-150 range was nearly impenetrable. Best dodging performance by far.
+- **Turret tracking consistently excellent** — offset < 3 degrees almost every turn.
+- **Perfect cooldown discipline** — 21 shots in 103 turns, fired every possible cooldown cycle.
+- **Calculated shot leading** — computed enemy position across turns, derived movement vector, calculated lead angles mathematically (+5-8 deg based on bullet travel time and enemy velocity).
+- **Multi-bot awareness improved** — noticed 2nd and 3rd enemies, switched targets when appropriate.
+- **Closing eventually worked** — reached d=65 from starting d=145, though too slowly.
 
-### What failed (Battle 3)
-- **Could not close distance below 165.** Enemy maintained range throughout. At 170, bullet travel = 8.5 turns, giving both sides too much dodge time. Attrition favored the enemy.
-- **Straight charging (turn 36)** — setting direction = turret got me hit immediately. Lesson already known from Battle 2 but still failed to follow it under pressure.
-- **No shot leading** — at 170 distance, 8.5 turns of travel means the enemy moves 42+ pixels. My shots almost certainly all missed because I aimed at current position, not predicted position.
-- **Attrition disadvantage** — taking 4 hits over 51 turns while likely landing 0 hits means I'm losing every long engagement. Need to either close to reliable range (80-100) or lead shots at distance.
+### What failed (Battle 4)
+- **Zero hits in 21 shots.** Despite excellent aim, consistent fire, and calculated lead, no confirmed hits. At d=100-170, enemies have 5-8 turns to dodge. Even led shots miss.
+- **Closing was too slow.** Took 90 turns to close from 145 to 100. The N-S zigzag loses half its approach value because every S turn opens distance.
+- **Took 5 hits in 42 turns after initial 60 damage-free turns.** The transition from mid-range (120-150) to close range (65-100) was where I got destroyed. Close range = less dodge time for BOTH sides, but enemies land shots more reliably.
+- **Still can't tell which enemy shot me.** In a 6-bot match, bullets can come from any direction. The bullets that hit me may have been from bots I wasn't even tracking.
+- **Stop trick (speed=0) was useless.** Used it turn 52, gained nothing measurable.
 
 ### Key improvements for next battle
-1. **MUST close to 80-100 distance.** At 170, both sides dodge everything. At 80-100, bullets arrive in 4-5 turns — still dodgeable but much harder. Use sustained oblique approach (turret +/- 70 degrees) with small corrections each turn.
-2. **Lead shots at range.** If enemy offset drifts consistently (e.g., -2 degrees/turn), add lead: aim turret at (current + offset - 2*travel_turns). Even rough prediction is better than aiming at current position.
-3. **Vary dodge timing, not just direction.** Instead of changing direction every turn, sometimes hold a direction for 2-3 turns, sometimes change every turn. Pattern disruption.
-4. **NEVER set direction = turret.** This is a standing rule. Approach at 60-80 degree offset from turret direction.
-5. **If enemy is a runner (Coward-type), flank them.** Move perpendicular to cut off their escape route instead of chasing directly.
+1. **Close to 80-100 FASTER.** Use sustained 3-turn approach bursts (direction near turret-40) with 1-turn lateral dodge. Don't spend equal turns approaching and retreating.
+2. **Accept that shots at d>120 are wasted.** Don't fire until d<100. Save observations for tracking enemy movement. Fire concentrated bursts at close range.
+3. **In FFA, stay AWAY from the fight initially.** My 60 damage-free turns prove I can dodge. Use that time to let other bots kill each other, then engage weakened survivors at close range.
+4. **Track enemy position across 3+ turns before leading.** Two data points aren't enough — movement is noisy. Use 3-5 consecutive observations.
+5. **At d<80, switch to snap-fire (no lead).** At 3-4 turn bullet travel, the enemy moves ~15-20 pixels = only 10-15 degrees. Snap-aimed shots have a reasonable chance without lead.
+6. **Vary dodge timing, not just direction.** Sometimes hold direction 2-3 turns, sometimes change every turn. The predictable every-turn alternation may be what got me hit.
+7. **Consider retreating to maintain d=100-120 rather than closing to d<80.** My dodging was best at 120-150 (60 turns without damage). At <80 I died in 42 turns. The optimal range may be 100-120 where bullets take 5-6 turns.
+8. **In multi-bot matches, track bullet origins.** If a bullet has offset far from any visible enemy, there's a hidden shooter. Sweep turret to find them.
 
 ## Lessons Learned
 
@@ -132,3 +165,10 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 18. **Coward-type bots maintain distance.** If enemy distance stays constant despite your approach, they're running. Don't chase in a straight line — cut them off by moving to predicted future position.
 19. **At 170 distance, aim at PREDICTED position.** Bullet takes 8.5 turns at speed 20. Enemy moves 42+ pixels in that time. Must lead shots by tracking drift direction and estimating future angle.
 20. **Bullets heading toward me have offset near 0 AND decreasing distance.** A bullet at d=80 offset=0.5 is a serious threat — will likely hit. A bullet at d=30 offset=10 has already passed.
+21. **Bullet offset from MY turret shifts when I move.** A bullet heading straight at the enemy might show offset 0 when I'm still, but offset 8+ after I move. Don't interpret outgoing bullet offsets as miss/hit indicators after moving.
+22. **d=100-120 is the dodging sweet spot.** In Battle 4, I took zero damage for 60 turns at this range. At d<80, I died in 42 turns. The optimal engagement range maximizes MY dodge time while allowing reasonable hit probability.
+23. **Calculated shot leading (+5-8 degrees) still missed at d=120+.** Even with measured enemy velocity and mathematical lead, the enemy's own dodging makes prediction unreliable at long range. At d=100, lead by +3 max.
+24. **6-bot FFA: the N-S zigzag is nearly dodge-proof at range.** But it's predictable enough that at close range (<80), enemies can time their shots to the rhythm. Vary the cadence (2N, 1S, 3N, 1S, etc.).
+25. **Approach bias matters.** In N-S zigzag, if I spend more turns going N (toward enemy at NW) than S, I close faster. Use 3:1 ratio of closing-to-retreating turns.
+26. **Speed=0 stop was not measurably helpful.** Don't waste turns on it. Keep moving for dodge value.
+27. **In a 6-bot match, letting others fight is the best opening strategy.** My 60 damage-free turns while multiple bots were fighting each other validates the "be cautious early" approach. Enter the fight only when enemies are weakened.

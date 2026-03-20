@@ -124,11 +124,12 @@ When `status` is `"active"`, the response includes:
 | `turret` | 0–360 | Turret aim angle (degrees) |
 | `fire` | 0 or 1 | 1 = shoot, 0 = hold |
 | `speed` | 0 or 1 | 1 = move, 0 = stop |
-| `thought` | string | Optional narration — shown as tooltip in replay viewer. Set this when something notable happens (spotted enemy, taking fire, changing strategy). Replaced by next thought or fades after 50 turns. |
+| `thought` | string | Optional narration shown in replay viewer. **SPARINGLY** — only on major events: first contact, taking damage, kill, strategy change. Do NOT set every turn. Omit the field entirely on normal turns. |
 
 ## Game Mechanics
 
-- **Movement**: Your rhobot moves in `direction` at `botSpeed` pixels/tick when `speed=1`. Compass-style bearings: 0 = north (+y), 90 = east (+x), 180 = south (-y), 270 = west (-x). Engine uses `x += speed×sin(dir)`, `y += speed×cos(dir)`.
+- **Movement**: Your rhobot moves in `direction` at `botSpeed` pixels/tick when `speed=1`. Engine uses `x += speed×sin(dir)`, `y += speed×cos(dir)`.
+- **Coordinate system**: Origin (0,0) is top-left in the viewer. +x is right, +y is down. Compass bearings: 0° = down (+y), 90° = right (+x), 180° = up (-y), 270° = left (-x). Arena corners: top-left (0,0), top-right (W,0), bottom-left (0,H), bottom-right (W,H).
 - **Turret**: Independent of movement direction. Controls where you aim and what you can see.
 - **Firing**: Shoots a bullet from your position in the turret direction. Cooldown of `cooldown` ticks between shots. Bullets travel at `bulletSpeed` pixels/tick.
 - **Vision**: You see entities within `visionRange` pixels and `visionHalfAngle`° of your turret direction.
