@@ -27,6 +27,7 @@
          nIdx←(rhobots[;0]⍳⌊/rhobots[;0])
          actions.turret←360|input.turret+rhobots[nIdx;1]
          actions.fire←1
+         actions.thought←'Spotted one! Firing!'
      :Else
          actions.turret←360|input.turret+3
          actions.fire←0

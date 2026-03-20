@@ -1,12 +1,10 @@
- match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v
+ match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v;thoughts
 ⍝ Execute one turn of the match
 ⍝ Action fields set to ⍬ (or missing) mean "no change"
  ⎕IO←0
  bots←match.bots
  bullets←match.bullets
- ⍝ 1. Record snapshot for history
- match.history,←⊂(turn: match.turn ⋄ bots: bots ⋄ bullets: bullets)
- ⍝ 2. Collect bot decisions
+ ⍝ 1. Collect bot decisions
  alive←⍸bots[;7]
  order←alive[((≢alive)?≢alive)]
  actions←(≢bots)⍴⊂()
@@ -26,6 +24,10 @@
      act←ns ##.Bot.CallTick input
      actions[idx]←⊂act
  :EndFor
+ ⍝ 2. Extract thoughts and record snapshot
+ thoughts←{6::'' ⋄ ⍵.thought}¨actions
+ match.thoughts←thoughts
+ match.history,←⊂(turn: match.turn ⋄ bots: bots ⋄ bullets: bullets ⋄ thoughts: thoughts)
  ⍝ 3. Apply per-field updates (⍬ = no change)
  :For i :In alive
      act←i⊃actions
@@ -49,6 +51,18 @@
  bots[;6]←0⌈bots[;6]-1
  ⍝ 9. Mark dead bots
  bots[;7]←bots[;7]∧bots[;5]>0
+ ⍝ 9b. Notify newly dead Remote bots
+ :For i :In ⍸~bots[;7]
+     ns←i⊃match.botns
+     :If 0≠ns.⎕NC'status'
+         :If 'done'≢ns.status
+             ns.status←'done'
+             ns.finalHP←bots[i;5]
+             ns.deathTurn←match.turn
+             ns.alive←0
+         :EndIf
+     :EndIf
+ :EndFor
  ⍝ 10. Update match state
  match.bots←bots
  match.bullets←bullets

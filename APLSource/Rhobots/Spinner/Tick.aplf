@@ -1,4 +1,4 @@
- actions←Tick input;centre;dx;dy
+ actions←Tick input;centre;dx;dy;vis;rhobots
 ⍝ Spinner: moves toward centre, rotates turret, fires when ready
  ⎕IO←0
  actions←()
@@ -13,5 +13,16 @@
  :Else
      actions.direction←input.turret
      actions.speed←0
+ :EndIf
+ ⍝ Thought on notable events
+ vis←input.visible
+ :If 0<≢vis
+     rhobots←(vis[;2]=0)⌿vis
+     :If 0<≢rhobots
+         actions.thought←'Targets in my spin zone!'
+     :EndIf
+ :EndIf
+ :If input.hp<50
+     actions.thought←'Taking damage, still spinning'
  :EndIf
  actions.state←input.state

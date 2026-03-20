@@ -32,6 +32,7 @@
          :EndIf
          actions.direction←perpAngle
          actions.speed←1
+         actions.thought←'Orbiting target at ',(⍕⌊dist)
          actions.state←s
          :Return
      :EndIf

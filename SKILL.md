@@ -43,14 +43,14 @@ curl -s http://localhost:8080/api/remote/{slot}/{token}/state
 Check the `status` field in the response:
 - `"active"` — your turn. Read the state, decide, and post an action.
 - `"processing"` — not your turn yet. Poll again immediately (the server handles this efficiently).
-- `"done"` — match is over. Check the result.
+- `"done"` — match is over. Response includes: `hp` (your final HP), `alive` (1/0), `rank` (1=winner), `totalBots`, and `deathTurn` (if you died).
 
 ### 3. Post your action
 
 ```bash
 curl -s -X POST http://localhost:8080/api/remote/{slot}/{token}/action \
   -H 'Content-Type: application/json' \
-  -d '{"direction":90,"turret":45,"fire":1,"speed":1}'
+  -d '{"direction":90,"turret":45,"fire":1,"speed":1,"thought":"Enemy spotted!"}'
 ```
 
 All fields are optional — omit any for "no change" from the previous turn.
@@ -124,6 +124,7 @@ When `status` is `"active"`, the response includes:
 | `turret` | 0–360 | Turret aim angle (degrees) |
 | `fire` | 0 or 1 | 1 = shoot, 0 = hold |
 | `speed` | 0 or 1 | 1 = move, 0 = stop |
+| `thought` | string | Optional narration — shown as tooltip in replay viewer. Set this when something notable happens (spotted enemy, taking fire, changing strategy). Replaced by next thought or fades after 50 turns. |
 
 ## Game Mechanics
 

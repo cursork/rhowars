@@ -1,4 +1,4 @@
- actions←Tick input;centre;dx;dy;angle
+ actions←Tick input;centre;dx;dy;angle;vis;rhobots
 ⍝ Camper: stops in place, aims at arena centre, fires every tick
  ⎕IO←0
  actions←()
@@ -9,4 +9,14 @@
  angle←(180÷○1)×12○(0J1×dx)+dy
  actions.turret←angle
  actions.fire←1
+ vis←input.visible
+ :If 0<≢vis
+     rhobots←(vis[;2]=0)⌿vis
+     :If 0<≢rhobots
+         actions.thought←'Enemy in my sights'
+     :EndIf
+ :EndIf
+ :If input.hp<50
+     actions.thought←'Holding position, taking fire'
+ :EndIf
  actions.state←input.state

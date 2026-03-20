@@ -33,3 +33,4 @@
      states[i]←⊂state
  :EndFor
  match.states←states
+ match.thoughts←N⍴⊂''

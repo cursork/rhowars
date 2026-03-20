@@ -16,4 +16,4 @@
      match←Tick match
  :EndWhile
  ⍝ Record final snapshot
- match.history,←⊂(turn: match.turn ⋄ bots: match.bots ⋄ bullets: match.bullets)
+ match.history,←⊂(turn: match.turn ⋄ bots: match.bots ⋄ bullets: match.bullets ⋄ thoughts: match.thoughts)

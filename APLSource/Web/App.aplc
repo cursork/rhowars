@@ -122,7 +122,7 @@
           req.Fail 404
           result←(detail: 'No match has been run yet')
       :Else
-          frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets)}¨lastMatch.history
+          frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets ⋄ thoughts: {6::⍬ ⋄ ⍵.thoughts}⍵)}¨lastMatch.history
           result←(
             turns: lastMatch.turn
             done: lastMatch.done
@@ -411,7 +411,7 @@
           :EndIf
           :Return
       :EndIf
-      frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets)}¨rec.match.history
+      frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets ⋄ thoughts: {6::⍬ ⋄ ⍵.thoughts}⍵)}¨rec.match.history
       result←(
         turns: rec.match.turn
         done: rec.match.done
@@ -521,6 +521,7 @@
       :If 0≠body.⎕NC'turret' ⋄ act.turret←body.turret ⋄ :EndIf
       :If 0≠body.⎕NC'fire' ⋄ act.fire←body.fire ⋄ :EndIf
       :If 0≠body.⎕NC'speed' ⋄ act.speed←body.speed ⋄ :EndIf
+      :If 0≠body.⎕NC'thought' ⋄ act.thought←body.thought ⋄ :EndIf
       act.state←rem.pendingInput.state
       rem.pendingAction←act
       ⎕TPUT rem.token

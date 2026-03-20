@@ -36,6 +36,7 @@
              actions.fire←1
          :EndIf
      :EndIf
+     actions.thought←'Running away!'
      actions.state←s
      :Return
  :EndIf
@@ -68,6 +69,7 @@
          ci←others[?≢others]
          s.desired←corners[ci;]
          actions.speed←1
+         actions.thought←'Enemy spotted! Fleeing!'
          actions.state←s
          :Return
      :EndIf
