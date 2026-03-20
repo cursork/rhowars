@@ -1,12 +1,27 @@
 :Namespace Remote
-⍝ Remote-controlled rhobot — blocks on ⎕TGET until an external
-⍝ agent posts an action via the /api/remote/action endpoint.
+⍝ Factory for remote-controlled rhobot instances.
+⍝ Each Create call returns a new namespace with its own ⎕TGET/⎕TPUT token,
+⍝ state, Init, and Tick — so multiple Remotes can co-exist in one match.
 
-    pendingInput←⍬
-    pendingAction←⍬
-    token←42
-    status←'idle'
-    tick←0
+    nextToken←100
+
+    ∇ instance←Create slot
+    ⍝ Create a new Remote bot instance with a unique token
+      instance←⎕NS⍬
+      instance.slot←slot
+      instance.token←nextToken
+      nextToken←nextToken+1
+      instance.status←'idle'
+      instance.tick←0
+      instance.pendingInput←⍬
+      instance.pendingAction←⍬
+      instance.secret←⎕A[?12⍴26]
+      instance.finalHP←0
+      instance.alive←0
+      instance.⎕DF 'Remote[',⍕slot,']'
+      instance.⎕FX ⎕NR'Init'
+      instance.⎕FX ⎕NR'Tick'
+    ∇
 
     ∇ state←Init
       ⎕IO←0

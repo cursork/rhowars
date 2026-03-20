@@ -1,6 +1,6 @@
 # rhowars — Remote Bot Skill
 
-You are playing rhowars, a 2D battle arena game. You control a rhobot by polling for game state and posting actions via HTTP.
+You are playing rhowars, a 2D battle arena game. You control a rhobot by polling for game state and posting actions via HTTP. Multiple Remotes can play in the same match — each gets a unique slot.
 
 ## Setup
 
@@ -16,12 +16,28 @@ curl -s -X POST http://localhost:8080/api/match \
   -d '{"bots":["Spinner","Remote"]}'
 ```
 
-Replace `Spinner` with any opponent. Returns status 202.
+Replace `Spinner` with any opponent (including another `"Remote"`). Returns status 202 with slot and token assignments:
+
+```json
+{"id": 1, "status": "running", "remotes": [{"slot": 0, "token": "KFMXHQVBLPJD"}]}
+```
+
+For Remote vs Remote:
+```bash
+curl -s -X POST http://localhost:8080/api/match \
+  -H 'Content-Type: application/json' \
+  -d '{"bots":["Remote","Remote"]}'
+```
+```json
+{"id": 1, "status": "running", "remotes": [{"slot": 0, "token": "KFMXHQVBLPJD"}, {"slot": 1, "token": "WNRAGYCETOSB"}]}
+```
+
+**Save your token** — all subsequent API calls require it. Each slot has a unique secret token; you can only access your own slot.
 
 ### 2. Poll for state
 
 ```bash
-curl -s http://localhost:8080/api/remote/state
+curl -s http://localhost:8080/api/remote/{slot}/{token}/state
 ```
 
 Check the `status` field in the response:
@@ -32,7 +48,7 @@ Check the `status` field in the response:
 ### 3. Post your action
 
 ```bash
-curl -s -X POST http://localhost:8080/api/remote/action \
+curl -s -X POST http://localhost:8080/api/remote/{slot}/{token}/action \
   -H 'Content-Type: application/json' \
   -d '{"direction":90,"turret":45,"fire":1,"speed":1}'
 ```
@@ -58,6 +74,14 @@ Returns `{"matches": [{id, names, turns, done}, ...]}`. To load a specific match
 ```bash
 curl -s http://localhost:8080/api/match/3/history
 ```
+
+### 7. List active remotes
+
+```bash
+curl -s http://localhost:8080/api/remote/list
+```
+
+Returns `{"remotes": [{"slot": 0, "status": "waiting", "tick": 5}, ...]}`.
 
 ## Game State Format
 
@@ -103,7 +127,7 @@ When `status` is `"active"`, the response includes:
 
 ## Game Mechanics
 
-- **Movement**: Your rhobot moves in `direction` at `botSpeed` pixels/tick when `speed=1`. Direction 0 = right, 90 = down, 180 = left, 270 = up.
+- **Movement**: Your rhobot moves in `direction` at `botSpeed` pixels/tick when `speed=1`. Compass-style bearings: 0 = north (+y), 90 = east (+x), 180 = south (-y), 270 = west (-x). Engine uses `x += speed×sin(dir)`, `y += speed×cos(dir)`.
 - **Turret**: Independent of movement direction. Controls where you aim and what you can see.
 - **Firing**: Shoots a bullet from your position in the turret direction. Cooldown of `cooldown` ticks between shots. Bullets travel at `bulletSpeed` pixels/tick.
 - **Vision**: You see entities within `visionRange` pixels and `visionHalfAngle`° of your turret direction.
@@ -111,6 +135,10 @@ When `status` is `"active"`, the response includes:
   - Positive offset = clockwise from turret, negative = counter-clockwise
 - **Damage**: Bullets deal `bulletDamage`. Bot-bot collisions deal `collisionDamage`.
 - **Win condition**: Last bot alive wins. Match ends at `maxTurns` if still tied.
+
+## Multi-Remote Notes
+
+Within each engine tick, Remotes are called sequentially (random order). One Remote's `status` becomes `"active"` before the next. From the client's perspective, just poll — your turn arrives when the engine reaches you.
 
 ## Strategy
 

@@ -1,0 +1,56 @@
+#!/bin/bash
+# rhowars Remote control — manual play helper
+#
+# Usage: rh                             → list active remotes
+#        rh SLOT TOKEN                  → poll state for slot
+#        rh SLOT TOKEN DIR TUR FIRE     → post action, poll next state
+#        rh SLOT TOKEN DIR TUR FIRE N   → do N turns with same action
+#        rh start OPPONENT [...]        → start a match (auto-adds Remote)
+#        rh match                       → get match result
+#        rh bots                        → list available bots
+#        rh list                        → list all matches
+B="http://localhost:8080"
+
+case "$1" in
+  start)
+    shift
+    BOTS=$(printf ',"%s"' "$@" Remote)
+    BOTS="[${BOTS:1}]"
+    curl -s -X POST "$B/api/match" -H 'Content-Type: application/json' \
+      -d "{\"bots\":$BOTS}" | jq .
+    ;;
+  match)
+    curl -s "$B/api/match" | jq .
+    ;;
+  bots)
+    curl -s "$B/api/bots" | jq .
+    ;;
+  list)
+    curl -s "$B/api/match/list" | jq .
+    ;;
+  "")
+    curl -s "$B/api/remote/list" | jq .
+    ;;
+  *)
+    SLOT=$1 TOKEN=$2
+    # If only slot+token given, poll state
+    if [ $# -eq 2 ]; then
+      curl -s "$B/api/remote/$SLOT/$TOKEN/state" | jq .
+      exit
+    fi
+    D=$3 T=$4 F=$5 N=${6:-1}
+    for i in $(seq 1 "$N"); do
+      curl -s -X POST "$B/api/remote/$SLOT/$TOKEN/action" -H 'Content-Type: application/json' \
+        -d "{\"direction\":$D,\"turret\":$T,\"fire\":$F,\"speed\":1}" > /dev/null
+      # Wait for next tick to be ready
+      for attempt in $(seq 1 20); do
+        sleep 0.05
+        S=$(curl -s "$B/api/remote/$SLOT/$TOKEN/state")
+        st=$(echo "$S" | jq -r .status)
+        [ "$st" = "done" ] && echo "=== MATCH OVER ===" && echo "$S" | jq . && exit
+        [ "$st" = "active" ] && break
+      done
+    done
+    echo "$S" | jq .
+    ;;
+esac

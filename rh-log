@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Parse rhowars agent logs into readable colored output.
+
+Usage: tail -f LOGFILE | ./rh-log
+       cat LOGFILE | ./rh-log | less -R
+"""
+import sys, json
+
+# ANSI colors
+DIM = "\033[2m"
+CYAN = "\033[36m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+RED = "\033[31m"
+BOLD = "\033[1m"
+MAGENTA = "\033[35m"
+RESET = "\033[0m"
+
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        obj = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+
+    msg = obj.get("message", {})
+    agent = obj.get("agentId", "")[:8] if obj.get("agentId") else ""
+    role = msg.get("role", "")
+    content = msg.get("content", [])
+    if isinstance(content, str):
+        content = [{"type": "text", "text": content}]
+
+    for block in content:
+        btype = block.get("type", "")
+
+        # Agent reasoning/text
+        if btype == "text" and role == "assistant":
+            text = block.get("text", "").strip()
+            if text:
+                print(f"{DIM}[{agent}]{RESET} {GREEN}{text}{RESET}")
+
+        # Tool call (./rh command)
+        elif btype == "tool_use" and block.get("name") == "Bash":
+            cmd = block.get("input", {}).get("command", "")
+            desc = block.get("input", {}).get("description", "")
+            if "./rh" in cmd:
+                # Redact tokens (12 uppercase letters after slot number)
+                import re
+                cmd_display = re.sub(r'(\./rh \d+) [A-Z]{12}', r'\1 ***', cmd)
+                print(f"{DIM}[{agent}]{RESET} {CYAN}$ {cmd_display}{RESET}", end="")
+                if desc:
+                    print(f"  {DIM}# {desc}{RESET}", end="")
+                print()
+
+        # Tool call (Edit — playbook update)
+        elif btype == "tool_use" and block.get("name") in ("Edit", "Write"):
+            path = block.get("input", {}).get("file_path", "")
+            if "agents/" in path:
+                name = path.split("/")[-1]
+                print(f"{DIM}[{agent}]{RESET} {MAGENTA}>> Updating playbook: {name}{RESET}")
+
+        # Tool result (game state from ./rh)
+        elif btype == "tool_result":
+            result = block.get("content", "")
+            if not result:
+                continue
+            # Try to parse as game state
+            if '"status"' in result:
+                try:
+                    # Handle ./rh output which might have "=== MATCH OVER ===" prefix
+                    json_part = result
+                    if "MATCH OVER" in result:
+                        print(f"{DIM}[{agent}]{RESET} {RED}{BOLD}=== MATCH OVER ==={RESET}")
+                        json_part = result.split("\n", 1)[-1] if "\n" in result else result
+                    state = json.loads(json_part.strip())
+                    status = state.get("status", "?")
+                    turn = state.get("turn", "?")
+                    hp = state.get("hp", "?")
+                    pos = state.get("position")
+                    vis = state.get("visible", [])
+
+                    if status == "active":
+                        pos_str = f"({pos[0]:.0f},{pos[1]:.0f})" if pos else "?"
+                        vis_bots = sum(1 for v in vis if v.get("type") == "rhobot")
+                        vis_bullets = sum(1 for v in vis if v.get("type") == "bullet")
+                        vis_str = ""
+                        if vis_bots:
+                            vis_str += f" {RED}{vis_bots} enemy{RESET}"
+                        if vis_bullets:
+                            vis_str += f" {YELLOW}{vis_bullets} bullet{'s' if vis_bullets>1 else ''}{RESET}"
+                        if not vis:
+                            vis_str = f" {DIM}nothing visible{RESET}"
+                        hp_color = GREEN if hp > 60 else (YELLOW if hp > 30 else RED)
+                        print(f"{DIM}[{agent}]{RESET}   T{turn} {hp_color}HP:{hp}{RESET} {pos_str}{vis_str}")
+                    elif status == "done":
+                        print(f"{DIM}[{agent}]{RESET}   {BOLD}T{turn} DONE{RESET}")
+                    elif status == "processing":
+                        print(f"{DIM}[{agent}]{RESET}   {DIM}T{turn} waiting...{RESET}")
+                except (json.JSONDecodeError, TypeError, KeyError):
+                    pass

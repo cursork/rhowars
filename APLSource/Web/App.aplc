@@ -11,6 +11,8 @@
     :Field Private defaultCfg
     :Field Private matches
     :Field Private nextMatchId
+    :Field Private remotes
+    :Field Private nextSlot
 
     ∇ Make args;StarkClass
       :Access Public
@@ -20,6 +22,8 @@
       lastBotNames←⍬
       matches←⍬
       nextMatchId←1
+      remotes←⍬
+      nextSlot←0
       router←⎕NEW StarkClass
       router.Handlers←⎕THIS
       router.Info←(title: 'rhowars' ⋄ version: '0.1.0')
@@ -37,8 +41,9 @@
       '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
       '/api/config' router.Get 'GetConfig'
       '/api/config/reset' router.Post 'ResetConfig'
-      '/api/remote/state' router.Get 'GetRemoteState'
-      '/api/remote/action' router.Post 'PostRemoteAction'
+      '/api/remote/list' router.Get 'ListRemotes'
+      '/api/remote/{slot}/{token}/state' router.Get 'GetRemoteState'
+      '/api/remote/{slot}/{token}/action' router.Post 'PostRemoteAction'
     ∇
 
     ∇ Start port
@@ -51,7 +56,7 @@
       router.Stop
     ∇
 
-    ∇ result←StartMatch req;body;names;botns;i;ns;rec
+    ∇ result←StartMatch req;body;names;botns;i;ns;rec;matchRemotes
       :Access Public
       ⎕IO←0
       :Trap 0
@@ -62,18 +67,29 @@
               ApplyCfg body.config
           :EndIf
           botns←⍬
+          matchRemotes←⍬
           :For i :In ⍳≢names
-              ns←game.BotLib.Resolve(i⊃names)
+              :If 'Remote'≡i⊃names
+                  ns←game.Rhobots.Remote.Create nextSlot
+                  ns.botIndex←i
+                  remotes,←ns
+                  matchRemotes,←ns
+                  nextSlot←nextSlot+1
+              :Else
+                  ns←game.BotLib.Resolve(i⊃names)
+              :EndIf
               botns,←ns
           :EndFor
           lastBotNames←names
           rec←NewMatchRecord names
-          :If ∨/'Remote'∘≡¨names
+          :If 0<≢matchRemotes
               lastMatch←⍬
-              game.Rhobots.Remote.status←'processing'
-              RunRemoteMatch&(botns rec)
+              RunRemoteMatch&(botns rec matchRemotes)
               req.SetStatus 202
-              result←(id: rec.id ⋄ status: 'running' ⋄ detail: 'Remote match started — poll GET /api/remote/state')
+              result←⎕NS⍬
+              result.id←rec.id
+              result.status←'running'
+              result.remotes←{⎕IO←0 ⋄ ns←⎕NS⍬ ⋄ ns.slot←⍵.slot ⋄ ns.token←⍵.secret ⋄ ns}¨matchRemotes
           :Else
               lastMatch←game.Engine.Run botns
               rec.match←lastMatch
@@ -306,10 +322,10 @@
       :EndTrap
     ∇
 
-    ∇ {r}←RunRemoteMatch args;botns;rec
+    ∇ {r}←RunRemoteMatch args;botns;rec;matchRemotes;rem
       :Access Private
       r←⍬
-      (botns rec)←args
+      (botns rec matchRemotes)←args
       :Trap 0
           lastMatch←game.Engine.Run botns
           rec.match←lastMatch
@@ -317,7 +333,13 @@
           ⍝ Match failed — ensure we don't hang
       :EndTrap
       rec.done←1
-      game.Rhobots.Remote.status←'done'
+      :For rem :In matchRemotes
+          :If 0≠⎕NC'lastMatch.bots'
+              rem.finalHP←lastMatch.bots[rem.botIndex;5]
+              rem.alive←lastMatch.bots[rem.botIndex;7]
+          :EndIf
+          rem.status←'done'
+      :EndFor
     ∇
 
     ∇ rec←NewMatchRecord names
@@ -377,22 +399,54 @@
       )
     ∇
 
-    ∇ result←GetRemoteState req;input;vis
+    ∇ rem←ResolveSlot(slot token);valid;vals;idx
+      :Access Private
+      ⎕IO←0
+      (valid vals)←⎕VFI⍕slot
+      :If ~∨/valid
+          rem←⍬
+          :Return
+      :EndIf
+      slot←⊃valid/vals
+      idx←{⍵.slot}¨remotes
+      :If ~slot∊idx
+          rem←⍬
+          :Return
+      :EndIf
+      rem←(idx⍳slot)⊃remotes
+      :If token≢rem.secret
+          rem←⍬
+      :EndIf
+    ∇
+
+    ∇ result←ListRemotes req
       :Access Public
       ⎕IO←0
-      :Select game.Rhobots.Remote.status
+      result←(remotes: {⎕IO←0 ⋄ ns←⎕NS⍬ ⋄ ns.slot←⍵.slot ⋄ ns.status←⍵.status ⋄ ns.tick←⍵.tick ⋄ ns}¨remotes)
+    ∇
+
+    ∇ result←GetRemoteState req;rem;input;vis
+      :Access Public
+      ⎕IO←0
+      rem←ResolveSlot req.PathParams.slot req.PathParams.token
+      :If ⍬≡rem
+          req.Fail 404
+          result←(detail: 'Remote slot not found')
+          :Return
+      :EndIf
+      :Select rem.status
       :Case 'idle'
           req.Fail 404
-          result←(detail: 'No remote match running')
+          result←(detail: 'Remote not yet started')
       :Case 'done'
-          result←(status: 'done' ⋄ turn: game.Rhobots.Remote.tick)
+          result←(status: 'done' ⋄ turn: rem.tick ⋄ hp: rem.finalHP ⋄ alive: rem.alive)
       :Case 'processing'
-          result←(status: 'processing' ⋄ turn: game.Rhobots.Remote.tick)
+          result←(status: 'processing' ⋄ turn: rem.tick)
       :Case 'waiting'
-          input←game.Rhobots.Remote.pendingInput
+          input←rem.pendingInput
           result←⎕NS⍬
           result.status←'active'
-          result.turn←game.Rhobots.Remote.pendingInput.turn
+          result.turn←input.turn
           result.position←input.loc
           result.direction←input.direction
           result.turret←input.turret
@@ -408,12 +462,18 @@
       :EndSelect
     ∇
 
-    ∇ result←PostRemoteAction req;body;act
+    ∇ result←PostRemoteAction req;body;act;rem
       :Access Public
       ⎕IO←0
-      :If 'waiting'≢game.Rhobots.Remote.status
-          :If 'done'≡game.Rhobots.Remote.status
-              result←(status: 'done' ⋄ turn: game.Rhobots.Remote.tick)
+      rem←ResolveSlot req.PathParams.slot req.PathParams.token
+      :If ⍬≡rem
+          req.Fail 404
+          result←(detail: 'Remote slot not found')
+          :Return
+      :EndIf
+      :If 'waiting'≢rem.status
+          :If 'done'≡rem.status
+              result←(status: 'done' ⋄ turn: rem.tick)
           :Else
               req.Fail 409
               result←(detail: 'Remote bot is not waiting for input')
@@ -426,10 +486,10 @@
       :If 0≠body.⎕NC'turret' ⋄ act.turret←body.turret ⋄ :EndIf
       :If 0≠body.⎕NC'fire' ⋄ act.fire←body.fire ⋄ :EndIf
       :If 0≠body.⎕NC'speed' ⋄ act.speed←body.speed ⋄ :EndIf
-      act.state←game.Rhobots.Remote.pendingInput.state
-      game.Rhobots.Remote.pendingAction←act
-      ⎕TPUT game.Rhobots.Remote.token
-      result←(ok: 1 ⋄ turn: game.Rhobots.Remote.tick)
+      act.state←rem.pendingInput.state
+      rem.pendingAction←act
+      ⎕TPUT rem.token
+      result←(ok: 1 ⋄ turn: rem.tick)
     ∇
 
 :EndClass
