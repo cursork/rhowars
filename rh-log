@@ -4,7 +4,7 @@
 Usage: tail -f LOGFILE | ./rh-log
        cat LOGFILE | ./rh-log | less -R
 """
-import sys, json
+import sys, json, re
 
 # ANSI colors
 DIM = "\033[2m"
@@ -15,6 +15,10 @@ RED = "\033[31m"
 BOLD = "\033[1m"
 MAGENTA = "\033[35m"
 RESET = "\033[0m"
+
+def redact_token(s):
+    """Replace 12-letter uppercase tokens in API URLs with ***."""
+    return re.sub(r'(/api/remote/\d+/)[A-Z]{12}', r'\1***', s)
 
 for line in sys.stdin:
     line = line.strip()
@@ -41,16 +45,15 @@ for line in sys.stdin:
             if text:
                 print(f"{DIM}[{agent}]{RESET} {GREEN}{text}{RESET}")
 
-        # Tool call (./rh command) — skip bare polls (no action args)
+        # Tool call (curl to rhowars API) — skip state polls (noise)
         elif btype == "tool_use" and block.get("name") == "Bash":
             cmd = block.get("input", {}).get("command", "")
             desc = block.get("input", {}).get("description", "")
-            if "./rh" in cmd:
-                import re
-                # Skip bare poll commands (just slot + token, no action)
-                if re.match(r'^(sleep \d+ && )?\.\/rh \d+ [A-Z]{12}$', cmd):
+            if "api/remote/" in cmd or "api/match" in cmd:
+                # Skip state poll commands (noise)
+                if re.search(r'api/remote/\d+/[A-Z]+/state', cmd):
                     continue
-                cmd_display = re.sub(r'(\./rh \d+) [A-Z]{12}', r'\1 ***', cmd)
+                cmd_display = redact_token(cmd)
                 print(f"{DIM}[{agent}]{RESET} {CYAN}$ {cmd_display}{RESET}", end="")
                 if desc:
                     print(f"  {DIM}# {desc}{RESET}", end="")
@@ -63,15 +66,13 @@ for line in sys.stdin:
                 name = path.split("/")[-1]
                 print(f"{DIM}[{agent}]{RESET} {MAGENTA}>> Updating playbook: {name}{RESET}")
 
-        # Tool result (game state from ./rh)
+        # Tool result (game state from API)
         elif btype == "tool_result":
             result = block.get("content", "")
             if not result:
                 continue
-            # Try to parse as game state
             if '"status"' in result:
                 try:
-                    # Handle ./rh output which might have "=== MATCH OVER ===" prefix
                     json_part = result
                     if "MATCH OVER" in result:
                         print(f"{DIM}[{agent}]{RESET} {RED}{BOLD}=== MATCH OVER ==={RESET}")
@@ -97,7 +98,15 @@ for line in sys.stdin:
                         hp_color = GREEN if hp > 60 else (YELLOW if hp > 30 else RED)
                         print(f"{DIM}[{agent}]{RESET}   T{turn} {hp_color}HP:{hp}{RESET} {pos_str}{vis_str}")
                     elif status == "done":
-                        print(f"{DIM}[{agent}]{RESET}   {BOLD}T{turn} DONE{RESET}")
+                        rank = state.get("rank", "?")
+                        total = state.get("totalBots", "?")
+                        alive = state.get("alive", 0)
+                        dhp = state.get("hp", 0)
+                        dt = state.get("deathTurn")
+                        if alive:
+                            print(f"{DIM}[{agent}]{RESET}   {BOLD}{GREEN}SURVIVED{RESET} rank {rank}/{total} HP:{dhp}")
+                        else:
+                            print(f"{DIM}[{agent}]{RESET}   {BOLD}{RED}KILLED{RESET} turn {dt} rank {rank}/{total}")
                     elif status == "processing":
                         pass  # suppress waiting/processing noise
                 except (json.JSONDecodeError, TypeError, KeyError):

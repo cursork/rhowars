@@ -31,7 +31,7 @@
       game.BotLib.LoadAll
       '/api/match/list' router.Get 'ListMatches'
       '/api/match/{id}/history' router.Get 'GetMatchHistory'
-      '/api/match/record' router.Get 'GetRecord'
+      '/api/match/{id}/record' router.Get 'GetRecord'
       '/api/match/replay' router.Post 'ReplayRecord'
       '/api/match/history' router.Get 'GetHistory'
       '/api/match' router.Post 'StartMatch'
@@ -266,18 +266,32 @@
       game.Cfg.MAX_TURNS←saved.MAX_TURNS
     ∇
 
-    ∇ result←GetRecord req
+    ∇ result←GetRecord req;id;valid;vals;idx;rec
       :Access Public
       ⎕IO←0
-      :If ⍬≡lastMatch
-          req.Fail 404
-          result←(detail: 'No match has been run yet')
-      :Else
-          result←game.Record.Create lastMatch lastBotNames
+      (valid vals)←⎕VFI req.PathParams.id
+      :If ~∨/valid
+          req.Fail 400
+          result←(detail: 'Invalid match ID')
+          :Return
       :EndIf
+      id←⊃valid/vals
+      idx←{⍵.id}¨matches
+      :If ~id∊idx
+          req.Fail 404
+          result←(detail: 'Match not found')
+          :Return
+      :EndIf
+      rec←(idx⍳id)⊃matches
+      :If ⍬≡rec.match
+          req.Fail 404
+          result←(detail: 'Match not yet complete')
+          :Return
+      :EndIf
+      result←game.Record.Create rec.match rec.names
     ∇
 
-    ∇ result←ReplayRecord req;body;manifest;names;botns;i;ns;warnings;savedCfg;cfg
+    ∇ result←ReplayRecord req;body;manifest;names;botns;i;ns;warnings;savedCfg;cfg;rec
       :Access Public
       ⎕IO←0
       :Trap 0
@@ -309,9 +323,12 @@
                   botns,←ns
               :EndFor
               lastBotNames←names
+              rec←NewMatchRecord names
               lastMatch←manifest.seed game.Engine.Run botns
+              rec.match←lastMatch
+              rec.done←1
               req.SetStatus 201
-              result←(match: MatchSummary lastMatch ⋄ warnings: warnings)
+              result←(match: MatchSummary lastMatch ⋄ warnings: warnings ⋄ id: rec.id)
           :Else
               RestoreCfg savedCfg
               ⎕DMX.EM ⎕SIGNAL ⎕DMX.EN

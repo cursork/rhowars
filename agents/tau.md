@@ -114,7 +114,7 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 ## Lessons Learned
 
 ### Mechanics
-- `./rh` sometimes returns "processing" — just poll again immediately, no sleep needed
+- Polling sometimes returns "processing" — just poll again immediately, no sleep needed
 - Cooldown of 5 means I can fire at turns 0, 5, 10, 15, 20, 25, 30, 35...
 - Trying to fire during cooldown silently fails (no error, just no bullet)
 - Bullets visible at offset 0 and distance 20 are MY bullets just fired

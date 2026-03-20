@@ -34,7 +34,7 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Closing distance didn't help survivability.** At 40-60 range, bullets arrive in 2-3 turns — less dodge time for both sides. But the enemy was hitting me anyway, so the reduced dodge window hurt me more than them.
 
 ### Battle 3: vs Remote[opponent] (1v1) — INCONCLUSIVE (match stuck)
-- **Result:** Match stuck on "processing" at turn 52. HP 20 when last active (turn 51). The `./rh` script was removed during the long wait, ending my ability to poll.
+- **Result:** Match stuck on "processing" at turn 52. HP 20 when last active (turn 51). The polling script was removed during the long wait, ending my ability to poll.
 - **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
 - **Damage taken:** 80 (4 hits of 20). Hit on approximately turns 27, 36, 41, 46.
 - **Shots fired:** 8 shots (turns 8, 13, 18, 23, 28, 33, 38, 48). Unknown how many hit.

@@ -25,7 +25,7 @@ write.
 4. [Kamikaze](APLSource/Rhobots/Kamikaze) — spiral patrol (tight or wide), charge on sight
 5. [Camper](APLSource/Rhobots/Camper) — stay still, aim at centre, fire every tick
 6. [Orbiter](APLSource/Rhobots/Orbiter) — strafe around targets, orbit centre when idle
-7. [Remote](APLSource/Rhobots/Remote.apln) — externally controlled via REST API (for Claude or any HTTP client)
+7. [Remote](APLSource/Rhobots/Remote.apln) — externally controlled via REST API; multiple Remotes per match, each with a unique slot and token
 
 ## Quick Start
 
@@ -121,6 +121,7 @@ actions.turret←360|input.turret+nearest[1]  ⍝ turn toward it
 | `fire`      | 0 or 1    | Request to fire (blocked if on cooldown) |
 | `state`     | namespace | Your updated persistent state |
 | `speed`     | 0 or 1    | Optional. 0 = stay still, 1 = move (default 1) |
+| `thought`   | string    | Optional narration shown in replay viewer |
 
 Any field set to `⍬` or omitted means "no change" — the engine keeps the
 current value. Return `()` (or `⎕NS⍬` in namespace scripts) to do nothing.

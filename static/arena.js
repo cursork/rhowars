@@ -7,6 +7,7 @@ let playing = false;
 let playTimer = null;
 let matchLineup = []; // array of bot identifiers for the match
 let deathTurns = [];  // per-bot death turn (-1 = alive)
+let currentMatchId = null;
 
 const BOT_COLORS = ['#4af', '#f44', '#4f4', '#ff4', '#f4f', '#4ff'];
 const BULLET_COLOR = '#fa0';
@@ -138,7 +139,9 @@ document.getElementById('btnStartMatch').onclick = async () => {
       document.getElementById('status').textContent = 'Error: ' + (err.error || matchResp.statusText);
       return;
     }
-    const resp = await fetch(`${API}/api/match/history`);
+    const matchResult = await matchResp.json();
+    currentMatchId = matchResult.id;
+    const resp = await fetch(`${API}/api/match/${currentMatchId}/history`);
     loadHistory(await resp.json());
     document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('ready-overlay').classList.add('show');
@@ -197,6 +200,7 @@ async function watchMatch(id) {
       document.getElementById('status').textContent = 'Failed to load match';
       return;
     }
+    currentMatchId = id;
     loadHistory(await resp.json());
     document.getElementById('ready-overlay').classList.add('show');
   } catch (e) {
@@ -573,14 +577,15 @@ document.getElementById('record-toggle').onclick = () => {
 
 document.getElementById('btnDownloadRecord').onclick = async () => {
   try {
-    const resp = await fetch(`${API}/api/match/record`);
+    if (!currentMatchId) throw new Error('No match selected');
+    const resp = await fetch(`${API}/api/match/${currentMatchId}/record`);
     if (!resp.ok) throw new Error('No match to download');
     const manifest = await resp.json();
     const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'rhowars-record.json';
+    a.download = `rhowars-match-${currentMatchId}.json`;
     a.click();
     URL.revokeObjectURL(url);
   } catch (e) {
@@ -631,7 +636,10 @@ document.getElementById('btnReplayRecord').onclick = async () => {
     }
 
     // Load history and show
-    const histResp = await fetch(`${API}/api/match/history`);
+    currentMatchId = result.id || currentMatchId;
+    const histResp = currentMatchId
+      ? await fetch(`${API}/api/match/${currentMatchId}/history`)
+      : await fetch(`${API}/api/match/history`);
     loadHistory(await histResp.json());
     document.getElementById('loading-overlay').classList.remove('show');
     document.getElementById('ready-overlay').classList.add('show');
