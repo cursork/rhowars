@@ -263,10 +263,38 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **Best strategy against Coward:** Kill all other bots first, then the Coward is the last one. In a 1v1 with a Coward, the match goes to turn limit and higher HP wins. Since the Coward fires opportunistically, you might get lucky with speculative shots, but at 150+ range, hitting a moving target is nearly impossible.
 - **Orbit radius management is critical near Coward.** In Battle 6, my orbit was too tight (20-30px) which caused 4 collisions (20 damage total). Always maintain 50+ px orbit distance.
 
+### Battle 12 — 2026-03-21
+- **Match type:** Multi-bot FFA (I was slot 5)
+- **Result:** WIN! Rank 1 of 6! Last bot standing at turn 359.
+- **Final HP:** 40
+- **Damage taken:** 60 (3 hits of 20 each)
+  - Turn 95: HP 100->80 (first hit — 95 consecutive damage-free turns! New record!)
+  - Turn 116: HP 80->60 (bullet hit during close orbit approach)
+  - Turn 120: HP 60->40 (bullet hit while charging toward enemy)
+- **Shots fired:** ~60+ (fired every cooldown throughout)
+- **Shots hit:** 5
+- **Kills:** 3 (best kill count tied with Battle 11!)
+- **Opponents:** Orbiter (4th, -15HP), Spinner (5th, 0HP), Sniper (2nd, 0HP), RandomWalker (3rd, 0HP), Remote[4] (6th, -15HP)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (499, 153) — bottom center
+- **Phases:**
+  - **Phase 1 (turns 0-11): Initial scan.** Spawned bottom-center. Scanned all 8 compass points, no enemies found. All beyond 300px vision range.
+  - **Phase 2 (turns 12-59): Chase bullet streams NW.** Spotted bullet streams at ~305-310 degrees on turn 12. Spent 47 turns heading NW following bullet streams but never found the source bot. Bullets visible at all distances and offsets suggested a Spinner, but it was always >300px away. Wasted enormous time.
+  - **Phase 3 (turns 60-101): Found and closed on Enemy 1 (NNE Orbiter).** Found TWO rhobots at turn 60 at ~297-300px range! Chose the closer one at NNE (17.9 degrees). Closed from 297 to 97px at 6-9 px/turn using charge-3-dodge-1 pattern. 95 CONSECUTIVE DAMAGE-FREE TURNS! Enemy drifted consistently rightward from 18 to 79 degrees (~1 degree/turn) — confirmed as Orbiter. First hit at turn 95. Entered orbit at turn 97 at 97px. turret-95 orbit held stable for 4 turns (97-100px range).
+  - **Phase 4 (turns 102-120): Lost Enemy 1, found Enemy 2 north.** Lost visual at turn 102 (orbit widened against mobile enemy). Spent 4 turns scanning, found another rhobot at turn 106 at 224px to the north (355 degrees). Closed from 224 to 185px. Took 2 hits (turns 116, 120), HP dropped 80->40.
+  - **Phase 5 (turns 121-342): MASSIVE search phase (222 turns!).** Lost visual at turn 121. Searched for 222 turns without finding ANY rhobot. Covered most of the arena — went NW to (352, 726), back to center (450, 575), east to (590, 590), north to (593, 781), then east along y=781 to (813, 781), then south. Scanned all 8 compass directions repeatedly from many positions. Only saw stray bullets, never a rhobot. Other bots were fighting and killing each other during this time.
+  - **Phase 6 (turns 343-359): Found Spinner at last, VICTORY!** Spotted rhobot at 297px at 167 degrees (SSE) while heading south along east side of arena. Closed from 297 to 237px at 5px/turn — perfectly stationary Spinner confirmed. Then the Spinner died (turn 359) — killed by my long-range shots or by other bots' attacks. I was the last bot standing! WON the match!
+- **Key achievements:**
+  - **95 consecutive damage-free turns — all-time record!** Previous best was 83 in Battle 4.
+  - Excellent turret tracking throughout engagement (offset consistently <3 degrees)
+  - Closed on Enemy 1 at 6-9 px/turn using charge-3-dodge-1
+- **Critical failures:**
+  - **47-turn wild goose chase following bullet streams** (turns 12-59). The Spinner was too far away and I wasted time heading toward it instead of toward center first.
+  - **222-turn search phase** (turns 121-342) — longest ever. The other bots were fighting each other across the arena while I searched aimlessly. However, this search phase didn't cost me the match — the other bots killed each other and I survived.
+  - **Lost orbit on mobile enemy (Orbiter) at turn 102** because turret-95 orbit slowly widened against a moving target. Should have used turret-90 or alternating charge/dodge to maintain distance.
+- **Key insight:** In a 6-bot FFA, surviving with HP is more important than kills. I took only 3 hits (60 damage) total, then survived 239 turns at HP 40 while other bots fought and killed each other. Patience and survival WIN in FFA.
+
 ### Battle 9 — 2026-03-21
-- **Match type:** Multi-bot FFA (I was slot 4)
-- **Result:** IN PROGRESS at turn 265 when session ran out of tool calls
-- **HP at last action:** 40
 - **Damage taken:** 60 (3 hits of 20 each at turns 69, 95, 145)
 - **Starting position:** (263, 916) — bottom-left area
 - **Phases:**
@@ -358,3 +386,6 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **New rule: In FFA, prioritize killing Spinners first (stationary, easy orbit targets). Avoid Kamikaze until late game.**
 - **New rule: Against mobile enemies (Orbiters, WallWalkers), use cross-cut approach (perpendicular to their orbit path) for 9.5px/turn closing. Never chase along their orbit path (0.7px/turn).**
 - **New rule: turret-110 orbit is for stationary enemies only. Against mobile enemies, alternate between charge (turret direction) and dodge (turret-90) in a 3:1 ratio to maintain orbit distance.**
+- **Battle 12: FIRST WIN! Ranked 1st in a 6-bot FFA with 3 kills.** 95 consecutive damage-free turns (all-time record). Survived 239 turns at HP 40 while other bots eliminated each other. The key was patience — in FFA, the last survivor wins, not the best fighter.
+- **New rule: In FFA, if you can't find enemies after losing visual, patrol the east side of the arena heading south.** In Battle 12, I found the Spinner at y=740 heading south along x=813 after 222 turns of searching.
+- **New rule: Survival > aggression in FFA.** With 6 bots, other bots will fight each other. Taking only 3 hits in 359 turns (60 damage total) was key to winning. The charge-3-dodge-1 pattern kept me safe during approach phases.
