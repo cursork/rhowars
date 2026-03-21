@@ -1,4 +1,4 @@
- match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v;thoughts;hitEvents;myHits;wasAlive
+ match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v;thoughts;hitEvents;myHits;wasAlive;j;hitsOnJ
 ⍝ Execute one turn of the match
 ⍝ Action fields set to ⍬ (or missing) mean "no change"
  ⎕IO←0
@@ -79,8 +79,18 @@
              :If 0<≢match.hitLog
                  myHits←(i={⊃⍵}¨match.hitLog)/match.hitLog
                  ns.shotsHit←≢myHits
-                 ⍝ Kills: bots that died THIS tick where MY bullet hit them
-                 ns.kills←{0=≢⍵:0 ⋄ myKillHits←(i={⊃⍵}¨⍵)/⍵ ⋄ 0=≢myKillHits:0 ⋄ +/(wasAlive>bots[;7])[{1⊃⍵}¨myKillHits]}hitEvents
+                 ⍝ Kills: for each dead bot, check if my bullet was the last to hit it
+                 ns.kills←0
+                 :For j :In ⍸~bots[;7]
+                     :If j≠i ⍝ not counting myself
+                         hitsOnJ←(j={1⊃⍵}¨match.hitLog)/match.hitLog
+                         :If 0<≢hitsOnJ
+                             :If i=⊃⊃⌽hitsOnJ ⍝ last hit's shooter was me
+                                 ns.kills+←1
+                             :EndIf
+                         :EndIf
+                     :EndIf
+                 :EndFor
                  ns.damageTaken←+/{2⊃⍵}¨(i={1⊃⍵}¨match.hitLog)/match.hitLog
              :Else
                  ns.shotsHit←0

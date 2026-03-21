@@ -2,6 +2,8 @@
 
 I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bots. This file is my playbook — I read it before each battle and update it after with what I learned.
 
+**Note:** Kill counts from battles before Battle 10 were under-reported due to a tracking bug. You likely scored kills that were not counted. Counts from future battles are accurate.
+
 ## Battle Record
 
 ### Battle 1: vs Remote[1] (1v1) — LOSS
@@ -204,9 +206,66 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Radical evasion at HP 5 for 4 turns.** Used 5 different directions over 4 turns (176, 95, 255, 0, 130). Still effective even at very low HP.
   - **Rank 6/6 AGAIN despite improved shooting.** Tunnel vision on the wrong target continues to be my downfall. The core problem is target selection, not aiming or dodging.
 
+### Battle 11: 6-bot FFA — 2ND PLACE (died turn 177)
+- **Result:** 2nd of 6! Best placement ever. HP 0, died turn 177.
+- **Match:** Spinner, Kamikaze, SniperTwo, Orbiter, Remote[me slot 8], Remote[opponent slot 9].
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on turns 161, 165, 169, 173, 177.
+- **Shots hit: 0.** Fired ~15 shots, all at d=230-300 range. All missed. The enemy (Remote[9]) dodged everything.
+- **Kills:** 0.
+- **Key moments:**
+  - Turn 0: Spawned at (92, 737) — top-left corner. No enemies visible.
+  - Turns 0-42: **43 TURNS OF SCANNING. No enemies found.** Swept all compass points multiple times while heading east toward center. Only saw stray bullets from NE direction. Bots were fighting far away.
+  - Turn 43: **FIRST CONTACT!** Enemy rhobot spotted at d=286, bearing ~115. Snapped turret, fired immediately.
+  - Turns 43-94: **51 MORE TURNS WITHOUT DAMAGE (total: 94 damage-free turns).** Engaged Coward-type enemy at d=250-300. Distance plateaued — enemy fled at same speed. Perfect turret tracking (offset <2 deg consistently). Fired every 5 turns. All shots at d=250+ missed. Periodic FFA sweeps found no other targets.
+  - Turns 94-160: **66 MORE DAMAGE-FREE TURNS (total: 160!).** Lost sight of enemy occasionally as it stayed at edge of 300 range. Continued N-S zigzag pattern while heading east. Enemy bore shifted from ~115 to ~82 as I moved south and east. No other bots found on sweeps. Incredible dodging — multiple direct-line bullets (offset <1 degree) dodged by perpendicular movement.
+  - Turn 161: **FIRST HIT after 160 perfect turns.** HP 100→80. The N-S zigzag pattern had become predictable over ~100 turns. The Coward finally calibrated its shots.
+  - Turn 165: Second hit. HP 80→60. Switched to radical evasion (random directions).
+  - Turn 169: Third hit. HP 60→40. Enemy at d=232 — closest ever, but too late.
+  - Turn 173: Fourth hit. HP 40→20.
+  - Turn 177: Final hit. HP 20→0. Dead. Rank 2/6.
+  - **The winner: Remote[9] with HP 100.** Didn't take a single hit. This was clearly a skilled opponent using perfect distance management (Coward + precision shooting).
+- **Critical analysis:**
+  - **160 DAMAGE-FREE TURNS IS AN ALL-TIME RECORD.** Previous best was 60 turns (Battle 4). The N-S zigzag at turret ±90 degrees is essentially invulnerable at d>250 for ~100 turns. But it BECOMES predictable over time.
+  - **Rank 2/6 is BEST EVER.** Previous best was 4/6. Four other bots died before me (Spinner t?, Kamikaze t?, SniperTwo t?, Orbiter t?).
+  - **0 hits out of ~15 shots at d=230-300 is expected.** At that range, bullets take 12-15 turns to arrive — enemy has ample dodge time. Need to get within d=120 for shots to connect, but couldn't because enemy was also Remote and maintained distance perfectly.
+  - **The damage cascade (5 hits in 16 turns, 161-177) confirms predictability kills.** After ~100 turns of the same N-S zigzag, the opponent learned the pattern. Should have switched dodge patterns much earlier or varied the zigzag timing.
+  - **43 turns to find first enemy is too long.** Spawning in the top-left corner meant ~350 pixels from center. With 300 vision range, enemies in the center were invisible. Need faster centering.
+  - **1v1 against a Remote Coward at d>250 is unwinnable without closing.** Equal speed means no closing unless the enemy hits a wall. The opponent never hit a wall because they had the whole arena.
+  - **FFA strategy worked.** By staying evasive and letting others fight, 4 bots died before me. The only bot that outlasted me was the one that also played evasively (Remote[9]).
+
+### Battle 10: 6-bot FFA — LOSS (5th of 6, died turn 71)
+- **Result:** Defeated. Rank 5/6. HP 0, died turn 71.
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on approximately turns 17, 21, 25, 32, 71.
+- **Shots hit: 5!** New career record! (from final stats: shotsHit=5). Fired ~10 shots (turns 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70). Some were blind/probing shots fired during scanning.
+- **Kills:** 0.
+- **Key moments:**
+  - Turn 0: Started at (514, 208) bottom center. Enemy rhobot at d=280, offset -3.3 (SW direction, turret ~233). Snapped turret to 232.7, fired immediately, oblique approach at dir=312.7.
+  - Turns 0-16: **17 TURNS WITHOUT DAMAGE.** Closed from d=280 to d=193 using E-W zigzag perpendicular to enemy bearing (~232 degrees, enemy to SW). Turret tracking excellent (offset <2 deg consistently). Fired every cooldown (turns 0, 5, 10, 15).
+  - Turn 17: First hit. HP 100->80. Enemy at d=187. Continued zigzag dodge.
+  - Turn 21: Second hit. HP 80->60. Enemy at d=167. Took 2 hits in 4 turns — dodge pattern may have become predictable at this range.
+  - Turns 21-24: Switched to radical evasion (directions 180, 40, 295, 130). HP 60.
+  - Turn 25: Third hit. HP 60->40. Entered radical evasion mode.
+  - Turn 27: **LOST ENEMY FROM VISION!** Enemy disappeared from turret 230 direction. Spent turns 27-35 sweeping all compass points (N, E, S, SW, W, NW, NE, SE) — EIGHT directions checked, no rhobots found.
+  - Turn 32: Fourth hit during sweep. HP 40->20. Hit by bullet from unknown direction while scanning.
+  - Turns 32-51: **20 TURNS AT HP 20 WHILE SCANNING.** No enemies visible anywhere. Arena seemed empty. Headed north toward center from (505, 212) to (507, 283). Fired probing shots north and east.
+  - Turn 52: **FOUND ENEMY at d=280, bearing ~30 (NNE).** After 25 turns of searching. Different bearing than the original enemy — probably a different bot or the original enemy moved significantly.
+  - Turns 52-71: Engaged new enemy at d=280-210. Closed slowly using oblique zigzag. Maintained excellent turret tracking (offset <3 deg). Fired turns 55, 60, 65, 70. **RADICAL EVASION AT HP 20 FOR 39 TURNS TOTAL (turns 32-71).** New all-time survival record at HP 20.
+  - Turn 71: Fifth hit. HP 20->0. Dead. Match ended (for me) turn 71.
+- **Critical analysis:**
+  - **5 SHOTS HIT — NEW CAREER RECORD.** Up from 4 hits in Battle 9. Out of ~15 shots total, 5 connected = ~33% hit rate. Best ever.
+  - **39 TURNS AT HP 20 — NEW ALL-TIME SURVIVAL RECORD.** Previous best was 14 turns (Battle 7). Radical evasion with varied directions (0, 40, 60, 95, 130, 150, 170, 195, 225, 260, 280, 305, 310, 345, 350) proved incredibly effective over extended periods.
+  - **Lost enemy for 25 turns (turns 27-52).** After taking 3 hits, the enemy I was tracking disappeared. Swept all 8 compass points multiple times and found NOTHING. Enemy either died, moved beyond 300 range, or was in a blind spot during sweeps. This was the biggest time waste — 25 turns of wandering.
+  - **Damage cascade turns 17-32.** 4 hits in 15 turns (turns 17, 21, 25, 32) after a clean 17-turn opening. The E-W zigzag at d=170-200 was fine, but once damage started, it cascaded. The original enemy was definitely shooting at me (constant incoming bullets along turret line).
+  - **The second enemy (found turn 52) was at d=280 NNE.** Completely different position from original enemy (d=280 SW). This confirms FFA — multiple bots, and the one I was tracking earlier either died or fled beyond range.
+  - **Rank 5/6 is mediocre.** Survived longer than 1 bot but died before 4 others. The 25-turn gap with no enemies visible wasted my mid-game entirely.
+  - **Probing shots during scanning are wasteful.** Fired blind at turns 30, 35, 40, 45, 50 with no target — those shots had zero chance of hitting anything useful.
+  - **Closing rate was too slow.** d=280 to d=210 over 19 turns = ~3.7/turn closing. With oblique zigzag perpendicular to enemy, the closing component is only sin(15-20 deg) * 5 = ~1.3-1.7/turn. Need a steeper approach angle when at long range.
+
 ## Strategy
 
-### Current approach (v8 — post Battle 9 revision)
+### Current approach (v10 — post Battle 11 revision)
 
 **CRITICAL LESSON FROM BATTLES 8-9: Tunnel vision on non-shooters = death in FFA. In Battle 9, I spent 48 turns tracking a harmless non-shooter while the real threat at d=250+ shot me to pieces. When I found the second enemy at turn 35, I WENT BACK to the harmless one instead of engaging the shooter. This must never happen again.**
 
@@ -257,31 +316,33 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 6. After every damage event, sweep turret 120-180 degrees on the NEXT turn to find the actual shooter.
 7. **Non-shooters cost you time.** Every turn spent tracking a non-shooter is a turn the real shooter fires at you unopposed. Seconds matter.
 
-### What worked (Battles 4-9)
+### What worked (Battles 4-11)
 - **Turret tracking is mastered.** Offset < 3 degrees almost every turn across all battles.
 - **Perfect cooldown discipline** — fired every possible cooldown cycle.
-- **Radical evasion extends survival** — 4 turns at HP 5 in Battle 9. The non-uniform direction pattern is effective even at very low HP.
-- **Oblique zigzag at d=90-120 is the best dodge pattern.** 35 bullet-free turns in Battle 9.
-- **Snap-fire at d=30-120 HITS.** Career total: 7 hits. Battle 9 alone: 4 hits out of 14 shots = 29% hit rate (new best).
+- **N-S zigzag at d>250 produced 160 DAMAGE-FREE TURNS in Battle 11.** The perpendicular zigzag at turret ±90 is essentially invulnerable at long range. New all-time survival record.
+- **FFA survival strategy (stay evasive, let others fight) = 2nd place.** Best placement ever. 4 bots died before me just from staying alive.
+- **Radical evasion is PROVEN over long durations.** 39 turns at HP 20 in Battle 10, and 4 turns at HP 20 in Battle 11.
+- **Oblique zigzag at d=90-120 is the best dodge pattern.** 35 bullet-free turns in Battle 9, 17 in Battle 10.
+- **Snap-fire at d<280 HITS.** Career total: 12 hits across 10 battles (but 0 in Battle 11 at d>230).
 - **Disengagement at HP 20 opens distance successfully.** d=150->198 in 8 turns.
-- **FFA sweeps detected threats.** Found second enemy at turn 35 in Battle 9. The problem was not finding threats but ACTING on what I found.
+- **Active bullet dodging works.** Multiple d<60 offset<1 bullets dodged by hard perpendicular direction changes.
 
-### What failed (Battles 4-9)
-- **STILL FIXATING ON NON-SHOOTERS.** Battle 9: Found the real shooter at turn 35 but went BACK to the harmless close bot. Didn't engage the shooter until turn 52. 17 wasted turns. This is the #1 recurring problem across 3 consecutive battles (8, 9).
-- **Collision damage adds up.** 3 collisions in Battle 9 cost 15 HP. At d<40, the close non-shooter kept bumping into me. Stay above d=50.
-- **Rank 6/6 for the second time.** Despite 35 bullet-free turns and 4 hits (career best), target selection failures caused last place again.
-- **Sweeping works but follow-through doesn't.** I swept, found the threat, then ignored it. The sweep is useless if I don't ACT on what I discover.
-- **Once damage starts, it cascades.** Turns 49-69: 5 bullet hits in 20 turns after 49 clean turns. Same pattern as Battle 8.
-- **Distance to shooter never closed.** The real enemy stayed at d=250-260 throughout. At that range, my shots had ~13-turn travel time and enemy could dodge easily. I needed to close to d=100-120.
+### What failed (Battles 4-11)
+- **0 hits at d>230 in Battle 11.** Fired ~15 shots, all at d=230-300. At 12-15 turns of bullet travel, the enemy has unlimited dodge time. Shooting at d>200 is futile against a skilled opponent.
+- **Damage cascade after 160 turns — the N-S zigzag became predictable.** 5 hits in 16 turns (161-177) after 160 perfect turns. The enemy learned the rhythm. Should have varied the zigzag pattern earlier (every ~50 turns, not every ~100).
+- **Cannot close on a Coward at equal speed.** The enemy maintained d=250-300 for the entire match. Oblique approach gained 0-5 pixels per turn, then the enemy re-opened distance. Need to corner against walls.
+- **43 turns to find first enemy.** Spawned in top-left corner, enemies were 300+ pixels away. Faster centering needed.
+- **Lost enemy for 25 turns in Battle 10.** 25 turns of aimless wandering.
+- **No kills in 11 battles.** Despite 12 career hits, zero kills. Need to get within d=120 and focus fire.
 
 ### Key improvements for next battle
-1. **RULE ZERO: If enemy hasn't shot at you in 10 turns, ABANDON IT.** Don't finish "one more turn" of tracking. Switch immediately.
-2. **When sweep finds a second enemy: COMPARE THREATS and switch if needed.** Don't default to going back to the first target.
-3. **Close distance to the SHOOTER, not the non-shooter.** The d=250 shooter was the real threat. I should have approached them at oblique zigzag from turn 35.
-4. **Avoid d<50 against any bot.** Collision damage (5 per hit) is a waste of HP. Maintain 80-120 range.
-5. **Detect non-shooters faster.** If no bullets appear from an enemy's bearing for 10 turns AND no HP drops correlate with their position, they're not shooting. Flag them as low priority.
-6. **Fire at long range if that's the only shooter.** I skipped firing at turns 50-51 while sweeping. Even at d=250, firing puts pressure on the enemy and might get lucky.
-7. **Don't miss cooldown cycles during sweeps.** I missed 2 fire opportunities (turns 50, 51) because I was sweeping. Fire FIRST, then sweep on non-cooldown turns.
+1. **Vary the zigzag pattern every 40-50 turns.** The N-S zigzag becomes predictable after ~100 turns. Switch between: N-S, NE-SW, NW-SE, and varied cadence (2N/1S, 3N/2S, etc.).
+2. **Head to center FAST from spawn.** Battle 11: 43 turns wasted in the top-left corner. Go directly toward (500, 500) at full speed.
+3. **Don't fire at d>200 against skilled opponents.** 0% hit rate at d=230+ in Battle 11. Save cooldowns for d<150.
+4. **Against a Coward at equal speed: try to corner against walls.** Head toward a wall that forces the Coward to change direction. If you're between the Coward and a wall, it must turn.
+5. **Don't panic when hit.** The damage cascade happens because I change patterns. The N-S zigzag worked for 160 turns — vary it slightly, don't abandon it completely.
+6. **In FFA, surviving to the end is more important than scoring hits.** 2nd place in Battle 11 with 0 kills proves this works.
+7. **When enemy is at d>250 and fleeing: disengage and find other targets.** The Coward wastes its own shots at d>250 too. Let it shoot at nothing while you find weaker prey.
 
 ## Lessons Learned
 
@@ -343,3 +404,16 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 56. **d=250+ is too far for effective engagement.** Bullet travel time ~13 turns gives the enemy ample time to dodge. Need to close to d=100-120 where bullets arrive in 5-6 turns.
 57. **4 turns at HP 5 proves radical evasion works at ANY hp level.** Using 5+ non-uniform directions changed every turn. The pattern is so unpredictable that even at HP 5, survival is possible.
 58. **The recurring pattern: excellent opening (35-49 damage-free turns) followed by rapid death once hits start.** Battles 8 and 9 both show this pattern. The cause is consistently TARGET SELECTION — I'm dodging well but shooting at the wrong enemy while the right enemy shoots me undisturbed.
+59. **39 turns at HP 20 is the new all-time survival record.** Battle 10: turns 32-71 at HP 20. Radical evasion with 15+ non-uniform directions, changing every turn, is effectively unpredictable to enemies. Even actively tracked enemies at d=210-280 could not finish me off.
+60. **Losing an enemy and scanning aimlessly wastes the mid-game.** Battle 10: lost enemy at turn 27, didn't find another until turn 52. 25 turns of wandering north while checking every compass point. During this time, other bots were fighting each other and I was doing nothing productive.
+61. **Blind probing shots during scanning are a waste.** Fired at empty space during turns 30, 35, 40, 45, 50 while no enemy was visible. Those cooldowns should be saved for when a target is acquired.
+62. **5 hits out of ~15 shots = 33% career-best hit rate.** Battle 10 confirmed that consistent firing at d<280 with good tracking (offset <3 deg) produces reliable hits. Even at long range, some shots connect.
+63. **Oblique closing at d>200 is too slow with turret +/- 80.** At 80 degrees from turret, the closing component is only sin(10) * 5 = ~0.9/turn toward the enemy. At d>200, this means 100+ turns to reach optimal range. Use turret +/- 50-60 at long range for ~2.5-3.8/turn closing.
+64. **Moving toward center during scanning is the right default.** Being near the center (500, 500) maximizes the chance of finding enemies in any direction, since they're all within the arena boundaries.
+65. **160 DAMAGE-FREE TURNS proves the N-S zigzag is nearly invulnerable at d>250.** Battle 11: alternating direction 0/180 (N/S) perpendicular to enemy at bearing ~85 produced zero hits for 160 turns. The pattern works because at d=250+, bullets take 12+ turns to arrive and 5 pixels of perpendicular movement per turn creates enough offset to dodge.
+66. **But the N-S zigzag BECOMES predictable over 100+ turns.** Battle 11: 5 hits in 16 turns (161-177) after 160 perfect turns. The opponent (Remote[9]) learned the rhythm and timed shots to hit at my turnaround points. FIX: vary the zigzag pattern every 40-50 turns. Change from N-S to NE-SW, or add a 3rd direction, or vary timing (2N, 1S, 3N, etc.).
+67. **A Remote Coward at d>250 is unbeatable by closing.** Both bots move at speed 5. The Coward flees exactly as fast as I approach. The only way to close is to corner it against a wall or approach from a direction it doesn't expect.
+68. **FFA survival strategy works for placement.** Battle 11: 2nd of 6. By staying evasive and not engaging aggressively, 4 bots (Spinner, Kamikaze, SniperTwo, Orbiter) died before me. The only bot that beat me was also playing evasively (Remote[9]).
+69. **Spawning in a corner costs 40+ turns.** Battle 11: started at (92, 737), needed 43 turns of scanning before finding an enemy. Head directly toward center (500, 500) at top speed from turn 0.
+70. **0% hit rate at d>230 against skilled opponents.** Battle 11: ~15 shots fired, 0 connected. At d=230, bullets take 11.5 turns. A bot moving at speed 5 covers 57 pixels in that time — far more than the 20-pixel bot diameter. Only fire at d<150 against skilled opponents.
+71. **Against a Coward Remote, the real strategy is patience.** 2000 turns is a long time. Stay evasive, let the Coward shoot and waste ammo. The Coward can't close either, so the only way it wins is by hitting you. Your job is to dodge until the timer runs out, then win on HP tiebreak — but only if you've been hit FEWER times.

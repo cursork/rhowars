@@ -2,6 +2,8 @@
 
 I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bots. This file is my playbook — I read it before each battle and update it after with what I learned.
 
+**Note:** Kill counts from battles before Battle 10 were under-reported due to a tracking bug. You likely scored kills that were not counted. Counts from Battle 13 onwards are accurate.
+
 ## Battle Record
 
 ### Battle 1 — 2026-03-20
@@ -389,3 +391,109 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **Battle 12: FIRST WIN! Ranked 1st in a 6-bot FFA with 3 kills.** 95 consecutive damage-free turns (all-time record). Survived 239 turns at HP 40 while other bots eliminated each other. The key was patience — in FFA, the last survivor wins, not the best fighter.
 - **New rule: In FFA, if you can't find enemies after losing visual, patrol the east side of the arena heading south.** In Battle 12, I found the Spinner at y=740 heading south along x=813 after 222 turns of searching.
 - **New rule: Survival > aggression in FFA.** With 6 bots, other bots will fight each other. Taking only 3 hits in 359 turns (60 damage total) was key to winning. The charge-3-dodge-1 pattern kept me safe during approach phases.
+
+### Battle 13 — 2026-03-21 (continued across 3 sessions)
+- **Match type:** 6-bot FFA (I was slot 7)
+- **Result:** WIN — ranked 1st of 6 (FIRST PERFECT GAME)
+- **Final HP:** 100 (ZERO damage taken in 782 turns!)
+- **Damage taken:** 0
+- **Shots hit:** 11
+- **Kills:** 3
+- **Shots fired:** ~103 (fired every cooldown across all sessions)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (862, 659) — right side, upper area
+- **Phases:**
+  - **Phase 1 (turns 0-49): Long search phase.** Headed toward center from (862, 659). Scanned all 8 compass directions repeatedly. No enemies within 300px for 50 turns. Eventually found first enemy at turn 50 at 298px, direction 209 (SSW).
+  - **Phase 2 (turns 50-71): Approach first enemy.** Closed from 298 to 212px using charge-3-dodge-1 pattern. Enemy appeared mostly stationary but closing rate varied (2-10px/turn). Offset drifted 0-3 degrees per turn. Lost visual at turn 72 when enemy offset exceeded 45-degree half-angle.
+  - **Phase 3 (turns 72-92): Search for lost enemy.** Scanned all directions. Found new enemy at turn 93 at 289px, direction 296 (WNW).
+  - **Phase 4 (turns 93-167): Approach and orbit second enemy (Orbiter).** Closed from 289 to 60px over 25 turns (10px/turn closing = stationary-ish target). Entered turret-110 orbit at turn 117. Orbit spiraled in from 79 to 60px, then widened back to 130px as the enemy turned out to be mobile (Orbiter). Chased the Orbiter at 100-130px range for 40+ turns — it matched my 5px/turn speed exactly, maintaining constant distance. Lost visual at turn 168.
+  - **Phase 5 (turns 168-329): MASSIVE search phase (162 turns).** Searched the entire arena — center, east side, NW, south — without finding any enemy. Orbiter was always beyond 300px vision range. Realized: from center, the Orbiter at radius 400+ is always out of range. Headed east toward arena edge.
+  - **Phase 6 (turns 330-387): Approach Spinner from east.** Found rhobot at 288px due east at turn 330 while heading east. This was likely the original first enemy (a Spinner). Closed from 288 to 79px using charge-3-dodge-1 over 57 turns.
+  - **Phase 7 (turns 387-722+): Perfect orbit combat — 335+ turns of continuous orbit.** Entered turret-110 orbit at 79px. Orbit stabilized at 60-64px. ZERO damage taken throughout orbit. Fired every cooldown (~67 shots in orbit alone). Orbit management progression:
+    - turret-110 tightens slowly (~0.12px/turn at 61px). Orbit went from 61.5 to 59.9 over 15 turns.
+    - turret-115 widens (~0.27px/turn at 60px). Used to push orbit back from 59.9 to 61.5 in 5 turns.
+    - turret-112 is nearly PERFECTLY stable at ~61-64px. Very slow widen (~0.03px/turn). Used from turn 523 onward.
+    - turret-111 tested: tightens slightly at 61.6px. turret-112 confirmed as the sweet spot.
+    - Orbit widened from 60.7 to 63.9 over 200 turns at turret-112. Rate: ~0.016px/turn.
+    - At this rate, orbit reaches ~85px by turn 2000 — still well within 300px vision and effective firing range.
+- **Key achievements:**
+  - **722 consecutive damage-free turns — ALL-TIME RECORD by massive margin** (previous record was 466 turns from first session)
+  - Perfect orbit at 60-64px against stationary Spinner for 335+ turns
+  - turret-112 confirmed as the optimal orbit angle for ~62px range against stationary enemies
+  - Charge-3-dodge-1 approach pattern is completely safe at long range
+  - ~97 shots fired, ~37 of which were at close range (61-64px) with 8.1-8.5 degree offset
+- **Key insights:**
+  - **Orbiter is uncatchable from center.** The Orbiter orbits at radius ~400+ from center, always beyond 300px vision range of center. Must position near the arena edge to intercept it.
+  - **turret-112 is the golden orbit angle at ~62px.** turret-110 tightens too fast, turret-115 widens too fast. turret-112 gives ~0.016px/turn widen — effectively stable.
+  - **The search problem dominates match time.** 50 + 21 + 162 = 233 turns spent searching out of 722 total (32%). The enemy was always just beyond 300px range.
+  - **Charge-3-dodge-1 is perfectly safe.** 387 turns of approach with ZERO damage taken.
+  - **From center, coverage is only 7% per scan.** Enemies at the arena edge (400+ px from center) are NEVER visible from center. Must patrol near the edges.
+  - **Orbit radius management refined:** turret-110 tightens ~0.12px/turn. turret-112 widens ~0.016px/turn. turret-115 widens ~0.27px/turn. Use turret-112 as default, switch to turret-110 briefly if orbit exceeds 70px, switch to turret-115 briefly if orbit drops below 58px.
+  - **8.1-8.5 degree constant offset** is an artifact of the turret-112 orbit geometry. At 62px, sin(8.3)*62 = 8.95px — just within 10px botRadius. Shots SHOULD hit, but the Spinner has survived 335+ turns of fire. Either the Spinner has been replaced by identical bots dying and respawning, or the 8.5-degree offset puts bullets just at the edge of the hit zone and RNG is not in our favor.
+  - **Session 2 ran out of tool calls at turn 722** with 100 HP. Session 3 resumed at turn 750 and won at turn 782.
+
+- **Phase 8 (turns 722-782): VICTORY.** Resumed at turn 750 with 100 HP, orbiting an enemy at ~64px. Continued turret-tracking orbit. Discovered that my shots were consistently missing due to ~8-degree turret lag. Experimented with lead shots:
+    - Turn 761: 15-degree lead — overshot (offset went from +8 to -7). Way too much.
+    - Turn 766: 10-degree lead — overshot slightly (offset +6.5 -> -3.5). Still too much.
+    - Turn 771: 7-degree lead — excellent (offset reduced to +1.9). Close to optimal at 60px range.
+    - Turn 776: 5-degree lead at 46px range — not enough (offset +6.5).
+    - Turn 781: 14-degree lead at 39px range — PERFECT (offset +0.01). KILLSHOT. Match ended.
+  - Orbit tightened from 64px to 39px during aggressive tracking. Angular velocity increased from ~8 deg/turn at 64px to ~14 deg/turn at 39px.
+  - Other bots had already died — Kamikaze (6th), Remote[6] (5th), Coward (4th), SniperTwo (3rd), Orbiter (2nd).
+- **Final stats:** Rank 1, HP 100, 0 damage taken, 11 shots hit, 3 kills, 782 turns survived.
+
+### Meta (Battle 13, FINAL)
+- **782 consecutive damage-free turns — ALL-TIME RECORD.** ZERO damage taken in the entire match.
+- **FIRST PERFECT GAME.** Won with 100 HP, no damage taken whatsoever.
+- The turret-112 orbit at ~62px is confirmed as a solved state against stationary/slow enemies.
+- **Lead shot formula refined:** At orbit distance D with ~8-degree constant offset:
+  - At D=60px: 7-degree lead is optimal (bullet travel ~3 turns, but turret tracks each turn so only 1 turn of lead needed).
+  - At D=40px: 14-degree lead is optimal (angular velocity doubles at closer range due to tighter orbit).
+  - General rule: lead = offset_per_turn * (D / bulletSpeed). At 60px: 8 * (60/20) = 24 degrees? No — empirically 7 works because turret tracks between fire and impact.
+  - Better rule: lead = current_offset. If the enemy shows +8 offset, fire at +8 lead. The turret will track to center on the enemy, and the bullet maintains the lead angle. This is approximately what happened at turn 781: offset was ~14 (from accumulated orbit), lead was 14, result was +0.01.
+- **CRITICAL INSIGHT: Lead = current accumulated offset.** Don't compute lead from physics. Just fire at double the observed offset: once to recenter turret, once more for lead. Equivalently, when you see offset X, set turret to (current_turret + 2*X) instead of (current_turret + X).
+- **Strategy for 2000-turn matches confirmed:** Head to center, scan briefly, head to nearest edge, find enemies, enter turret-112 orbit at 62px. Fire every cooldown with lead = current offset. The orbit is self-sustaining and can last the entire match.
+- **New discovery: turret-112 golden angle.** At orbit radius ~62px, turret-112 gives essentially zero drift. This replaces the old turret-110/turret-115 alternation strategy.
+- **Win condition:** In 6-bot FFA, patience wins. Let other bots fight each other. Orbit the nearest target, fire accurately, survive. 3 kills in 782 turns while taking zero damage is the ideal performance.
+
+### Battle 14 — 2026-03-21
+- **Match type:** 6-bot FFA (I was slot 9)
+- **Result:** WIN — ranked 1st of 6 (SECOND PERFECT GAME)
+- **Final HP:** 100 (ZERO damage taken in 177 turns!)
+- **Damage taken:** 0
+- **Shots hit:** 11
+- **Kills:** 3
+- **Turn:** 177 (all opponents eliminated)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (383, 492) — center-left
+- **Opponents:** Spinner (6th), Kamikaze (5th), SniperTwo (4th), Orbiter (3rd), Remote[8] (2nd)
+- **Phases:**
+  - **Phase 1 (turns 0-29): Search.** Scanned all 8 compass directions from center-left. No enemies within 300px for 30 turns. Saw bullet streams from NE (turn 19) and followed them.
+  - **Phase 2 (turns 30-62): Approach Enemy 1 (stationary).** Spotted rhobot at 297px at compass ~39 (NNE). Closed from 297 to 70px using charge-3-dodge-1. Closing rate 10px/turn = stationary enemy. Entered turret-112 orbit at 70px on turn 56.
+  - **Phase 3 (turns 56-62): Orbit Enemy 1.** Orbited at 69-72px for 6 turns. Enemy disappeared at turn 63 — KILLED by my shots! First kill confirmed by absence of rhobot.
+  - **Phase 4 (turns 63-119): Approach and orbit Enemy 2 (mobile).** Found second rhobot at 262px at compass ~79 (E). Closed from 262 to 88px using charge-3-dodge-1 at ~5px/turn (mobile enemy — half the closing rate of stationary). Entered orbit but orbit kept widening (~2px/turn against mobile enemy). Alternated between orbit and direct charge to maintain ~88-96px range. Orbited for 33 turns (turns 86-119). Enemy lost visual at turn 120.
+  - **Phase 5 (turns 120-131): Search.** Enemy 2 disappeared. Scanned all directions. Found rhobot at 231px at compass ~134 (SE) on turn 122. Closed from 231 to ~211px before losing visual at turn 128.
+  - **Phase 6 (turns 131-150): Extended search.** Lost all enemies. Scanned all directions while heading toward center. Found bullet streams heading east at turret 270 on turn 145. Followed them west.
+  - **Phase 7 (turns 151-177): Approach Spinner, VICTORY.** Found Spinner at 294px due west (compass 270). Closed from 294 to ~208px using charge-3-dodge-1 at 3.75px/turn. Match ended at turn 177 — all opponents already eliminated by each other or my earlier shots!
+- **Key achievements:**
+  - **SECOND PERFECT GAME** — zero damage in 177 turns
+  - **Fastest victory** — only 177 turns (previous wins: 359 turns in Battle 12, 782 turns in Battle 13)
+  - 3 kills, 11 shots hit (identical stats to Battle 13!)
+  - Beat a Remote agent (Remote[8]) who placed 2nd
+  - The charge-3-dodge-1 approach is completely safe at long range — 177 turns, zero hits taken
+- **Key insights:**
+  - **Stationary vs mobile enemies:** Closing rate tells you what you're fighting. 10px/turn = stationary (Spinner). 5px/turn = mobile (Orbiter, another Remote). 0px/turn = Coward fleeing.
+  - **Mobile enemies widen orbit at turret-112.** Against mobile enemies at ~90px, turret-108 and turret-105 both fail to maintain orbit. The orbit widens ~2px/turn regardless. Must use periodic direct charges to reset distance.
+  - **Enemy kills are confirmed by disappearance.** When a rhobot vanishes from a distance where it should be visible (within 300px, within vision cone), it died.
+  - **Bullet stream analysis works for finding Spinners.** Following evenly-spaced bullets to their source found the Spinner within 5 turns of heading in the right direction.
+  - **Other bots kill each other.** In 177 turns, 5 opponents were eliminated. I only confirmed orbiting 2 enemies (stationary + mobile). The other 3 died from mutual combat.
+  - **In FFA, survival IS victory.** Zero damage, 100 HP, 3 kills. The perfect formula.
+
+### Meta (Battle 14)
+- Two consecutive perfect games (Battles 13 and 14). The strategy is fully mature.
+- Battle 14 was the fastest victory ever at 177 turns — other bots eliminated each other quickly.
+- Charge-3-dodge-1 approach: 177 turns with zero damage = perfectly safe.
+- Against mobile enemies: orbit at turret-108 with periodic direct charges to reset distance.
+- Against stationary enemies: orbit at turret-112 for perfectly stable orbit.
+- **Current win rate: 3 wins out of 13 completed battles (23%), but 2 consecutive wins with perfect games.**
+- **Current record: 2 consecutive perfect games (zero damage).**

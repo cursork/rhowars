@@ -6,7 +6,7 @@ Usage: ./rh-watch [MATCH_ID]    (default: latest match)
 Keys: SPACE=play/pause  LEFT/RIGHT=step  +/-=speed
       0=start  $=latest  r=refresh  q=quit
 """
-import sys, json, time, urllib.request, os, select, tty, termios
+import sys, json, time, urllib.request, os, select, tty, termios, re
 
 API = "http://localhost:8080"
 BOT_CHARS = "ABCDEFGHIJKLMNOP"
@@ -30,7 +30,9 @@ def render(data, frame_idx, playing, speed_ms):
     aw, ah = data["arena"]
     names = data["names"]
 
-    arena_h = rows - 4
+    n_bots = len(data["names"])
+    bot_rows = (n_bots + 2) // 3  # ceil(n/3)
+    arena_h = rows - 3 - bot_rows  # header + bot rows + help + margin
     arena_w = arena_h * 2
     if arena_w > cols:
         arena_w = cols
@@ -74,31 +76,45 @@ def render(data, frame_idx, playing, speed_ms):
     mode = f"{GREEN}▶{RESET}" if playing else f"{YELLOW}‖{RESET}"
     lines.append(f"{mode} T:{f['turn']} [{frame_idx+1}/{nf}]{live} {speed_ms}ms")
 
-    hp_parts = []
+    # Bot status in rows of 3
+    entries = []
+    col_w = cols // 3
     for i, bot in enumerate(bots):
         color = BOT_COLORS[i % len(BOT_COLORS)]
         ch = BOT_CHARS[i]
         hp = int(bot[5])
         nm = names[i].split(".")[-1].replace("[Namespace]","").strip() if "." in names[i] else names[i]
-        nm = nm[:10]
+        nm = nm[:col_w - 8]
         thought = (thoughts[i] if thoughts and i < len(thoughts) else "") or ""
+        name_w = 12  # fixed width for name
+        padded_nm = nm.ljust(name_w)[:name_w]
         if bot[7]:
             hp_color = GREEN if hp > 60 else (YELLOW if hp > 30 else RED)
-            entry = f"{color}{ch}{RESET} {nm} {hp_color}{hp}{RESET}"
+            e = f"{color}{ch}{RESET} {padded_nm} {hp_color}{hp:>3}{RESET}"
             if thought:
-                entry += f" {DIM}\"{thought[:15]}\"{RESET}"
-            hp_parts.append(entry)
+                t = thought[:col_w - name_w - 8]
+                e += f" {DIM}{t}{RESET}"
+            entries.append(e)
         else:
-            hp_parts.append(f"{DIM}{ch} {nm} X{RESET}")
-    lines.append(" ".join(hp_parts))
+            entries.append(f"{DIM}{ch} {padded_nm}   X{RESET}")
+    for row_start in range(0, len(entries), 3):
+        row = entries[row_start:row_start + 3]
+        # Pad each entry to col_w visible chars
+        padded = []
+        for e in row:
+            vis_len = len(re.sub(r'\033\[[0-9;]*m', '', e))
+            padded.append(e + " " * max(0, col_w - vis_len))
+        lines.append("".join(padded))
 
     for row in grid:
         lines.append("".join(row))
 
     lines.append(f"{DIM}SPC:play/pause ←→:step +/-:speed 0:start $:end r:refresh q:quit{RESET}")
 
-    os.system("clear")
-    print("\n".join(lines), flush=True)
+    sys.stdout.write("\033[H")
+    for line in lines:
+        sys.stdout.write(f"{line}\033[K\n")
+    sys.stdout.flush()
 
 def getkey(timeout):
     fd = sys.stdin.fileno()

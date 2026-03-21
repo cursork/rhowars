@@ -41,6 +41,7 @@
       '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
       '/api/config' router.Get 'GetConfig'
       '/api/config/reset' router.Post 'ResetConfig'
+      '/api/match/{id}/situation' router.Get 'GetSituation'
       '/api/remote/list' router.Get 'ListRemotes'
       '/api/remote/{slot}/{token}/state' router.Get 'GetRemoteState'
       '/api/remote/{slot}/{token}/action' router.Post 'PostRemoteAction'
@@ -331,7 +332,7 @@
       :EndTrap
     ∇
 
-    ∇ {r}←RunMatch args;botns;rec;matchRemotes;rem;finalAlive;finalHP;nBots;frames;alivePerFrame;deathFrames;scores;ranks;idx;dt;match;seed;i
+    ∇ {r}←RunMatch args;botns;rec;matchRemotes;rem;finalAlive;finalHP;nBots;frames;alivePerFrame;deathFrames;scores;ranks;idx;dt;match;seed;i;hitLog;myHits;hitsOnMe;j;hitsOnJ;standings;ns
       :Access Private
       r←⍬
       ⎕IO←0
@@ -391,7 +392,16 @@
               :If 0<≢hitLog
                   myHits←(idx={⊃⍵}¨hitLog)/hitLog
                   rem.shotsHit←≢myHits
-                  rem.kills←+/~finalAlive[∪{1⊃⍵}¨myHits]  ⍝ unique targets I hit that died
+                  ⍝ Kills: dead bots where my bullet was the last to hit them
+                  rem.kills←0
+                  :For j :In ⍸~finalAlive
+                      hitsOnJ←(j={1⊃⍵}¨hitLog)/hitLog
+                      :If 0<≢hitsOnJ
+                          :If idx=⊃⊃⌽hitsOnJ
+                              rem.kills+←1
+                          :EndIf
+                      :EndIf
+                  :EndFor
                   hitsOnMe←(idx={1⊃⍵}¨hitLog)/hitLog
                   rem.damageTaken←+/{2⊃⍵}¨hitsOnMe
               :Else
@@ -498,6 +508,77 @@
         botHP: game.Cfg.BOT_HP
         frames: frames
       )
+    ∇
+
+    ∇ result←GetSituation req;id;valid;vals;idx;rec;m;bots;i;ns;hitLog;hitsBy;hitsOn;lastHitter
+      :Access Public
+      ⎕IO←0
+      (valid vals)←⎕VFI req.PathParams.id
+      :If ~∨/valid
+          req.Fail 400
+          result←(detail: 'Invalid match ID')
+          :Return
+      :EndIf
+      id←⊃valid/vals
+      idx←{⍵.id}¨matches
+      :If ~id∊idx
+          req.Fail 404
+          result←(detail: 'Match not found')
+          :Return
+      :EndIf
+      rec←(idx⍳id)⊃matches
+      :If ⍬≡rec.match
+          req.Fail 404
+          result←(detail: 'Match not yet started')
+          :Return
+      :EndIf
+      m←rec.match
+      bots←m.bots
+      hitLog←m.hitLog
+      result←⎕NS⍬
+      result.turn←m.turn
+      result.done←m.done
+      result.bots←⍬
+      :For i :In ⍳≢bots
+          ns←⎕NS⍬
+          ns.name←⍕i⊃m.names
+          ns.hp←bots[i;5]
+          ns.alive←bots[i;7]
+          ns.x←bots[i;1]
+          ns.y←bots[i;2]
+          ns.direction←bots[i;3]
+          ns.turret←bots[i;4]
+          ⍝ Combat stats from hitLog
+          :If 0<≢hitLog
+              hitsBy←(i={⊃⍵}¨hitLog)/hitLog
+              hitsOn←(i={1⊃⍵}¨hitLog)/hitLog
+              ns.shotsHit←≢hitsBy
+              ns.damageTaken←+/{2⊃⍵}¨hitsOn
+              ns.damageDealt←+/{2⊃⍵}¨hitsBy
+              ⍝ Kills: dead bots where I was last to hit
+              ns.kills←0
+              :For j :In ⍸~bots[;7]
+                  lastHitter←(j={1⊃⍵}¨hitLog)/hitLog
+                  :If 0<≢lastHitter
+                      :If i=⊃⊃⌽lastHitter
+                          ns.kills+←1
+                      :EndIf
+                  :EndIf
+              :EndFor
+          :Else
+              ns.shotsHit←0
+              ns.damageTaken←0
+              ns.damageDealt←0
+              ns.kills←0
+          :EndIf
+          result.bots,←ns
+      :EndFor
+      ⍝ Bullets: position, heading, owner
+      :If 0<≢m.bullets
+          result.bullets←{⎕IO←0 ⋄ ns←⎕NS⍬ ⋄ ns.x←⍵[0] ⋄ ns.y←⍵[1] ⋄ ns.heading←(180÷○1)×12○(0J1×⍵[2])+⍵[3] ⋄ ns.owner←⍵[4] ⋄ ns}¨↓m.bullets
+      :Else
+          result.bullets←⍬
+      :EndIf
     ∇
 
     ∇ rem←ResolveSlot(slot token);valid;vals;idx

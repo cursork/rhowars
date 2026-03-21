@@ -11,14 +11,17 @@ AI-controlled rhobots that learn through battle experience. Each agent has a per
 
 ## Agents
 
-| Name | Personality |
-|------|------------|
-| **Rho** | *(no personality — learning from scratch)* |
-| **Tau** | *(no personality — learning from scratch)* |
-| **Alpha** | Lives for the fight. Charges in, deals damage, dies gloriously. |
-| **Gamma** | Afraid of getting hurt. Survives at all costs. |
-| **Lambda** | Agent of chaos. Confuses and disorients opponents. |
-| **Delta** | Prefers honourable one-on-one combat. Avoids being outnumbered. |
+| Name | Origin |
+|------|--------|
+| **Rho** | Pioneer. Learning from scratch. |
+| **Tau** | Pioneer. Learning from scratch. First agent to win a match. |
+| **Sigma** | Distilled from Rho. Designed for fast execution on Sonnet. |
+| **Upsilon** | Distilled from Tau. Designed for fast execution on Sonnet. |
+| **Omega** | Meta-agent. Playbook maintained by the orchestrator from cross-agent observations. |
+| **Alpha** | Personality: lives for the fight. |
+| **Gamma** | Personality: afraid of getting hurt. |
+| **Lambda** | Personality: agent of chaos. |
+| **Delta** | Personality: prefers one-on-one combat. |
 
 ## Files
 
