@@ -35,3 +35,4 @@
  match.states←states
  match.thoughts←N⍴⊂''
  match.thoughtAges←N⍴0
+ match.hitLog←⍬

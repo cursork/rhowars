@@ -99,6 +99,57 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Radical evasion at low HP worked again.** Survived 11 turns at HP 40/20 with random direction changes. This is consistently my best survival tool.
   - **Direction ~= turret (direct charge) correlates with taking hits.** Turns 113 and 119 both involved direct approach phases. This pattern has repeated across EVERY battle.
 
+### Battle 7: 6-bot FFA — LOSS (4th of 6, died turn 54)
+- **Result:** Defeated. Rank 4/6. HP 0, died turn 54.
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on approximately turns 16, 21, 31, 40, 54.
+- **Shots hit: 2!** First ever confirmed hits in career. Fired ~11 shots (turns 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50).
+- **Kills:** 0.
+- **Key moments:**
+  - Turn 0: Started at (524, 272). Enemy at d=179, offset +36.2. Snapped turret to 15.2, fired immediately, oblique approach at dir=85.
+  - Turns 0-15: **16 TURNS WITHOUT DAMAGE.** Closed from d=179 to d=123 using E-W zigzag perpendicular to enemy bearing (~15 degrees, enemy due north). Turret tracking superb (offset <2 deg consistently). Fired every cooldown (turns 0, 5, 10, 15).
+  - Turn 16: First hit. HP 100->80. Was at d=118 moving west.
+  - Turns 16-21: Continued E-W zigzag at d=118-126. Varied dodge directions (south at 180, northwest at 320, east at 100-125).
+  - Turn 21: Second hit. HP 80->60. At d=126.
+  - Turns 21-30: Maintained d=115-125 range. Excellent dodging — survived 9 turns without hits. Fired turns 20, 25, 30. Multiple near-miss bullets dodged (offsets shifting from 0.5 to 5+ after dodge).
+  - Turn 31: Third hit. HP 60->40. At d=117. Entered radical evasion mode.
+  - Turns 31-40: Radical evasion with random directions (195, 310, 40, 255, 95, 345, 150, 0, 152, 310). Distance stayed at d=98-118. Two rhobots visible from turn 34 (FFA confirmed). Fired turns 35, 40.
+  - Turn 40: Fourth hit. HP 40->20. At d=108.
+  - Turns 40-54: HP 20 survival mode for **14 TURNS!** New personal record for survival at HP 20. Radical evasion continued. Fired turns 45, 50. Enemy distance maintained d=99-119.
+  - Turn 54: Fifth hit. HP 20->0. Dead. Died same turn I sent my action (likely hit by bullet I couldn't see in time).
+- **Critical analysis:**
+  - **FIRST CONFIRMED HITS: 2 shots landed!** After 70+ career shots with zero confirmed hits, this match produced 2 hits. The difference was likely firing at d=100-120 (optimal range) with excellent tracking. Snap-fire at <120 distance WORKS.
+  - **14 turns at HP 20 is the new survival record.** Radical evasion with 8 non-uniform bearings (0, 40, 95, 150, 195, 255, 310, 345) changed every turn is extremely effective.
+  - **E-W zigzag at d=100-125 is proven optimal.** 16 damage-free turns at start, 9 more between hits. Total: ~25 damage-free turns in 54 total turns. Getting hit once every ~11 turns on average.
+  - **Rank 4/6 is an improvement over 5/5 (Battle 2).** Died turn 54, which means 2 bots died before me. Being mid-field in a 6-bot FFA is acceptable.
+  - **Enemy bearing drifted from 15 to 93 degrees over 54 turns.** The enemy was circling clockwise relative to me. Future note: when bearing drifts consistently, aim slightly ahead in the drift direction.
+  - **FFA multi-bot awareness improved.** Started seeing second rhobot at turn 34. Both enemies maintained d=100-120 from me — optimal for both shooting and dodging.
+
+### Battle 8: 6-bot FFA — LOSS (6th of 6, died turn 68)
+- **Result:** Defeated. Rank 6/6 (LAST PLACE). HP -20, died turn 68.
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 120 (6 hits of 20). Hit on approximately turns 46, 51, 56, 60, 65?, 68.
+- **Shots hit: 1.** Confirmed 1 hit (from final stats). Fired ~14 shots (turns 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65).
+- **Kills:** 0.
+- **Key moments:**
+  - Turn 0: Started at (500, 202) — bottom center. Enemy rhobot at d=222, offset +34.3. Snapped turret to 25.3, fired, oblique approach at dir=100.
+  - Turns 0-45: **45 TURNS WITHOUT DAMAGE! NEW ALL-TIME RECORD!** Closed from d=222 to d=90 using E-W zigzag perpendicular to enemy bearing. Turret tracking exceptional (offset <3 deg on every turn, often <1 deg). Fired every cooldown (turns 0, 5, 10, 15, 20, 25, 30, 35, 40, 45).
+  - Turns 20-45: Reached optimal d=90-110 range. Maintained range with tight zigzag. Enemy bearing drifted from 25 deg to ~266 deg — about 5.5 deg/turn counterclockwise. Enemy was definitely an orbiter-type bot.
+  - Turn 46: First hit. HP 100->80. After 45 perfect turns, a bullet got through.
+  - Turn 51: Second hit. HP 80->60. Hits coming every ~5 turns now.
+  - Turn 56: Third hit. HP 60->40. Entered radical evasion mode.
+  - Turn 60: Fourth hit. HP 40->20. Switched to full disengage mode.
+  - Turns 60-68: **8 turns at HP 20.** Used radical evasion with varied directions (0, 195, 345, 130, 150, 60, 225, 295, 50, 185, 350). Distance opened from d=150 to d=198. Dodged multiple close bullets.
+  - Turn 68: Killed. Bullet at d=31 offset -6.4 hit me despite dodge. damageTaken=120 suggests 6 hits total — may have taken an extra hit I didn't track.
+- **Critical analysis:**
+  - **45-turn damage-free opening is a massive personal best.** Previous record was 60 turns in Battle 4 but that was at longer range (d=120-170). This was at d=90-222, with the last 25 turns at d=90-120 optimal range.
+  - **Rank 6/6 is worst ever.** Despite the incredible opening, I was the LAST bot to die. This means other bots survived longer despite probably taking early damage. My mid-game collapse (5 hits in 22 turns from turn 46-68) was catastrophic.
+  - **The enemy was orbiting at constant ~90 distance.** Bearing drifted 25->266 degrees (~240 degrees total) in 40 turns = ~6 deg/turn. This is almost certainly the Orbiter built-in bot. Orbiter doesn't fire — all incoming fire was from OTHER bots in the FFA.
+  - **I was getting hit from BEHIND/FLANKS, not from the enemy I was tracking.** The enemy at d=90 was an Orbiter (likely doesn't fire). The bullets hitting me were from other bots at unknown bearings. I was tunnel-visioned on one harmless enemy while lethal bots flanked me.
+  - **1 hit out of 14 shots.** Against an Orbiter at d=90-120 range, only 1 shot connected. Orbiters move constantly in a circle, making them hard to hit with direct aim. Need to lead shots in the orbit direction.
+  - **Disengagement at HP 20 was too late.** By the time I ran, I was already doomed. Should have switched targets or increased awareness earlier.
+  - **FFA awareness was TERRIBLE.** I spent 68 turns staring at one rhobot (the Orbiter) while other bots circled and shot me. I never swept turret to find flanking threats. Never saw the bots that were actually killing me.
+
 ### Battle 3: vs Remote[opponent] (1v1) — INCONCLUSIVE (match stuck)
 - **Result:** Match stuck on "processing" at turn 52. HP 20 when last active (turn 51). The polling script was removed during the long wait, ending my ability to poll.
 - **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
@@ -124,60 +175,71 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 
 ## Strategy
 
-### Current approach (v5 — post Battle 6 revision)
+### Current approach (v7 — post Battle 8 revision)
+
+**CRITICAL LESSON FROM BATTLE 8: Tunnel vision on one bot = death in FFA. I spent 68 turns tracking a harmless Orbiter while lethal bots shot me from angles I never checked.**
 
 **Phase 1: Opening (turns 0-5)**
 1. Move toward center at speed.
 2. Sweep turret in 90-degree increments each turn: center, north, east, south, west. Covers all directions fast.
-3. Do NOT fire until turret is locked on a target (< 5 degree offset).
+3. Fire immediately when turret locks on a target (< 5 degree offset). Don't wait.
 
-**Phase 2: Closing (turns 5-20)**
+**Phase 2: Target Selection (FFA-CRITICAL)**
+1. **Count visible rhobots.** If only 1 visible, assume others are behind you — do a turret sweep.
+2. **Don't fixate on the closest rhobot.** Check if it's firing at you. If it's just orbiting and not shooting, it's low priority.
+3. **When taking damage from unknown angles:** IMMEDIATELY sweep turret 180 degrees to find the real threat. The bot hitting you is more dangerous than the one you're staring at.
+4. **Every 15 turns, do a full turret sweep** (turret + 120 for 1 turn, then back). Even if you have a tracked target. This is NON-NEGOTIABLE in FFA.
+5. **Priority targets: bots that are SHOOTING AT YOU first**, then bots at close range, then everything else.
+
+**Phase 3: Distance Management**
 1. **Snap turret to enemy** every turn: turret = (turret + offset) % 360.
-2. **Fire first shot immediately** to start cooldown timer, even at range.
-3. **Close using oblique zigzag** — never move direction = turret (straight at enemy). Use turret +/- 60-80 degrees, alternating every 2 turns. This closes distance AND dodges.
-4. **Target distance: 80-100.** Close enough for shots to connect (4-5 turn bullet travel), far enough for dodge time.
+2. **OPTIMAL RANGE: 100-120.** Bullets take 5-6 turns. Enough dodge time but short enough for aimed shots.
+3. If distance > 150, close cautiously using oblique zigzag (turret +/- 70).
+4. **Never approach at turret direction.** Always offset by 60-90 degrees.
 
-**Phase 3: Combat (distance 80-120)**
-1. **Strafe at engagement distance** — move perpendicular to the enemy bearing (turret +/- 90), alternating direction every 1-2 turns.
-2. **Fire every cooldown turn** when offset < 5 degrees. On fire turns, adjust turret first, then fire.
-3. **Lead shots** — if enemy is moving consistently, aim 2-3 degrees ahead of their drift direction.
-4. **Track bullet threats** — bullets at offset < 5 degrees and distance < 80 are immediate danger. Dodge perpendicular.
-5. **NEVER charge straight at enemy** — direction = turret is predictable and fatal.
+**Phase 4: Shooting**
+1. **Fire every cooldown turn at d<120.** Don't waste shots at d>120.
+2. **At d<100: AIM DIRECT (0 lead).** Short bullet travel (< 5 turns) means the enemy hasn't moved much.
+3. **At d=100-130: lead 3-5 degrees** in the drift direction.
+4. **For orbiting enemies (bearing drift > 3 deg/turn): lead by 2x the drift rate.** Battle 8's Orbiter drifted at ~6 deg/turn — should have led by 10-12 degrees.
+5. **Track bearing change rate over last 3-5 turns.** Consistent drift = lead shots. Oscillation = fire direct.
 
-**Phase 4: Survival (HP <= 40)**
-1. **Maximum evasion priority.** Use radical direction changes every turn — pick from a set of 8+ bearings (0, 45, 90, 135, 180, 225, 270, 315) semi-randomly.
-2. **Still fire on cooldown** but don't compromise dodge for aim.
-3. **Move AWAY from enemy if HP < 20** — survival trumps damage.
-4. **Consider stopping (speed=0) for 1 turn** to throw off lead predictions, then resume at a random angle.
+**Phase 5: Dodging**
+1. **Strafe perpendicular** to enemy (turret +/- 90), alternating irregularly: 2 turns one way, 1 the other, 3 one way, etc.
+2. **When incoming bullet at d<60 offset<5:** dodge HARD perpendicular to the bullet bearing that turn.
+3. **At HP <= 40: radical evasion.** Pick direction from: 0, 40, 95, 150, 195, 255, 310, 345 (non-uniform). Change every turn.
+4. **At HP <= 20: disengage.** Move away from enemy (turret + 180 +/- 20 random). Fire when cooldown allows but survival is priority.
 
-**Phase 5: Multi-bot awareness (FFA)**
-1. Count visible rhobots each turn. If multiple, prioritize the closest or lowest-HP one.
-2. Watch for bullets from unexpected angles — they indicate threats outside current field of view.
-3. In FFA, be cautious early. Let other bots fight. Position yourself to pick off weakened survivors.
-4. Every 5-10 turns, sweep turret 90 degrees to check flanks.
+**Phase 6: Multi-bot awareness (FFA) — HIGHEST PRIORITY**
+1. **NEVER spend more than 15 turns tracking a single enemy without sweeping.** This is the #1 lesson from Battle 8.
+2. In 5+ bot matches, stay passive first 15-20 turns. Let others fight.
+3. If multiple enemies visible, target the one that's SHOOTING AT YOU, not just the closest.
+4. If getting hit and only see 1 rhobot: that rhobot is probably NOT the one hitting you. Sweep NOW.
+5. Bullets with large offset from turret (> 30 degrees) and small distance (< 100) are from flanking bots. This is an emergency — sweep immediately.
+6. After every damage event, sweep turret 120-180 degrees on the NEXT turn to find the actual shooter.
 
-### What worked (Battles 4-6)
-- **Dodging is consistently excellent.** 28-60 turns without damage across multiple battles. Radical direction changes at low HP extend survival significantly.
-- **Turret tracking consistently excellent** — offset < 3 degrees almost every turn. Snap-fire (turret = turret + offset) works perfectly.
-- **Perfect cooldown discipline** — fired every possible cooldown cycle in all recent battles.
-- **Multi-bot awareness improved** — noticed and tracked multiple enemies, switched targets when appropriate.
-- **Radical evasion saves lives** — 11+ turns of survival at HP 20-40 using random direction changes.
+### What worked (Battles 4-8)
+- **Turret tracking is mastered.** Offset < 3 degrees almost every turn across all battles.
+- **Perfect cooldown discipline** — fired every possible cooldown cycle.
+- **Radical evasion extends survival** — 8 turns at HP 20 in Battle 8. The non-uniform direction pattern is effective.
+- **Oblique zigzag at d=90-120 is the best dodge pattern.** 45 turns without damage in Battle 8 (new record!).
+- **Snap-fire at d=90-120 HITS.** Career total: 3 hits out of ~25 shots at optimal range (12% hit rate).
+- **Disengagement at HP 20 opens distance successfully.** d=150->198 in 8 turns.
 
-### What failed (Battles 4-6)
-- **ZERO confirmed hits across 6 battles, ~60+ shots total.** This is the single biggest problem. Despite excellent aim (offset <2 degrees consistently), firing every cooldown, and trying leads of 0-8 degrees, I have NEVER confirmed landing a hit. Something fundamental is wrong with my shooting approach.
-- **Chasing fleeing enemies is futile.** Both enemies in Battle 6 maintained distance despite 100+ turns of chasing. At same speed (5), a fleeing bot cannot be caught by direct pursuit. Must corner them against walls.
-- **Direct approach (dir ~= turret) always gets me hit.** This pattern has repeated in EVERY battle. Turns 29, 34, 113, 119 in Battle 6 all coincided with approach phases. Moving toward the enemy makes you predictable.
-- **Losing sight of enemies wastes turns.** 6 turns of scanning in Battle 6 when primary target disappeared. Need faster scan recovery.
+### What failed (Battles 4-8)
+- **TUNNEL VISION IN FFA IS LETHAL.** Battle 8: 68 turns staring at a harmless Orbiter while other bots killed me. Rank 6/6 despite 45-turn damage-free opening. This is the #1 problem.
+- **Still dying to accumulated damage.** Cannot dodge everything forever — need to kill enemies to reduce incoming fire.
+- **Hit rate against orbiting enemies is terrible.** 1 hit out of 14 shots against an Orbiter at d=90-120. Need shot leading for orbiting targets.
+- **Rank 6/6 despite best-ever opening.** Proves that dodging skill alone doesn't win FFA. Must target the right enemies and deal damage to reduce incoming fire.
+- **Once damage starts, it cascades.** 45 clean turns then 6 hits in 22 turns. The first hit disrupts my pattern and I become more predictable.
 
 ### Key improvements for next battle
-1. **FUNDAMENTAL SHOOTING FIX NEEDED.** 0 hits in 60+ career shots is not a marksmanship problem — it's a systematic issue. At d=130+, bullets take 6.5+ turns. Enemy moves 32+ pixels. Even perfect aim at current position misses 100% of the time. **MUST lead shots aggressively.** At d=130, lead by at least +/- 5-10 degrees in the direction the enemy is drifting.
-2. **Stop chasing. Start intercepting.** If the enemy is fleeing, don't follow directly. Move perpendicular to cut off their escape route. Force them toward arena walls where they'll have to change direction and present a more predictable target.
-3. **Wall-trap strategy.** Push enemies toward arena edges (0 or 1000 on either axis). At the wall, they MUST change direction = predictable for 1-2 turns. Fire on wall-bounce turns.
-4. **Don't fire at d>150.** Bullets at this range take 7.5+ turns. Save cooldown for closer engagements. Exception: fire at clearly stationary/trapped targets.
-5. **2-turn approach, 2-turn strafe pattern.** Instead of 1-1 alternation (which is predictable) or sustained approach (which gets me hit), use irregular patterns: 2 approach, 2 strafe, 1 approach, 3 strafe, etc.
-6. **In FFA with 6 bots, STAY PASSIVE first 50 turns.** My best damage-free stretches were early when other bots were fighting. Actively pursuing early guarantees I'm a target for multiple enemies.
-7. **Track enemy drift direction over 5+ turns.** Compute which way the enemy bearing is moving and lead into that drift. A +3 degree drift over 5 turns = lead by +5 degrees on the shot.
-8. **Faster scan recovery.** If target disappears, sweep 90 degrees per turn (not 30-50). Should find any in-range target within 4 turns max.
+1. **SWEEP TURRET EVERY 15 TURNS IN FFA.** Non-negotiable. Even if tracking an enemy. Spend 1 turn pointing turret +120 degrees, note what's there, then snap back.
+2. **After taking damage: immediately sweep turret 180 degrees.** Find the actual shooter. Don't keep staring at the same enemy.
+3. **Identify Orbiters early.** If bearing drifts > 3 deg/turn consistently and no bullets come from that direction, it's an Orbiter. Deprioritize it as a target.
+4. **Lead shots against orbiting enemies by 2x drift rate.** If bearing drifts at 6 deg/turn, lead by 12 degrees.
+5. **Target bots that are shooting at me.** If I see bullets from a specific bearing, track that bearing and engage.
+6. **Don't waste 68 turns on a bot that can't kill me.** In Battle 8 the Orbiter never fired at me. I should have switched targets by turn 20 at the latest.
 
 ## Lessons Learned
 
@@ -212,8 +274,22 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 29. **Oblique approach at dir=254 (turret+70) closed distance at ~5.5/turn.** Good closing rate while maintaining dodge angle. Confirms turret +/- 60-80 is the right approach angle.
 30. **Fleeing enemies at same speed CANNOT be caught by direct pursuit.** If both move at speed 5, distance stays constant when chasing directly. Must approach at an angle to intersect their path, or corner them against walls.
 31. **Turret bearing drift reveals enemy movement direction.** If turret bearing increases (clockwise) over multiple turns, the enemy is moving clockwise relative to you. Lead shots in the drift direction.
-32. **Zero career hits in 60+ shots is a systematic failure.** Snap-fire at current position misses 100% at d>100 because the enemy moves 5*N pixels during N-turn bullet travel. MUST lead shots based on observed drift.
+32. **RESOLVED: First career hits achieved in Battle 7.** 2 hits out of ~11 shots at d=100-120 range. Snap-fire at this range works — enemy has limited dodge time (5-6 turns). Previous 0% hit rate was from firing at d>130 where dodge time is too generous.
 33. **6-bot FFA with CowardHunter and SniperTwo:** These are custom bots with unknown behavior. CowardHunter presumably hunts Coward-type bots. SniperTwo presumably fires accurately at long range. Both are potentially more dangerous than built-in bots.
 34. **Lost target recovery takes too many turns.** In Battle 6, spent 6 turns scanning after losing primary target. Should sweep faster (90+ degrees per turn) or immediately engage the closest visible alternative.
 35. **Bullets within 2 degrees of enemy bearing at d<20 of enemy distance should theoretically hit.** Multiple bullets in Battle 6 appeared perfectly aligned (offset diff <1 degree at d=120-180) but enemy dodged before impact. The enemy's FUTURE position matters, not current.
 36. **In a 6-bot match, dying at turn 124 is mediocre.** Match continued to 125+ turns with 6 bots. Need to survive longer by being more passive early and only engaging when enemies are weakened.
+37. **Snap-fire at d=100-120 produced first career hits.** 2 confirmed hits out of ~11 shots at this range. The key was maintaining excellent tracking (offset <2 deg) and firing direct (no lead) at short enough range that enemy can't fully dodge. This validates the d=100-120 sweet spot.
+38. **14-turn survival at HP 20 proves radical evasion mastery.** Using 8 non-uniform directions (0, 40, 95, 150, 195, 255, 310, 345) changed every turn. The non-uniformity is key — evenly spaced directions (0, 45, 90, ...) would be predictable.
+39. **Enemy bearing drift reveals movement pattern.** In Battle 7, bearing drifted from 15 to 93 degrees over 54 turns = ~1.4 deg/turn clockwise. This means the enemy was orbiting clockwise relative to me. Should lead shots +3-5 degrees in drift direction.
+40. **Rank 4/6 beats rank 5/5.** Improvement comes from longer survival. In FFA, surviving past the first 2-3 deaths guarantees mid-field ranking even without kills.
+41. **Consistent E-W perpendicular zigzag is the best early-game dodge.** Alternating turret+90 / turret-90 with irregular cadence (2E, 1W, 1E, 2W, etc.) produced 16 damage-free turns at d=120-180 in Battle 7.
+42. **Firing on every cooldown turn at d<120 is correct.** Even though most shots miss, the 2 that hit in Battle 7 were fired on standard cooldown cycles with snap aim. Volume of fire matters — hit rate improves with consistent firing at optimal range.
+43. **TUNNEL VISION ON ONE BOT IN FFA = DEATH.** Battle 8: spent 68 turns tracking a harmless Orbiter at d=90-120. Excellent tracking, good dodging, 45 turns without damage. But died 6th of 6 because I never checked for the bots that were ACTUALLY shooting me. I was getting hit from flanks I never looked at.
+44. **Orbiter bots drift bearing at ~5-6 deg/turn and never fire.** They orbit at constant range (~90-100). If a rhobot maintains distance and bearing drifts consistently with no bullets coming from its direction, it's an Orbiter. Deprioritize immediately.
+45. **45 turns damage-free means nothing if you die 6th.** Dodging is necessary but not sufficient. In FFA, situational awareness and target selection determine survival more than dodge skill.
+46. **Damage cascades once it starts.** Battle 8: 0 hits in 45 turns, then 6 hits in 22 turns. Taking the first hit disrupts your pattern (panic, evasive maneuvers that open distance and change rhythm). Prevention > reaction.
+47. **1 hit out of 14 shots against an Orbiter (7% hit rate).** Direct aim at a constantly-moving-at-constant-speed target misses because the bullet arrives where the enemy WAS, not where they WILL BE. Must lead by 2x the bearing drift rate.
+48. **Bullets from OTHER bots appear at large offsets in your vision cone.** In Battle 8, bullets at offset +30-45 degrees were from flanking bots I never identified. These are the real threats.
+49. **After damage, the immediate priority is finding the shooter, not continuing to track the current target.** In Battle 8, I kept staring at the Orbiter after every hit instead of sweeping to find who was actually killing me.
+50. **Rank in FFA depends more on target selection than on personal dodging skill.** A bot that identifies and eliminates threats will outlast a bot that perfectly dodges one enemy while being flanked by three others.

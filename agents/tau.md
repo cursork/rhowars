@@ -152,7 +152,7 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 6. **Charge 3 turns, dodge 1 turn** — when closing distance, charge directly for 3 turns then dodge perpendicular for 1 turn. This closes ~15 pixels per cycle while dodging.
 7. **Track bullet streams** — enemy bullets appear in evenly-spaced groups (100px apart at speed 20, cooldown 5). If 3+ bullets are aligned at similar offsets and regular spacing, the source bot is in that direction.
 8. **In FFA (3+ bots), engage closest first** — don't search for far bots when one is nearby. In late game, use bullet streams to locate distant survivors.
-9. **Against Kamikaze, KITE** — run opposite direction while aiming behind you. Same speed means stable ~50 distance. Each shot is almost guaranteed to hit since Kamikaze charges into your bullets.
+9. **Against Kamikaze, orbit perpendicular (turret-90), NOT kite.** Running away (turret+180) gains ZERO distance at equal speed AND puts you in bullet paths. Instead orbit perpendicular (turret-90) to dodge bullets while firing into the Kamikaze's face. The orbit will tighten because Kamikaze closes diagonally, but you buy time. In FFA, avoid Kamikaze entirely — let other bots weaken it first.
 10. **Against Coward, DON'T CHASE** — the Coward matches your speed and flees to the opposite corner. Instead, kill other bots first. In a 1v1 Coward endgame, focus on surviving with max HP since the match goes to turn limit.
 11. **Maintain 50+ px orbit distance** — at closer ranges (20-30px), collisions are frequent and each costs 5 HP. In Battle 6, 4 collisions cost 20 HP total.
 
@@ -187,10 +187,16 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 ### Improvements for next battle
 1. **AUTOMATE the game loop.** Manual turn-by-turn play is too slow for a 2000-turn match. Need a script that polls, decides, and acts automatically.
 2. **Track bullets across turns** to determine their travel direction. A bullet at distance D1 on turn T and D2 on turn T+1 lets you calculate heading.
-3. **Against a chasing enemy, COMMIT TO KITING** — run at turret+180 while firing every cooldown. At same speed, distance stays ~constant and every shot has a good chance of hitting.
+3. **Against Kamikaze, orbit perpendicular (turret-90), NOT kite.** Kiting (turret+180) gains zero distance and runs into bullets. Turret-90 dodges while shooting.
 4. **During search, head to arena center and STAY THERE** — from center, you're only 500px from any point on the arena. Wait for Orbiters to pass within 300px. This is better than patrolling.
 5. **At low HP (20 or less), STOP MOVING and orbit in place** — a moving target at low HP is just as likely to move INTO a bullet as away from one. Focus on survival by orbiting at a fixed point with turret scanning.
-6. **Identify mobile enemies faster** — if offset shifts >5 degrees between turns, the enemy is mobile. Adjust strategy immediately (orbit won't work against mobile targets the same way it works against Spinners).
+6. **Identify mobile enemies faster** — if offset shifts >5 degrees between turns, the enemy is mobile. If distance decreases faster than your approach, it's a Kamikaze. SWITCH TO PERPENDICULAR ORBIT (turret-90) immediately.
+7. **Scan behind during approach.** Hits often come from outside the 90-degree vision cone during the charge phase. Every 5th turn, briefly point turret 180 degrees from charge direction to check for incoming bullets from behind.
+8. **Always fire=1 in actions.** The server silently ignores fire during cooldown, so there's no downside. Saves me from tracking cooldown manually.
+9. **turret-110 spiral-in with chasers.** When orbiting a mobile enemy, turret-110 causes spiral-in because the enemy is also closing. Use turret-130 or turret-140 against mobile enemies. Against stationary enemies (Spinners), turret-110 is stable.
+10. **In FFA, target priority: Spinners > Orbiters > Remote > Kamikaze > Coward.** Kill Spinners first (stationary, easy). Avoid Kamikaze until it has low HP. Never chase a Coward.
+11. **When losing visual, pre-turn turret in the direction of offset drift.** If offset was +5/turn, turn turret +30 to re-acquire. Don't waste 6 turns scanning randomly.
+12. **NEVER run straight (turret+180) when bullets are incoming.** This puts you directly in the bullet path. Always move at an angle (turret-90 or turret+90) to dodge while retreating.
 
 ## Lessons Learned
 
@@ -257,9 +263,98 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **Best strategy against Coward:** Kill all other bots first, then the Coward is the last one. In a 1v1 with a Coward, the match goes to turn limit and higher HP wins. Since the Coward fires opportunistically, you might get lucky with speculative shots, but at 150+ range, hitting a moving target is nearly impossible.
 - **Orbit radius management is critical near Coward.** In Battle 6, my orbit was too tight (20-30px) which caused 4 collisions (20 damage total). Always maintain 50+ px orbit distance.
 
+### Battle 9 — 2026-03-21
+- **Match type:** Multi-bot FFA (I was slot 4)
+- **Result:** IN PROGRESS at turn 265 when session ran out of tool calls
+- **HP at last action:** 40
+- **Damage taken:** 60 (3 hits of 20 each at turns 69, 95, 145)
+- **Starting position:** (263, 916) — bottom-left area
+- **Phases:**
+  - **Phase 1 (turns 0-80): Chase southern enemy.** Found enemy at turn 2 at distance 283. Very slow closing rate (~0.7px/turn) — enemy was moving at nearly my speed. 68 consecutive damage-free turns!
+  - **Phase 2 (turns 81-84): Scanning.** Found second enemy to the west at 298px.
+  - **Phase 3 (turns 85-148): Engaged western enemy.** Closing rate improved from 2.5 to 6px/turn. Took 2 hits. Reached orbit range at turn 148.
+  - **Phase 4 (turns 148-265+): Perfect orbit combat.** Stabilized orbit at 54-58px using turret-110 direction formula. 120+ turns orbiting with ZERO damage taken. Fired every turn. Orbit slowly tightened from 58px to 54px over 120 turns.
+- **Key discovery: turret-110 orbit formula** — Using direction = (turret - 110) % 360 maintains a stable orbit at ~56px distance. turret-90 causes spiral-in, turret-100 causes slow spiral-in, turret-110 is perfectly stable.
+- **Key discovery: approach angle matters.** Same enemy: 0.7px/turn closing when chasing along orbit path, 6px/turn when cutting across orbit. Always cut across, never chase along.
+
+### Battle 10 — 2026-03-21
+- **Match type:** 6-bot FFA (I was slot 1)
+- **Result:** 3rd place (rank 3 of 6)
+- **Death turn:** 80 of 2000
+- **Final HP:** 0
+- **Damage taken:** 100 (5 hits of 20 each)
+  - Turn 7: HP 100->80 (bullet hit during approach phase)
+  - Turn 16: HP 80->60 (bullet hit from outside vision cone while charging)
+  - Turn 71: HP 60->40 (bullet hit while switching to kite — ran straight into it)
+  - Turn 76: HP 40->20 (close-range bullet at 17px while orbiting at 32px)
+  - Turn 80: HP 20->0 (killed by Kamikaze — couldn't escape 28px distance)
+- **Shots fired:** ~15 (fired every cooldown)
+- **Shots hit:** 7 (47% hit rate — best yet!)
+- **Kills:** 1 (likely killed Spinner or another bot during mid-range orbiting)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (571, 445) — near center
+- **Opponents:** Kamikaze (won, 60 HP), Spinner (2nd), Sniper (5th), Orbiter (6th), Remote[0]/Rho (4th)
+- **Phases:**
+  - **Phase 1 (turns 0-54): Long approach and orbit.** Spotted enemy at distance 179 on turn 0. Closed from 179 to ~107 over 30 turns using charge-3-dodge-1 pattern. Then entered mutual orbit at ~107-125px for 20+ turns. Enemy maintained distance — likely an Orbiter or another mobile bot. Fired 10+ shots at 100-120px range.
+  - **Phase 2 (turns 55-60): Lost visual, quick search.** Enemy exited vision cone at turn 55. Scanned 4 directions over 6 turns.
+  - **Phase 3 (turns 61-80): Found and engaged Kamikaze at close range.** Re-acquired enemy at 67px at turret 60 (was looking the wrong direction). Orbit tightened from 67 to 28px despite using turret-120/130 orbit widening. Enemy was Kamikaze — relentlessly closed distance. Tried kiting (turret+180) but same speed means zero distance gain. Killed at 28px by sustained close-range fire.
+- **Key achievements:**
+  - 47% hit rate (7/15) — best accuracy in any battle
+  - 1 kill in a 6-bot FFA
+  - 16 consecutive turns without damage (turns 16-71) during the orbit phase
+  - Identified the Kamikaze quickly when it started closing relentlessly
+- **Critical failures:**
+  - **The approach phase was too slow.** Spent 54 turns trying to close from 179 to ~100px against an enemy that maintained distance. Should have given up sooner and found an easier target.
+  - **Lost visual at turn 55 due to enemy leaving cone.** The consistent +5 degree offset shift meant the enemy was moving right relative to me. Should have anticipated and pre-turned turret.
+  - **Kiting is useless against Kamikaze at equal speed.** Running directly away (turret+180) gains zero distance. The only viable strategy is pure perpendicular orbit (turret-90) to avoid bullets while firing back, but orbit WILL tighten because Kamikaze closes diagonally.
+  - **Took a hit at turn 71 by running straight (turret+180) into a bullet.** Running directly away puts you in the bullet's path — ALWAYS orbit, never flee linearly.
+
+### Battle 11 — 2026-03-21
+- **Match type:** 6-bot FFA (I was slot 3)
+- **Result:** 4th place (rank 4 of 6)
+- **Death turn:** 222 of 2000
+- **Final HP:** 0
+- **Damage taken:** 100 (5 hits of 20 each)
+  - Turn 40: HP 100->80 (bullet from outside vision cone during charge phase)
+  - Turn 83: HP 80->60 (bullet from outside vision cone during charge phase)
+  - Turn 93: HP 60->40 (bullet while charging directly at enemy)
+  - Turn 144: HP 40->20 (bullet while charging toward enemy at 190px)
+  - Turn 222: HP 20->0 (killed while searching for enemy that left vision)
+- **Shots fired:** ~35 (fired every cooldown when possible)
+- **Shots hit:** 10 (29% hit rate)
+- **Kills:** 3 (best kill count ever!)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (795, 298) — right side, lower area
+- **Opponents:** RandomWalker (1st, 60HP), Coward (2nd, 25HP), WallWalker (3rd, -15HP), **Tau/Remote[3] (4th, 0HP)**, CowardHunter (5th, 0HP), Remote[2] (6th, -20HP)
+- **Phases:**
+  - **Phase 1 (turns 0-40): Long approach to Enemy 1.** Spotted enemy at turn 1 at distance 224, offset -18.8 from turret 315. Closed very slowly (~0.8px/turn effective) using charge-3-dodge-1 pattern. Enemy was moving roughly parallel (likely Orbiter/WallWalker). 39 consecutive damage-free turns! First hit at turn 40.
+  - **Phase 2 (turns 41-69): Switched to closer Enemy 2.** At turn 41, noticed Enemy 2 at 140px and closing at 4-8px/turn. Switched targets. Closed from 140 to 83px by turn 62. Entered turret-110 orbit at turn 62.
+  - **Phase 3 (turns 62-69): Orbit Enemy 2.** Orbited at 83-112px but orbit kept widening against this mobile enemy. turret-110 widened, turret-100 widened, turret-90 barely maintained. Lost visual at turn 69 when enemy left cone.
+  - **Phase 4 (turns 69-96): Search and re-engage.** Scanned all directions. Found Enemy 1 at 276px (turret 250) at turn 71. Resumed charge but very slow closing rate (~0.7px/turn). Eventually headed north at turn 94 to escape south wall.
+  - **Phase 5 (turns 96-131): Long search.** Headed north then west searching for enemy. Lost all visual for 35 turns. Finally found enemy at turn 132 at turret 45 (NNE!) — it had orbited all the way around!
+  - **Phase 6 (turns 132-169): Fast approach via cross-cut.** Closed from 299 to 75px at 9.5px/turn by cutting across the enemy's orbit path! Then entered perpendicular orbit (turret-90) which closed to 63px. Switched to turret-110 for stable orbit at 63-73px.
+  - **Phase 7 (turns 170-218): Orbit combat.** 78 turns of orbit at 63-250px. Orbit slowly widened against mobile enemy despite best efforts. Fired every cooldown. Survived at HP 20 for 78 turns (turn 144-222)! Lost visual at turn 218 when distance exceeded 300px.
+  - **Phase 8 (turn 222): Death.** While searching for enemy, killed by bullet at turn 222.
+- **Key achievements:**
+  - **3 kills** — best kill count in any battle
+  - **10 shots hit** — 29% hit rate across various ranges
+  - 39 consecutive damage-free turns at start
+  - 78 turns survived at HP 20 (turn 144-222)
+  - Cross-cut approach achieved 9.5px/turn closing rate (vs 0.7px/turn chasing along orbit)
+- **Critical failures:**
+  - **All 5 hits came from outside vision cone or while charging directly.** The charge-toward-enemy direction puts you in the bullet line. Perpendicular approach/orbit is far safer.
+  - **Orbit widened against mobile enemies.** turret-110 stable orbit only works against stationary enemies (Spinners). Against Orbiters/WallWalkers, the orbit constantly widens because the enemy moves at similar speed.
+  - **Lost visual twice** due to orbit widening and enemy leaving cone. Once at turn 69, once at turn 218.
+  - **35-turn search phase** (turns 96-131) wasted time heading in the wrong direction. The enemy had orbited around to the NNE.
+
 ### Meta
 - Battles 3 and 4 both ranked 2nd/6. Consistent performance in FFA.
 - The orbit strategy dominates combat phases but the search phase is the bottleneck.
-- Manual play is barely viable for 2000-turn matches. An automated script would be far more effective.
 - Battle 4 proved the orbit works even better than Battle 3: 83 damage-free turns vs 56 in Battle 3.
 - Battle 6 demonstrated the Coward problem: if the only surviving enemy is a Coward, the match is essentially a draw decided by HP remaining.
+- Battle 9: Best orbit performance yet — 120+ turns at 54-58px with zero damage. turret-110 orbit formula is optimal. Orbit slowly tightens (58->54px over 120 turns); consider turret-115 if orbit drops below 50px.
+- Battle 10: Best hit rate (47%) but shortest survival (80 turns). Kamikaze is the most dangerous opponent — it won the entire 6-bot match. Against Kamikaze at equal speed, orbit will always tighten. The key is to AVOID the Kamikaze and let other bots weaken it, then engage it last when it has low HP.
+- Battle 11: Best kill count (3 kills) and longest survival at low HP (78 turns at HP 20). However, 4th place out of 6. RandomWalker won with 60 HP — random movement is actually effective at dodging! The orbit-widening problem against mobile enemies is a critical weakness.
+- **New rule: In FFA, prioritize killing Spinners first (stationary, easy orbit targets). Avoid Kamikaze until late game.**
+- **New rule: Against mobile enemies (Orbiters, WallWalkers), use cross-cut approach (perpendicular to their orbit path) for 9.5px/turn closing. Never chase along their orbit path (0.7px/turn).**
+- **New rule: turret-110 orbit is for stationary enemies only. Against mobile enemies, alternate between charge (turret direction) and dodge (turret-90) in a 3:1 ratio to maintain orbit distance.**

@@ -1,4 +1,4 @@
- match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v;thoughts
+ match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v;thoughts;hitEvents;myHits;wasAlive
 ⍝ Execute one turn of the match
 ⍝ Action fields set to ⍬ (or missing) mean "no change"
  ⎕IO←0
@@ -29,7 +29,7 @@
  ⍝ Persist thoughts: new thought replaces old, empty keeps old up to 50 ticks
  :For i :In ⍳≢thoughts
      :If ''≢i⊃thoughts
-         match.thoughts[i]←i⊃thoughts
+         match.thoughts[i]←⊂i⊃thoughts
          match.thoughtAges[i]←0
      :Else
          match.thoughtAges[i]←1+i⊃match.thoughtAges
@@ -57,10 +57,12 @@
  ⍝ 6. Move bullets
  bullets←MoveBullets bullets
  ⍝ 7. Collisions
- (bots bullets _)←Collide bots bullets
+ (bots bullets hitEvents)←Collide bots bullets
+ match.hitLog,←hitEvents
  ⍝ 8. Decrement cooldowns
  bots[;6]←0⌈bots[;6]-1
  ⍝ 9. Mark dead bots
+ wasAlive←bots[;7]
  bots[;7]←bots[;7]∧bots[;5]>0
  ⍝ 9b. Notify newly dead Remote bots
  :For i :In ⍸~bots[;7]
@@ -72,7 +74,19 @@
              ns.deathTurn←match.turn
              ns.alive←0
              ns.totalBots←≢bots
-             ns.rank←1++/bots[;7]  ⍝ alive count + 1 = worst possible rank
+             ns.rank←1++/bots[;7]
+             ⍝ Combat stats from hitLog
+             :If 0<≢match.hitLog
+                 myHits←(i={⊃⍵}¨match.hitLog)/match.hitLog
+                 ns.shotsHit←≢myHits
+                 ⍝ Kills: bots that died THIS tick where MY bullet hit them
+                 ns.kills←{0=≢⍵:0 ⋄ myKillHits←(i={⊃⍵}¨⍵)/⍵ ⋄ 0=≢myKillHits:0 ⋄ +/(wasAlive>bots[;7])[{1⊃⍵}¨myKillHits]}hitEvents
+                 ns.damageTaken←+/{2⊃⍵}¨(i={1⊃⍵}¨match.hitLog)/match.hitLog
+             :Else
+                 ns.shotsHit←0
+                 ns.kills←0
+                 ns.damageTaken←0
+             :EndIf
          :EndIf
      :EndIf
  :EndFor

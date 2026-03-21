@@ -2,6 +2,8 @@
 
 You control a rhobot by polling for game state and posting actions via HTTP.
 
+**You must make every decision yourself.** Poll state, reason, post one action. Repeat. Do NOT write scripts, loops, or automation. Every turn is your decision.
+
 ## API
 
 - Poll state: `curl -s http://localhost:8080/api/remote/{slot}/{token}/state`
@@ -11,7 +13,7 @@ You control a rhobot by polling for game state and posting actions via HTTP.
 
 - `"active"` — your turn. Read the state, decide, post an action.
 - `"processing"` — not your turn yet. Poll again immediately.
-- `"done"` — match is over. Response includes: `hp`, `alive` (1/0), `rank` (1=winner), `totalBots`, `deathTurn` (if dead).
+- `"done"` — you died or the match ended. Response includes: `hp`, `alive` (1/0), `rank` (1=winner), `totalBots`, `deathTurn` (if dead), `standings` (all bots), `shotsHit`, `kills`, `damageTaken`.
 
 ## Game State
 
@@ -46,7 +48,7 @@ You control a rhobot by polling for game state and posting actions via HTTP.
 
 ## Mechanics
 
-- **Coordinate system**: Origin (0,0) is top-left. +x is right, +y is down. Compass: 0°=down(+y), 90°=right(+x), 180°=up(-y), 270°=left(-x). Corners: top-left (0,0), top-right (W,0), bottom-left (0,H), bottom-right (W,H).
+- **Coordinate system**: Origin (0,0) is bottom-left. +x is right, +y is up. Compass: 0°=up(+y), 90°=right(+x), 180°=down(-y), 270°=left(-x). Corners: bottom-left (0,0), bottom-right (W,0), top-left (0,H), top-right (W,H).
 - **Movement**: `x += speed×sin(dir)`, `y += speed×cos(dir)` at `botSpeed` pixels/tick.
 - **Turret**: Independent of movement. Controls aim and vision cone.
 - **Vision**: See entities within `visionRange` pixels and `visionHalfAngle`° of turret. `offset` is relative to turret — to aim at a target: `turret = (turret + offset) % 360`.

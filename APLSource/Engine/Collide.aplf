@@ -1,7 +1,8 @@
- r←Collide args;bots;bullets;dist2;thresh2;ownerMask;aliveMask;hits;botHits;bulHits;dmg
+ r←Collide args;bots;bullets;dist2;thresh2;ownerMask;aliveMask;hits;botHits;bulHits;dmg;hitBullets;hitBots;i
 ⍝ Detect bullet-bot collisions, apply damage, remove spent bullets
 ⍝ args: (bots bullets)
 ⍝ Returns: (bots bullets events)
+⍝ events: vector of (shooter target damage) triples (bot indices, 0-based)
  ⎕IO←0
  (bots bullets)←args
  events←⍬
@@ -14,6 +15,14 @@
  ownerMask←bullets[;4]∘.≠bots[;0]
  aliveMask←((≢bullets),≢bots)⍴bots[;7]
  hits←(dist2≤thresh2)∧ownerMask∧aliveMask
+ ⍝ Record hit events: (shooter target damage) using bot indices (0-based)
+ :If ∨/∨/hits
+     :For i :In ⍳≢bullets
+         :For j :In ⍸hits[i;]
+             events,←⊂(((bots[;0]⍳bullets[i;4]) j (##.Cfg.BULLET_DAMAGE)))
+         :EndFor
+     :EndFor
+ :EndIf
  ⍝ Apply damage to bots that were hit (column-wise OR)
  botHits←∨⌿hits
  :If ∨/botHits

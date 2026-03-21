@@ -366,12 +366,39 @@
           ⍝ Rank: alive bots by HP (desc), dead bots by survival time (desc)
           scores←(finalAlive×10000)+(finalAlive×finalHP)+((1-finalAlive)×deathFrames)
           ranks←1+⍋⍋-scores
+          ⍝ Build standings for done response
+          standings←{⎕IO←0 ⋄ ns←⎕NS⍬ ⋄ ns.name←⍺ ⋄ ns.hp←⍵ ⋄ ns.rank←(⍳≢ranks)⊃ranks ⋄ ns}¨⍨/↓(↑lastMatch.names)(finalHP)
+          ⍝ Actually build properly — need rank per bot
+          standings←⍬
+          :For idx :In ⍳nBots
+              ns←⎕NS⍬
+              ns.name←⍕idx⊃lastMatch.names
+              ns.hp←finalHP[idx]
+              ns.alive←finalAlive[idx]
+              ns.rank←idx⊃ranks
+              standings,←ns
+          :EndFor
+          ⍝ Compute per-bot hit/kill stats from hitLog
+          hitLog←lastMatch.hitLog
           :For rem :In matchRemotes
               idx←rem.botIndex
               rem.finalHP←finalHP[idx]
               rem.alive←finalAlive[idx]
               rem.totalBots←nBots
               rem.rank←idx⊃ranks
+              rem.standings←standings
+              ⍝ Combat stats
+              :If 0<≢hitLog
+                  myHits←(idx={⊃⍵}¨hitLog)/hitLog
+                  rem.shotsHit←≢myHits
+                  rem.kills←+/~finalAlive[∪{1⊃⍵}¨myHits]  ⍝ unique targets I hit that died
+                  hitsOnMe←(idx={1⊃⍵}¨hitLog)/hitLog
+                  rem.damageTaken←+/{2⊃⍵}¨hitsOnMe
+              :Else
+                  rem.shotsHit←0
+                  rem.kills←0
+                  rem.damageTaken←0
+              :EndIf
               :If ~rem.alive
                   dt←idx⊃deathFrames
                   :If dt<≢frames
@@ -522,6 +549,14 @@
           result.totalBots←rem.totalBots
           :If ¯1≢rem.deathTurn
               result.deathTurn←rem.deathTurn
+          :EndIf
+          :If 0≠rem.⎕NC'standings'
+              result.standings←rem.standings
+          :EndIf
+          :If 0≠rem.⎕NC'shotsHit'
+              result.shotsHit←rem.shotsHit
+              result.kills←rem.kills
+              result.damageTaken←rem.damageTaken
           :EndIf
       :Case 'processing'
           result←(status: 'processing' ⋄ turn: rem.tick)

@@ -129,7 +129,7 @@ When `status` is `"active"`, the response includes:
 ## Game Mechanics
 
 - **Movement**: Your rhobot moves in `direction` at `botSpeed` pixels/tick when `speed=1`. Engine uses `x += speed×sin(dir)`, `y += speed×cos(dir)`.
-- **Coordinate system**: Origin (0,0) is top-left in the viewer. +x is right, +y is down. Compass bearings: 0° = down (+y), 90° = right (+x), 180° = up (-y), 270° = left (-x). Arena corners: top-left (0,0), top-right (W,0), bottom-left (0,H), bottom-right (W,H).
+- **Coordinate system**: Origin (0,0) is bottom-left. +x is right, +y is up. Compass bearings: 0° = up (+y), 90° = right (+x), 180° = down (-y), 270° = left (-x). Arena corners: bottom-left (0,0), bottom-right (W,0), top-left (0,H), top-right (W,H).
 - **Turret**: Independent of movement direction. Controls where you aim and what you can see.
 - **Firing**: Shoots a bullet from your position in the turret direction. Cooldown of `cooldown` ticks between shots. Bullets travel at `bulletSpeed` pixels/tick.
 - **Vision**: You see entities within `visionRange` pixels and `visionHalfAngle`° of your turret direction.

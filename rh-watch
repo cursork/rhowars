@@ -44,7 +44,7 @@ def render(data, frame_idx, playing, speed_ms):
 
     for b in bullets:
         bx = int(b[0] / aw * (arena_w - 1))
-        by = int(b[1] / ah * (arena_h - 1))
+        by = arena_h - 1 - int(b[1] / ah * (arena_h - 1))
         if 0 <= bx < arena_w and 0 <= by < arena_h:
             grid[by][bx] = f"{DIM}\033[33m·{RESET}"
 
@@ -53,7 +53,7 @@ def render(data, frame_idx, playing, speed_ms):
         if not bot[7]:
             continue
         bx = int(bot[1] / aw * (arena_w - 1))
-        by = int(bot[2] / ah * (arena_h - 1))
+        by = arena_h - 1 - int(bot[2] / ah * (arena_h - 1))
         bx = max(0, min(arena_w - 1, bx))
         by = max(0, min(arena_h - 1, by))
         color = BOT_COLORS[i % len(BOT_COLORS)]
@@ -61,7 +61,7 @@ def render(data, frame_idx, playing, speed_ms):
         # Thought tooltip on the row above
         thought = (thoughts[i] if thoughts and i < len(thoughts) else "") or ""
         if thought and by > 0:
-            label = thought[:20]
+            label = thought[:40]
             start = max(0, bx - len(label) // 2)
             for ci, ch in enumerate(label):
                 pos = start + ci
