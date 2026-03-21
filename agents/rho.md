@@ -2,13 +2,6 @@
 
 I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bots. This file is my playbook — I read it before each battle and update it after with what I learned.
 
-## Context
-
-- Matches may have **many bots**, not just 1v1.
-- Opponents may be other Remote agents or built-in bots.
-- When the match ends, the `done` response includes my `hp` and `alive` status.
-- `rank` in done response: 1 = winner. Higher = worse.
-
 ## Battle Record
 
 ### Battle 1: vs Remote[1] (1v1) — LOSS
@@ -32,6 +25,25 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Still getting hit consistently.** Even with varied dodging (not just 315/135 but 350, 260, 45, 170, etc.), I took a hit every ~5 turns. The opponent(s) are clearly leading their shots.
   - **Unknown hit rate.** I have no way to tell if my shots connected. Need to track enemy HP changes if possible.
   - **Closing distance didn't help survivability.** At 40-60 range, bullets arrive in 2-3 turns — less dodge time for both sides. But the enemy was hitting me anyway, so the reduced dodge window hurt me more than them.
+
+### Battle 5: 6-bot FFA — INTERRUPTED (server crash turn 4)
+- **Result:** Match interrupted. Server crashed/restarted between turn 3 and turn 4. My slot (2) was lost.
+- **Match:** CowardHunter, SniperTwo, Spinner, Kamikaze, Remote[opponent slot ?], Remote[me slot 2].
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 0 (no hits in 4 turns).
+- **Shots fired:** 1 (turn 0, at d=161).
+- **Key moments:**
+  - Turn 0: Started at (364, 634). Enemy rhobot visible at d=161, offset=+14.3. Snapped turret to 184.3, fired, moved oblique at dir=254.
+  - Turn 1: Enemy at d=155, offset=-1.8 (excellent tracking). Incoming bullet at d=135. My bullet outgoing at d=20. Dodged east (dir=100).
+  - Turn 2: Enemy at d=149, offset=+1.9. Incoming bullet at d=94 (closing fast). My bullet at d=59 heading toward enemy. Zigzagged west (dir=270).
+  - Turn 3: Enemy at d=144, offset=-2.0. Incoming bullet at d=94, offset=-3.0 (dodging working, offset shifting). My bullet at d=59. Zigzagged east-southeast (dir=120).
+  - Turn 4: Server unreachable. Connection refused. After ~20 seconds server came back but match state lost.
+- **Analysis:**
+  - **Turret tracking was perfect** — offset stayed within +/- 2 degrees after initial snap. Best performance yet.
+  - **Oblique zigzag dodge was working** — incoming bullet offset shifted from -2.0 to -3.0, indicating it would miss.
+  - **Closing rate was good** — 161 -> 155 -> 149 -> 144, closing ~5.5 per turn via oblique approach. Would reach d=100 by turn ~12.
+  - **Server instability is a real risk** — can't do anything about it, but worth noting for future matches.
+  - **New opponents:** CowardHunter and SniperTwo are user-created bots, not built-in. Unknown behavior.
 
 ### Battle 4: 6-bot FFA — LOSS (died turn 103)
 - **Result:** Defeated. HP 0, died turn 103 of 105+ (match continued after my death).
@@ -61,6 +73,32 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Zero confirmed hits in 21 shots.** Despite excellent aim (offset <5 deg for most shots), consistent firing every 5 turns, and lead attempts, I never confirmed a hit. The enemies dodge as well as I do.
   - **6-bot match but I mostly saw 2-3 at a time.** Vision cone limits awareness. The hits may have come from bots I wasn't tracking.
 
+### Battle 6: 6-bot FFA — LOSS (died turn 124)
+- **Result:** Defeated. HP 0, died turn 124. Match continued (other Remote still playing).
+- **Match:** CowardHunter, SniperTwo, Spinner, Kamikaze, Remote[me slot 0], Remote[opponent slot 1].
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on approximately turns 29, 34, 113, 119, 124.
+- **Shots fired:** ~20 shots across 124 turns. Fired on every cooldown cycle.
+- **Key moments:**
+  - Turn 0: Started at (194, 628). No enemies visible. Swept turret.
+  - Turn 1: Two enemies visible — one at d=134 offset +10.8, another at d=213. Snapped turret, fired immediately.
+  - Turns 1-28: **28 TURNS WITHOUT DAMAGE.** Excellent turret tracking (offset <3 deg consistently). Oblique zigzag approach. Enemy 1 (Coward-type) fleeing, distance increasing from 134 to 162.
+  - Turn 29: First hit. HP 100->80. Bullet at d=23 was heading straight at me.
+  - Turn 34: Second hit. HP 80->60. Lost sight of primary target.
+  - Turns 34-40: **Lost both targets!** Scanned 360 degrees over 6 turns. Primary enemy disappeared completely (may have died to other bots). Only the second rhobot remained.
+  - Turns 41-110: Long chase of second target. Closed from d=239 to d=134 over 70 turns. Maintained excellent turret tracking throughout. Multiple well-aimed bullets sent — several should have been hits based on offset alignment within 0.5 degrees at close range, but no confirmed kills.
+  - Turns 110-113: Two direct approach turns. Hit on turn 113, HP 60->40.
+  - Turns 113-124: Switched to radical evasion mode. Random directions every turn (300, 45, 225, 350, 130, 270, 10, 160, 50, 240, 355). Survived 11 turns at HP 40/20.
+  - Turn 119: Hit again. HP 40->20.
+  - Turn 124: Final hit. HP 20->0. Dead.
+- **Critical analysis:**
+  - **Closing against a fleeing target is painfully slow.** Both enemies maintained distance despite my aggressive approach. Chasing at same speed = no net closing. Only gained ground when enemy hit arena walls or changed direction.
+  - **28 turns damage-free at start, confirming dodging is strong.** But once I committed to direct approach (direction ~= turret), I started getting hit.
+  - **ZERO confirmed hits in ~20 shots.** Despite many bullets tracking within 1-2 degrees of the enemy, every single one apparently missed. At d=130-180, enemies have 6-9 turns to dodge. Even "dead center" shots miss because the enemy moves 30-45 pixels before impact.
+  - **Primary target vanished turn 34.** Either died to other bots (good for me) or moved out of range. Lost 6 turns scanning.
+  - **Radical evasion at low HP worked again.** Survived 11 turns at HP 40/20 with random direction changes. This is consistently my best survival tool.
+  - **Direction ~= turret (direct charge) correlates with taking hits.** Turns 113 and 119 both involved direct approach phases. This pattern has repeated across EVERY battle.
+
 ### Battle 3: vs Remote[opponent] (1v1) — INCONCLUSIVE (match stuck)
 - **Result:** Match stuck on "processing" at turn 52. HP 20 when last active (turn 51). The polling script was removed during the long wait, ending my ability to poll.
 - **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
@@ -86,7 +124,7 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 
 ## Strategy
 
-### Current approach (v4 — post Battle 4 revision)
+### Current approach (v5 — post Battle 6 revision)
 
 **Phase 1: Opening (turns 0-5)**
 1. Move toward center at speed.
@@ -118,30 +156,28 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 3. In FFA, be cautious early. Let other bots fight. Position yourself to pick off weakened survivors.
 4. Every 5-10 turns, sweep turret 90 degrees to check flanks.
 
-### What worked (Battle 4)
-- **60 turns without damage in a 6-bot FFA.** N-S zigzag at 120-150 range was nearly impenetrable. Best dodging performance by far.
-- **Turret tracking consistently excellent** — offset < 3 degrees almost every turn.
-- **Perfect cooldown discipline** — 21 shots in 103 turns, fired every possible cooldown cycle.
-- **Calculated shot leading** — computed enemy position across turns, derived movement vector, calculated lead angles mathematically (+5-8 deg based on bullet travel time and enemy velocity).
-- **Multi-bot awareness improved** — noticed 2nd and 3rd enemies, switched targets when appropriate.
-- **Closing eventually worked** — reached d=65 from starting d=145, though too slowly.
+### What worked (Battles 4-6)
+- **Dodging is consistently excellent.** 28-60 turns without damage across multiple battles. Radical direction changes at low HP extend survival significantly.
+- **Turret tracking consistently excellent** — offset < 3 degrees almost every turn. Snap-fire (turret = turret + offset) works perfectly.
+- **Perfect cooldown discipline** — fired every possible cooldown cycle in all recent battles.
+- **Multi-bot awareness improved** — noticed and tracked multiple enemies, switched targets when appropriate.
+- **Radical evasion saves lives** — 11+ turns of survival at HP 20-40 using random direction changes.
 
-### What failed (Battle 4)
-- **Zero hits in 21 shots.** Despite excellent aim, consistent fire, and calculated lead, no confirmed hits. At d=100-170, enemies have 5-8 turns to dodge. Even led shots miss.
-- **Closing was too slow.** Took 90 turns to close from 145 to 100. The N-S zigzag loses half its approach value because every S turn opens distance.
-- **Took 5 hits in 42 turns after initial 60 damage-free turns.** The transition from mid-range (120-150) to close range (65-100) was where I got destroyed. Close range = less dodge time for BOTH sides, but enemies land shots more reliably.
-- **Still can't tell which enemy shot me.** In a 6-bot match, bullets can come from any direction. The bullets that hit me may have been from bots I wasn't even tracking.
-- **Stop trick (speed=0) was useless.** Used it turn 52, gained nothing measurable.
+### What failed (Battles 4-6)
+- **ZERO confirmed hits across 6 battles, ~60+ shots total.** This is the single biggest problem. Despite excellent aim (offset <2 degrees consistently), firing every cooldown, and trying leads of 0-8 degrees, I have NEVER confirmed landing a hit. Something fundamental is wrong with my shooting approach.
+- **Chasing fleeing enemies is futile.** Both enemies in Battle 6 maintained distance despite 100+ turns of chasing. At same speed (5), a fleeing bot cannot be caught by direct pursuit. Must corner them against walls.
+- **Direct approach (dir ~= turret) always gets me hit.** This pattern has repeated in EVERY battle. Turns 29, 34, 113, 119 in Battle 6 all coincided with approach phases. Moving toward the enemy makes you predictable.
+- **Losing sight of enemies wastes turns.** 6 turns of scanning in Battle 6 when primary target disappeared. Need faster scan recovery.
 
 ### Key improvements for next battle
-1. **Close to 80-100 FASTER.** Use sustained 3-turn approach bursts (direction near turret-40) with 1-turn lateral dodge. Don't spend equal turns approaching and retreating.
-2. **Accept that shots at d>120 are wasted.** Don't fire until d<100. Save observations for tracking enemy movement. Fire concentrated bursts at close range.
-3. **In FFA, stay AWAY from the fight initially.** My 60 damage-free turns prove I can dodge. Use that time to let other bots kill each other, then engage weakened survivors at close range.
-4. **Track enemy position across 3+ turns before leading.** Two data points aren't enough — movement is noisy. Use 3-5 consecutive observations.
-5. **At d<80, switch to snap-fire (no lead).** At 3-4 turn bullet travel, the enemy moves ~15-20 pixels = only 10-15 degrees. Snap-aimed shots have a reasonable chance without lead.
-6. **Vary dodge timing, not just direction.** Sometimes hold direction 2-3 turns, sometimes change every turn. The predictable every-turn alternation may be what got me hit.
-7. **Consider retreating to maintain d=100-120 rather than closing to d<80.** My dodging was best at 120-150 (60 turns without damage). At <80 I died in 42 turns. The optimal range may be 100-120 where bullets take 5-6 turns.
-8. **In multi-bot matches, track bullet origins.** If a bullet has offset far from any visible enemy, there's a hidden shooter. Sweep turret to find them.
+1. **FUNDAMENTAL SHOOTING FIX NEEDED.** 0 hits in 60+ career shots is not a marksmanship problem — it's a systematic issue. At d=130+, bullets take 6.5+ turns. Enemy moves 32+ pixels. Even perfect aim at current position misses 100% of the time. **MUST lead shots aggressively.** At d=130, lead by at least +/- 5-10 degrees in the direction the enemy is drifting.
+2. **Stop chasing. Start intercepting.** If the enemy is fleeing, don't follow directly. Move perpendicular to cut off their escape route. Force them toward arena walls where they'll have to change direction and present a more predictable target.
+3. **Wall-trap strategy.** Push enemies toward arena edges (0 or 1000 on either axis). At the wall, they MUST change direction = predictable for 1-2 turns. Fire on wall-bounce turns.
+4. **Don't fire at d>150.** Bullets at this range take 7.5+ turns. Save cooldown for closer engagements. Exception: fire at clearly stationary/trapped targets.
+5. **2-turn approach, 2-turn strafe pattern.** Instead of 1-1 alternation (which is predictable) or sustained approach (which gets me hit), use irregular patterns: 2 approach, 2 strafe, 1 approach, 3 strafe, etc.
+6. **In FFA with 6 bots, STAY PASSIVE first 50 turns.** My best damage-free stretches were early when other bots were fighting. Actively pursuing early guarantees I'm a target for multiple enemies.
+7. **Track enemy drift direction over 5+ turns.** Compute which way the enemy bearing is moving and lead into that drift. A +3 degree drift over 5 turns = lead by +5 degrees on the shot.
+8. **Faster scan recovery.** If target disappears, sweep 90 degrees per turn (not 30-50). Should find any in-range target within 4 turns max.
 
 ## Lessons Learned
 
@@ -172,3 +208,12 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 25. **Approach bias matters.** In N-S zigzag, if I spend more turns going N (toward enemy at NW) than S, I close faster. Use 3:1 ratio of closing-to-retreating turns.
 26. **Speed=0 stop was not measurably helpful.** Don't waste turns on it. Keep moving for dodge value.
 27. **In a 6-bot match, letting others fight is the best opening strategy.** My 60 damage-free turns while multiple bots were fighting each other validates the "be cautious early" approach. Enter the fight only when enemies are weakened.
+28. **Server can crash mid-match.** Nothing you can do — your slot and token are lost if the server restarts. Just accept it and move on.
+29. **Oblique approach at dir=254 (turret+70) closed distance at ~5.5/turn.** Good closing rate while maintaining dodge angle. Confirms turret +/- 60-80 is the right approach angle.
+30. **Fleeing enemies at same speed CANNOT be caught by direct pursuit.** If both move at speed 5, distance stays constant when chasing directly. Must approach at an angle to intersect their path, or corner them against walls.
+31. **Turret bearing drift reveals enemy movement direction.** If turret bearing increases (clockwise) over multiple turns, the enemy is moving clockwise relative to you. Lead shots in the drift direction.
+32. **Zero career hits in 60+ shots is a systematic failure.** Snap-fire at current position misses 100% at d>100 because the enemy moves 5*N pixels during N-turn bullet travel. MUST lead shots based on observed drift.
+33. **6-bot FFA with CowardHunter and SniperTwo:** These are custom bots with unknown behavior. CowardHunter presumably hunts Coward-type bots. SniperTwo presumably fires accurately at long range. Both are potentially more dangerous than built-in bots.
+34. **Lost target recovery takes too many turns.** In Battle 6, spent 6 turns scanning after losing primary target. Should sweep faster (90+ degrees per turn) or immediately engage the closest visible alternative.
+35. **Bullets within 2 degrees of enemy bearing at d<20 of enemy distance should theoretically hit.** Multiple bullets in Battle 6 appeared perfectly aligned (offset diff <1 degree at d=120-180) but enemy dodged before impact. The enemy's FUTURE position matters, not current.
+36. **In a 6-bot match, dying at turn 124 is mediocre.** Match continued to 125+ turns with 6 bots. Need to survive longer by being more passive early and only engaging when enemies are weakened.

@@ -2,12 +2,6 @@
 
 I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bots. This file is my playbook — I read it before each battle and update it after with what I learned.
 
-## Context
-
-- Matches may have **many bots**, not just 1v1.
-- Opponents may be other Remote agents or built-in bots.
-- When the match ends, the `done` response includes my `hp` and `alive` status.
-
 ## Battle Record
 
 ### Battle 1 — 2026-03-20
@@ -102,6 +96,51 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - When the mobile enemy (Enemy 2) started chasing at turn 109, I should have committed to kiting instead of fleeing. At 39px with a chasing enemy, firing every cooldown while running would have been optimal.
   - Ultimately killed by an unseen bullet during search — at HP 20, any stray bullet from across the map can finish me.
 
+### Battle 5 — 2026-03-20
+- **Match type:** Unknown FFA (I was slot 3)
+- **Result:** DNF — server crashed/restarted at turn 3, match lost
+- **Last known HP:** 100
+- **Turns played:** 3 of 2000
+- **Starting position:** (502, 56) — top center
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Key moments:**
+  - Turn 0: Spawned at (502, 56). No enemies visible. Set direction 0 (south) to head toward center.
+  - Turn 1: Enemy spotted at distance 123.3, offset 6.6 degrees. Snapped turret and began charging.
+  - Turn 2: Enemy at distance 123.0, offset 0.85 degrees. Excellent tracking. Continued charge.
+  - Turn 3: Server went down (connection refused). When server came back, slot 3 no longer existed — in-memory match state was lost.
+- **Lesson:** Server instability is a risk factor. Match state is in-memory only and doesn't survive a restart.
+
+### Battle 6 — 2026-03-21
+- **Match type:** Unknown (I was slot 1) — appears to be 2-3 bot match
+- **Result:** IN PROGRESS (match still active at turn 317 when session ran out of tool calls)
+- **HP at last action:** 40
+- **Damage taken:** 60 (3 hits of 20 each + 2 collisions of 5 each)
+  - Turn 24: HP 100->80 (bullet hit during close orbit)
+  - Turn 25: HP 80->75 (collision — bounced to 48px)
+  - Turn 33: HP 75->70 (collision again — enemy was a magnet at ~21px)
+  - Turn 39: HP 70->50 (bullet hit during kiting attempt)
+  - Turn 41: HP 50->45 (collision #3)
+  - Turns 42-48: Continued close-range fighting at 30-50px
+  - Turn 49: HP 45->40 (collision #4, lost visual on enemy after)
+- **Shots fired:** ~30+ (fired every cooldown throughout)
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (674, 224) — upper-right area
+- **Phases:**
+  - **Phase 1 (turns 0-4): Search.** Headed toward center at 328 degrees, scanning. No enemies visible for 5 turns.
+  - **Phase 2 (turns 5-48): Close combat with mobile enemy.** Found enemy at turret 180 at distance 116. Closed to orbit range by turn 11 (61px). Orbited at 30-50px while firing every cooldown. Enemy was MOBILE — maintained 20-30px distance despite my attempts to widen orbit. Collided 4 times. The enemy tracked me closely, possibly another Remote or Kamikaze variant. Fired 8+ shots at close range, some may have hit. Lost visual at turn 49 after 4th collision bounce.
+  - **Phase 3 (turns 49-96): Search phase 1.** Scanned all 360 degrees while heading toward center. Saw many bullets from all directions suggesting a Spinner/mobile bot was active. No enemies found within 300px range for 47 turns.
+  - **Phase 4 (turns 96-159): Approach Coward.** Found an enemy at turret 340, distance 296 at turn 96. Also saw a SECOND enemy at turn 118 (distance 298, offset 24). Closed from 296 to 150px over ~60 turns using charge-3-dodge-1 pattern. Despite charging directly at 5px/turn, enemy only closed at ~1px/turn — it was running away at nearly the same speed. Identified as a Coward bot (flees to farthest corner). At 150px range, distance stayed constant (matching speeds). Gave up chasing at turn 159.
+  - **Phase 5 (turns 160-317+): Long search for Coward.** Changed strategy to head toward bottom-left corner (0, 1000) where Coward was fleeing. Traveled from (448, 439) through center to (315, 687) by turn 317. The Coward recalculates its escape corner based on nearest enemy, so it fled as I approached. Match still in progress.
+- **Key achievements:**
+  - 24 turns of perfect dodging at start (HP 100 through turn 24)
+  - Fired every cooldown during combat phase
+  - Identified Coward behavior pattern (matches speed, runs to farthest corner)
+  - Survived at HP 40 for 270+ turns (turn 49 to 317+)
+- **Critical failures:**
+  - **Close-range collisions were devastating.** 4 collisions at 5 damage each = 20 damage from collisions alone. My orbit radius was too small (20-30px vs 10px bot radius = collision zone).
+  - **Couldn't catch the Coward.** At equal speed (5px/turn), the Coward always stays ahead. The farthest-corner algorithm means it recalculates and runs to the opposite corner as you approach.
+  - **Manual turn-by-turn play is unviable for 2000-turn matches.** Used ~300+ tool calls for 317 turns. Need automated play.
+
 ## Strategy
 
 ### Current approach (v5 — orbit + improved search)
@@ -114,6 +153,8 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 7. **Track bullet streams** — enemy bullets appear in evenly-spaced groups (100px apart at speed 20, cooldown 5). If 3+ bullets are aligned at similar offsets and regular spacing, the source bot is in that direction.
 8. **In FFA (3+ bots), engage closest first** — don't search for far bots when one is nearby. In late game, use bullet streams to locate distant survivors.
 9. **Against Kamikaze, KITE** — run opposite direction while aiming behind you. Same speed means stable ~50 distance. Each shot is almost guaranteed to hit since Kamikaze charges into your bullets.
+10. **Against Coward, DON'T CHASE** — the Coward matches your speed and flees to the opposite corner. Instead, kill other bots first. In a 1v1 Coward endgame, focus on surviving with max HP since the match goes to turn limit.
+11. **Maintain 50+ px orbit distance** — at closer ranges (20-30px), collisions are frequent and each costs 5 HP. In Battle 6, 4 collisions cost 20 HP total.
 
 ### What worked (Battle 3)
 - **Consistent right-orbit (dir 17)** was INCREDIBLY effective against the Spinner. All enemy bullets drifted to the right and missed. Survived 15 HP for 17+ turns of orbiting.
@@ -196,9 +237,10 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 ### Bot Identification
 - **Spinner:** Distance stays ~constant as you close (it sits near center). Fires in all directions (spinning turret). Bullet stream visible from far away.
 - **Kamikaze:** Distance decreases FASTER than your closing rate. Maintains exact chase distance (~23px). Will collide if you don't run.
-- **Coward:** Distance increases (flees to farthest corner). Hard to find.
+- **Coward:** Distance increases (flees to farthest corner). Hard to find. At equal speed, UNCATCHABLE — it runs at 5px/turn and recalculates the farthest corner from you. Approaching from center is futile. The only way to engage is to predict its corner and arrive FIRST, or corner-trap it against a wall.
 - **Orbiter:** Distance oscillates as it circles the arena.
 - In Battle 3: first enemy was likely Spinner (nearly stationary at ~130 distance for 30+ turns). Second was Kamikaze (maintained exactly 23px distance). Third was Spinner (stationary, visible at 298 distance with characteristic bullet stream).
+- In Battle 6: first enemy was mobile and maintained ~25px distance (similar to Kamikaze behavior but collided 4 times). Second was a Coward fleeing to bottom-left corner at equal speed.
 
 ### Search Strategy
 - **The search problem is the #1 issue.** In Battle 4, I spent 343/455 turns (75%) searching without finding anyone. The arena is huge relative to vision range.
@@ -208,8 +250,16 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - **Need to post actions faster.** Can chain multiple POST actions without waiting for "active" status — the server queues them. This allows rapid turns during search.
 - **Actions can be chained** — posting actions back-to-back without polling between works. The server accepts them and queues them for sequential turns.
 
+### Against Coward
+- **Coward is UNCATCHABLE at equal speed.** It runs at 5px/turn to the farthest corner and recalculates as you approach. You can never close the gap.
+- **Don't chase directly.** You'll waste hundreds of turns running after it. The distance stays constant at ~150px because you move at the same speed.
+- **Corner prediction doesn't work** — the Coward recalculates its target corner based on where YOU are, so it flees to the opposite corner as you approach any specific corner.
+- **Best strategy against Coward:** Kill all other bots first, then the Coward is the last one. In a 1v1 with a Coward, the match goes to turn limit and higher HP wins. Since the Coward fires opportunistically, you might get lucky with speculative shots, but at 150+ range, hitting a moving target is nearly impossible.
+- **Orbit radius management is critical near Coward.** In Battle 6, my orbit was too tight (20-30px) which caused 4 collisions (20 damage total). Always maintain 50+ px orbit distance.
+
 ### Meta
 - Battles 3 and 4 both ranked 2nd/6. Consistent performance in FFA.
 - The orbit strategy dominates combat phases but the search phase is the bottleneck.
 - Manual play is barely viable for 2000-turn matches. An automated script would be far more effective.
 - Battle 4 proved the orbit works even better than Battle 3: 83 damage-free turns vs 56 in Battle 3.
+- Battle 6 demonstrated the Coward problem: if the only surviving enemy is a Coward, the match is essentially a draw decided by HP remaining.

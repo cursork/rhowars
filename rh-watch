@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""Live terminal viewer for rhowars matches.
+
+Usage: ./rh-watch [MATCH_ID]    (default: latest match)
+
+Keys: SPACE=play/pause  LEFT/RIGHT=step  +/-=speed
+      0=start  $=latest  r=refresh  q=quit
+"""
+import sys, json, time, urllib.request, os, select, tty, termios
+
+API = "http://localhost:8080"
+BOT_CHARS = "ABCDEFGHIJKLMNOP"
+BOT_COLORS = ["\033[96m", "\033[91m", "\033[92m", "\033[93m", "\033[95m", "\033[36m"]
+DIM = "\033[2m"
+BOLD = "\033[1m"
+RED = "\033[91m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
+
+def get(path):
+    try:
+        with urllib.request.urlopen(f"{API}{path}", timeout=2) as r:
+            return json.loads(r.read())
+    except:
+        return None
+
+def render(data, frame_idx, playing, speed_ms):
+    cols, rows = os.get_terminal_size()
+    aw, ah = data["arena"]
+    names = data["names"]
+
+    arena_h = rows - 4
+    arena_w = arena_h * 2
+    if arena_w > cols:
+        arena_w = cols
+        arena_h = arena_w // 2
+
+    f = data["frames"][frame_idx]
+    bots = f["bots"]
+    bullets = f.get("bullets", [])
+
+    grid = [[" "] * arena_w for _ in range(arena_h)]
+
+    for b in bullets:
+        bx = int(b[0] / aw * (arena_w - 1))
+        by = int(b[1] / ah * (arena_h - 1))
+        if 0 <= bx < arena_w and 0 <= by < arena_h:
+            grid[by][bx] = f"{DIM}\033[33m·{RESET}"
+
+    thoughts = f.get("thoughts", [])
+    for i, bot in enumerate(bots):
+        if not bot[7]:
+            continue
+        bx = int(bot[1] / aw * (arena_w - 1))
+        by = int(bot[2] / ah * (arena_h - 1))
+        bx = max(0, min(arena_w - 1, bx))
+        by = max(0, min(arena_h - 1, by))
+        color = BOT_COLORS[i % len(BOT_COLORS)]
+        grid[by][bx] = f"{BOLD}{color}{BOT_CHARS[i]}{RESET}"
+        # Thought tooltip on the row above
+        thought = (thoughts[i] if thoughts and i < len(thoughts) else "") or ""
+        if thought and by > 0:
+            label = thought[:20]
+            start = max(0, bx - len(label) // 2)
+            for ci, ch in enumerate(label):
+                pos = start + ci
+                if 0 <= pos < arena_w:
+                    grid[by - 1][pos] = f"{DIM}{color}{ch}{RESET}"
+
+    lines = []
+    nf = len(data["frames"])
+    live = f" {GREEN}LIVE{RESET}" if not data["done"] else ""
+    mode = f"{GREEN}▶{RESET}" if playing else f"{YELLOW}‖{RESET}"
+    lines.append(f"{mode} T:{f['turn']} [{frame_idx+1}/{nf}]{live} {speed_ms}ms")
+
+    hp_parts = []
+    for i, bot in enumerate(bots):
+        color = BOT_COLORS[i % len(BOT_COLORS)]
+        ch = BOT_CHARS[i]
+        hp = int(bot[5])
+        nm = names[i].split(".")[-1].replace("[Namespace]","").strip() if "." in names[i] else names[i]
+        nm = nm[:10]
+        thought = (thoughts[i] if thoughts and i < len(thoughts) else "") or ""
+        if bot[7]:
+            hp_color = GREEN if hp > 60 else (YELLOW if hp > 30 else RED)
+            entry = f"{color}{ch}{RESET} {nm} {hp_color}{hp}{RESET}"
+            if thought:
+                entry += f" {DIM}\"{thought[:15]}\"{RESET}"
+            hp_parts.append(entry)
+        else:
+            hp_parts.append(f"{DIM}{ch} {nm} X{RESET}")
+    lines.append(" ".join(hp_parts))
+
+    for row in grid:
+        lines.append("".join(row))
+
+    lines.append(f"{DIM}SPC:play/pause ←→:step +/-:speed 0:start $:end r:refresh q:quit{RESET}")
+
+    os.system("clear")
+    print("\n".join(lines), flush=True)
+
+def getkey(timeout):
+    fd = sys.stdin.fileno()
+    if select.select([fd], [], [], timeout)[0]:
+        # Read all available bytes at once
+        buf = os.read(fd, 32).decode("utf-8", errors="ignore")
+        if not buf:
+            return None
+        if buf == " ": return " "
+        if buf == "q": return "q"
+        if buf == "r": return "r"
+        if buf == "0": return "0"
+        if buf == "$": return "$"
+        if buf in ("+", "="): return "+"
+        if buf == "-": return "-"
+        if buf == "\x03": return "\x03"
+        if "\x1b[D" in buf: return "left"
+        if "\x1b[C" in buf: return "right"
+        if len(buf) == 1: return buf
+    return None
+
+def main():
+    match_id = None
+    if len(sys.argv) > 1:
+        match_id = sys.argv[1]
+    else:
+        ml = get("/api/match/list")
+        if ml and ml.get("matches"):
+            match_id = str(ml["matches"][-1]["id"])
+        else:
+            print("No matches found")
+            sys.exit(1)
+
+    old_settings = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setcbreak(sys.stdin.fileno())  # cbreak not raw — preserves output
+
+        data = None
+        frame = 0
+        playing = True
+        speed_ms = 80
+        last_poll = 0
+
+        while True:
+            now = time.time()
+
+            if data is None or (now - last_poll > 2.0):
+                new_data = get(f"/api/match/{match_id}/history")
+                if new_data and new_data.get("frames"):
+                    data = new_data
+                    if frame >= len(data["frames"]):
+                        frame = len(data["frames"]) - 1
+                last_poll = now
+
+            if not data:
+                os.system("clear")
+                print(f"Waiting for match {match_id}...")
+                time.sleep(1)
+                continue
+
+            nf = len(data["frames"])
+
+            key = getkey(speed_ms / 1000 if playing else 0.1)
+            if key == "q" or key == "\x03":
+                break
+            elif key == " ":
+                playing = not playing
+            elif key == "left":
+                playing = False
+                frame = max(0, frame - 1)
+            elif key == "right":
+                playing = False
+                frame = min(nf - 1, frame + 1)
+            elif key == "0":
+                playing = False
+                frame = 0
+            elif key == "$":
+                frame = nf - 1
+            elif key == "+" or key == "=":
+                speed_ms = max(10, speed_ms - 20)
+            elif key == "-":
+                speed_ms = min(500, speed_ms + 20)
+            elif key == "r":
+                last_poll = 0
+                continue
+
+            if playing and key is None:
+                if frame < nf - 1:
+                    frame += 1
+                elif not data["done"]:
+                    last_poll = 0
+
+            render(data, frame, playing, speed_ms)
+
+            if data["done"] and frame == nf - 1:
+                print(f"\n{BOLD}Match over.{RESET}")
+
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+if __name__ == "__main__":
+    main()

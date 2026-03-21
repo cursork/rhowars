@@ -142,17 +142,8 @@ When `status` is `"active"`, the response includes:
 
 Within each engine tick, Remotes are called sequentially (random order). One Remote's `status` becomes `"active"` before the next. From the client's perspective, just poll — your turn arrives when the engine reaches you.
 
-## Strategy
 
-1. **Always move** — a stationary target is trivially easy to hit.
-2. **Aim at enemies** — when you see a rhobot, set `turret = (turret + offset) % 360` to snap onto it.
-3. **Fire when aimed** — only fire when offset to target is small (< 10°). Don't waste cooldown.
-4. **Lead your shots** — if the enemy is moving, aim slightly ahead. Bullets have finite speed.
-5. **Dodge bullets** — when you see a bullet, change direction perpendicular to your current heading.
-6. **Sweep when blind** — if nothing visible, rotate turret slowly (±3–5° per turn) to scan.
-7. **Use the arena** — don't get pinned against walls. Move toward the centre for more options.
-
-## Available Opponents
+## Built-in Bots
 
 | Bot | Behaviour |
 |-----|-----------|
@@ -163,7 +154,7 @@ Within each engine tick, Remotes are called sequentially (random order). One Rem
 | Kamikaze | Charges straight at the nearest enemy |
 | Orbiter | Circles the arena at a fixed radius |
 
-Start with **Spinner** (predictable) to learn the mechanics, then try harder opponents.
+User-uploaded bots with unknown behaviours may also be in the match. Do not assume all opponents are from the list above.
 
 ## Tips
 

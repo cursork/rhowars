@@ -13,5 +13,6 @@
     COLLISION_DAMAGE←5
     COLLISION_BOUNCE←1.5
     MAX_TURNS←2000
+    THOUGHT_PERSIST←50
     USER_BOTS_PATH←'UserBots'
 :EndNamespace

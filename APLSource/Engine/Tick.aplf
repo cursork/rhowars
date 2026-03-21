@@ -26,8 +26,19 @@
  :EndFor
  ⍝ 2. Extract thoughts and record snapshot
  thoughts←{6::'' ⋄ ⍵.thought}¨actions
- match.thoughts←thoughts
- match.history,←⊂(turn: match.turn ⋄ bots: bots ⋄ bullets: bullets ⋄ thoughts: thoughts)
+ ⍝ Persist thoughts: new thought replaces old, empty keeps old up to 50 ticks
+ :For i :In ⍳≢thoughts
+     :If ''≢i⊃thoughts
+         match.thoughts[i]←i⊃thoughts
+         match.thoughtAges[i]←0
+     :Else
+         match.thoughtAges[i]←1+i⊃match.thoughtAges
+         :If (##.Cfg.THOUGHT_PERSIST)<i⊃match.thoughtAges
+             match.thoughts[i]←⊂''
+         :EndIf
+     :EndIf
+ :EndFor
+ match.history,←⊂(turn: match.turn ⋄ bots: bots ⋄ bullets: bullets ⋄ thoughts: match.thoughts)
  ⍝ 3. Apply per-field updates (⍬ = no change)
  :For i :In alive
      act←i⊃actions
@@ -60,6 +71,8 @@
              ns.finalHP←bots[i;5]
              ns.deathTurn←match.turn
              ns.alive←0
+             ns.totalBots←≢bots
+             ns.rank←1++/bots[;7]  ⍝ alive count + 1 = worst possible rank
          :EndIf
      :EndIf
  :EndFor
