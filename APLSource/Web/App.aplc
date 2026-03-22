@@ -41,6 +41,7 @@
       '/api/bots/{author}/{name}' router.Delete 'DeleteBot'
       '/api/config' router.Get 'GetConfig'
       '/api/config/reset' router.Post 'ResetConfig'
+      '/api/match/{id}/end' router.Post 'EndMatch'
       '/api/match/{id}/situation' router.Get 'GetSituation'
       '/api/remote/list' router.Get 'ListRemotes'
       '/api/remote/{slot}/{token}/state' router.Get 'GetRemoteState'
@@ -70,9 +71,13 @@
           botns←⍬
           matchRemotes←⍬
           :For i :In ⍳≢names
-              :If 'Remote'≡i⊃names
+              :If 'Remote'≡7↑i⊃names
                   ns←game.Rhobots.Remote.Create nextSlot
                   ns.botIndex←i
+                  ⍝ Support Remote:Name format for display
+                  :If ':'∊i⊃names
+                      ns.⎕DF(1+(':'⍳⍨i⊃names))↓i⊃names
+                  :EndIf
                   remotes,←ns
                   matchRemotes,←ns
                   nextSlot←nextSlot+1
@@ -425,6 +430,36 @@
           :EndFor
       :EndIf
       SaveMatch rec
+    ∇
+
+    ∇ result←EndMatch req;id;valid;vals;idx;rec
+      :Access Public
+      ⎕IO←0
+      (valid vals)←⎕VFI req.PathParams.id
+      :If ~∨/valid
+          req.Fail 400
+          result←(detail: 'Invalid match ID')
+          :Return
+      :EndIf
+      id←⊃valid/vals
+      idx←{⍵.id}¨matches
+      :If ~id∊idx
+          req.Fail 404
+          result←(detail: 'Match not found')
+          :Return
+      :EndIf
+      rec←(idx⍳id)⊃matches
+      :If ⍬≡rec.match
+          req.Fail 404
+          result←(detail: 'Match not started')
+          :Return
+      :EndIf
+      :If rec.done
+          result←(detail: 'Match already finished')
+          :Return
+      :EndIf
+      rec.match.done←1
+      result←(detail: 'Match ending — will complete on next tick')
     ∇
 
     ∇ rec←NewMatchRecord names

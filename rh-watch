@@ -161,7 +161,7 @@ def situation(match_id):
             t = int(b[4])
             hp_color = GREEN if hp > 60 else (YELLOW if hp > 30 else RED)
             thought = (thoughts[i] if thoughts and i < len(thoughts) else "") or ""
-            thought_str = f'  "{thought[:30]}"' if thought else ""
+            thought_str = f'  "{thought[:60]}"' if thought else ""
             print(f"{BOT_COLORS[i % len(BOT_COLORS)]}{n:<18}{RESET} {hp_color}{hp:>4}{RESET} {pos:>12} {d:>5} {t:>5} alive{thought_str}")
         else:
             print(f"{DIM}{n:<18}    X                       dead{RESET}")
