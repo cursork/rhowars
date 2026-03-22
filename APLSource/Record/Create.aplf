@@ -36,3 +36,7 @@
  ⍝ Remove USER_BOTS_PATH (not a tunable config)
  cfg.⎕EX'USER_BOTS_PATH'
  manifest.config←cfg
+ ⍝ Full frame history — for replaying Remote matches where decisions aren't deterministic
+ manifest.frames←{⎕IO←0 ⋄ f←⎕NS⍬ ⋄ f.turn←⍵.turn ⋄ f.bots←↓⍵.bots ⋄ f.bullets←↓⍵.bullets ⋄ f.thoughts←{6::⍬ ⋄ ⍵.thoughts}⍵ ⋄ f}¨match.history
+ manifest.turns←match.turn
+ manifest.done←match.done

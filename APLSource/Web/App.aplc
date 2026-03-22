@@ -473,29 +473,18 @@
       nextMatchId←nextMatchId+1
     ∇
 
-    ∇ {r}←SaveMatch rec;hist;path;json
+    ∇ {r}←SaveMatch rec;manifest;path;json
       :Access Private
       ⎕IO←0
       r←⍬
       :Trap 0
-          hist←⎕NS⍬
-          hist.id←rec.id
-          hist.turns←rec.match.turn
-          hist.done←rec.match.done
-          hist.names←rec.match.names
-          hist.seed←rec.match.seed
-          hist.arena←game.Cfg.ARENA
-          hist.botRadius←game.Cfg.BOT_RADIUS
-          hist.visionRange←game.Cfg.VISION_RANGE
-          hist.visionHalfAngle←game.Cfg.VISION_HALF_ANGLE
-          hist.botHP←game.Cfg.BOT_HP
-          ⍝ Save summary only (not full frame history — too large for ⎕JSON)
-          hist.finalBots←rec.match.bots
-          json←⎕JSON hist
+          manifest←game.Record.Create rec.match rec.names
+          manifest.id←rec.id
+          json←⎕JSON manifest
           path←'matches/match-',(⍕rec.id),'.json'
           (⊂json)⎕NPUT path 1
       :Else
-          ⎕←'SaveMatch failed: ',⎕DMX.Message
+          (⊂'SaveMatch error: ',⎕DMX.Message,' at ',⊃⎕DMX.DM)⎕NPUT 'matches/error.txt' 1
       :EndTrap
     ∇
 
