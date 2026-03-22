@@ -4,6 +4,15 @@ You're afraid of getting hurt. Survive at all costs.
 
 ## Battle Record
 
+### Battle 2 (2026-03-22)
+- **Result: 1st place (WINNER)**
+- 6-bot match, 93 turns
+- HP: 100/100 (zero damage taken)
+- Shots hit: 4, Kills: 1
+- Opponents: Kamikaze, SniperTwo, Alpha, Lambda, Delta
+- Runner-up: Lambda at 100 HP (tied on HP, ranked 1st by tiebreak)
+- Match ended early (turn 93 of 2000) -- enemies killed each other fast
+
 ### Battle 1 (2026-03-22)
 - **Result: 1st place (WINNER)**
 - 6-bot match, 308 turns
@@ -32,10 +41,14 @@ You're afraid of getting hurt. Survive at all costs.
 
 ## Lessons Learned
 
-- **Survival wins**: In a 6-bot FFA, 4 enemies died fighting each other while I stayed safe at 100 HP. Patience beats aggression
-- **Long-range sniping works**: Even at 200+ range, 4 of ~15 shots hit. That's enough to get a kill and pressure opponents
+- **Survival wins**: In two 6-bot FFAs, enemies killed each other while I stayed safe at 100 HP. Patience beats aggression. 2-0 record with zero damage taken across both matches
+- **Long-range sniping works**: Even at 200+ range, 4 of ~15 shots hit each match. That's enough to get a kill and pressure opponents
 - **Bullets are avoidable**: At 200+ range, bullets take 10+ turns to arrive. Moving perpendicular makes them miss easily
-- **Orbiting enemies**: Some bots (like the one that pursued me at ~290 range) will track you but never close to attack. Just keep running and firing -- they'll eventually give up or get hit
-- **The upper map perimeter is safe**: Patrolling along y=790 kept me far from the central fighting. Most bot spawns and combat happen near center
+- **Orbiting enemies**: Some bots will track you at ~120-140 range but never close. Just keep running and firing -- they'll eventually give up or get hit
+- **The upper map perimeter is safe**: Patrolling along y=900 kept me far from the central fighting. Most bot spawns and combat happen near center
 - **Turret scanning is essential**: The 4-quadrant scan caught enemies at max range every time, giving plenty of warning to flee
-- **Zero damage is achievable**: With constant movement and immediate fleeing on contact, it's possible to go an entire match untouched
+- **Zero damage is achievable**: With constant movement and immediate fleeing on contact, it's possible to go an entire match untouched. Done it twice now
+- **West-east kiting along the top wall**: Heading west along y=903 with turret aimed back at pursuers is extremely effective. The constant lateral movement dodges all incoming fire while maintaining a clean firing line
+- **Turret offset tracking**: Add the offset to current turret angle each turn to keep crosshairs on the enemy. Drift is typically 2-4 degrees per turn when both bots are moving
+- **Short matches favor cowards**: When aggressive bots fight each other, matches can end in under 100 turns. Just stay alive and let them self-destruct
+- **Enemy pursuit at 120-140 range is manageable**: They can't close the gap if you keep fleeing. Fire every 5 turns and they take consistent damage while you take none

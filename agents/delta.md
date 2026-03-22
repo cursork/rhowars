@@ -4,6 +4,12 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 
 ## Battle Record
 
+### Battle 2 (2026-03-22)
+- **Result:** 4th of 6 bots
+- **Kills:** 0 | **Shots hit:** 2 | **HP lost:** 100 (died turn 48)
+- **Arena:** 1000x1000 | **Config:** bulletDmg=20, cooldown=5, visionRange=300, halfAngle=45, botSpeed=5, bulletSpeed=20, collisionDmg=5, maxTurns=2000
+- **Summary:** Started at (527,811). Scanned N/E/S/W in first 4 turns, spotted 2 rhobots and bullets to the west at turn 4 (bearing ~245-290). Immediately engaged closer target. Tracked rhobot at ~200px range for 44 turns, closing from 200 to 150px very slowly. Target was kiting -- maintaining distance while shooting accurately. Landed 2 hits but took 5 hits (turns 36, 42, 44, 47, 48). The kiting target fired every 5 turns and their bullets arrived at 20px offset 0 consistently. My dodging (alternating N/S) was predictable. Died turn 48. Never found or engaged the second rhobot after initial sighting.
+
 ### Battle 1 (2026-03-22)
 - **Result:** 3rd of 6 bots
 - **Kills:** 2 | **Shots hit:** 7 | **HP lost:** 100 (died turn 241)
@@ -23,12 +29,15 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 - Bullets travel at 20px/tick vs bot 5px/tick. At 200px range, bullet arrives in ~10 ticks. Target moves ~50px in that time. Need to lead by ~1-2 degrees at long range.
 - Target oscillating +/- 3 degrees? Aim at the center of the oscillation pattern.
 - At short range (<100px), angular error matters more. Small misses become large angle offsets.
-- Zigzag movement direction (keep turret locked on target) to dodge incoming fire.
+- **DO NOT zigzag predictably N/S.** Alternate between 3+ random directions perpendicular to the target bearing. Use angles like target_bearing +/- 80, +/- 100, +/- 120 and vary timing.
+- When target is kiting (maintaining 200px), do NOT chase head-on. Angle approach 20-30 degrees off bearing to close obliquely -- this also makes you harder to hit.
+- Against a kiter at 200px, consider disengaging and finding a different target. Equal-speed pursuit with accurate incoming fire is losing.
 
 ### HP Management
 - At 40 HP (2 hits from death), start zigzagging more aggressively.
 - At 20 HP (1 hit from death), consider whether combat is worth it or if survival matters more.
 - Bullets at offset < 5 degrees and distance < 100 are dangerous -- consider evasive maneuver.
+- **Critical: When I see bullet at 20px offset 0, I WILL be hit -- the dodge window is too small.** Must be moving erratically BEFORE the bullet arrives, not reacting to it at 20px.
 
 ## Lessons Learned
 
@@ -45,3 +54,13 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 6. **Got 2 kills and 7 hits in ~85 turns of combat, but died to accumulated damage.** Need better evasion during the approach phase -- take fewer hits while closing distance.
 
 7. **Bullet speed (20) vs bot speed (5) means bullets close at 15px/tick relative to a fleeing target.** At 200px, that's ~13 ticks to reach. The target moves ~65px laterally in that time. Lead accordingly.
+
+8. **Predictable N/S zigzag gets you killed.** In Battle 2, alternated north/south while pursuing west. The kiting target tracked my pattern and hit me 5 out of ~10 shots (50% accuracy). Must use random, asymmetric evasion with 3+ directions.
+
+9. **Kiting is extremely effective.** A target that maintains 200px distance and shoots accurately is very hard to beat in a straight chase. At equal speeds, the closing rate depends entirely on angle mismatch. My approach of heading directly at the target (same bearing as turret) closed at <1px/turn because they matched my direction.
+
+10. **React to bullets earlier.** Seeing a bullet at 60-80px with small offset means it will hit in 3-4 turns. That's when evasion must begin -- not at 20px. By 20px it's too late.
+
+11. **Oblique approach is key.** To close on a kiter, approach at 20-30 degrees off the target bearing. This forces them to choose between maintaining distance (moving perpendicular to you) and aiming (keeping turret on you). Their turret tracking becomes harder as your bearing shifts faster.
+
+12. **2 hits out of ~8 shots fired (25% hit rate) at 150-200px range.** Need to close below 100px for reliable damage. At 200px, fire is mostly suppressive.

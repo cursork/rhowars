@@ -1,29 +1,39 @@
- match←Tick match;bots;bullets;alive;order;actions;i;idx;vis;input;act;ns;nAlive;speeds;v;thoughts;hitEvents;myHits;wasAlive;j;hitsOnJ
+ match←Tick match;bots;bullets;alive;order;actions;i;idx;input;act;ns;nAlive;speeds;v;thoughts;hitEvents;myHits;wasAlive;j;hitsOnJ;inputs
 ⍝ Execute one turn of the match
 ⍝ Action fields set to ⍬ (or missing) mean "no change"
  ⎕IO←0
  bots←match.bots
  bullets←match.bullets
- ⍝ 1. Collect bot decisions
+ ⍝ 1. Collect bot decisions (parallel — all bots decide simultaneously)
  alive←⍸bots[;7]
  order←alive[((≢alive)?≢alive)]
  actions←(≢bots)⍴⊂()
+ ⍝ Prepare all inputs, then launch all Ticks on threads
+ inputs←(≢bots)⍴⊂()
  :For idx :In order
-     vis←match Vision idx
      input←()
      input.loc←bots[idx;1 2]
      input.direction←bots[idx;3]
      input.turret←bots[idx;4]
-     input.visible←vis
+     input.visible←match Vision idx
      input.hp←bots[idx;5]
      input.arena←##.Cfg.ARENA
      input.state←idx⊃match.states
      input.turn←match.turn
      input.cfg←(botSpeed: ##.Cfg.BOT_SPEED ⋄ botHP: ##.Cfg.BOT_HP ⋄ botRadius: ##.Cfg.BOT_RADIUS ⋄ bulletSpeed: ##.Cfg.BULLET_SPEED ⋄ bulletDamage: ##.Cfg.BULLET_DAMAGE ⋄ visionRange: ##.Cfg.VISION_RANGE ⋄ visionHalfAngle: ##.Cfg.VISION_HALF_ANGLE ⋄ cooldown: ##.Cfg.COOLDOWN ⋄ collisionDamage: ##.Cfg.COLLISION_DAMAGE ⋄ collisionBounce: ##.Cfg.COLLISION_BOUNCE ⋄ maxTurns: ##.Cfg.MAX_TURNS)
-     ns←idx⊃match.botns
-     act←ns ##.Bot.CallTick input
-     actions[idx]←⊂act
+     inputs[idx]←⊂input
  :EndFor
+ ⍝ Launch all Ticks on threads, collect via token pool
+ match.actions←actions
+ match.collectToken←8888+match.turn
+ :For idx :In order
+     {⎕IO←0 ⋄ (m idx input ns)←⍵ ⋄ m.actions[idx]←⊂ns ##.Bot.CallTick input ⋄ ⎕TPUT m.collectToken}&(match idx(idx⊃inputs)(idx⊃match.botns))
+ :EndFor
+ ⍝ Wait for all to complete
+ :For idx :In order
+     ⎕TGET match.collectToken
+ :EndFor
+ actions←match.actions
  ⍝ 2. Extract thoughts and record snapshot
  thoughts←{6::'' ⋄ ⍵.thought}¨actions
  ⍝ Persist thoughts: new thought replaces old, empty keeps old up to 50 ticks

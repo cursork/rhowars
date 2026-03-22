@@ -71,7 +71,7 @@
           botns←⍬
           matchRemotes←⍬
           :For i :In ⍳≢names
-              :If 'Remote'≡7↑i⊃names
+              :If 'Remote'≡6↑i⊃names
                   ns←game.Rhobots.Remote.Create nextSlot
                   ns.botIndex←i
                   ⍝ Support Remote:Name format for display
@@ -473,12 +473,11 @@
       nextMatchId←nextMatchId+1
     ∇
 
-    ∇ {r}←SaveMatch rec;hist;frames;path;json
+    ∇ {r}←SaveMatch rec;hist;path;json
       :Access Private
       ⎕IO←0
       r←⍬
       :Trap 0
-          frames←{(turn: ⍵.turn ⋄ bots: ⍵.bots ⋄ bullets: ⍵.bullets ⋄ thoughts: {6::⍬ ⋄ ⍵.thoughts}⍵)}¨rec.match.history
           hist←⎕NS⍬
           hist.id←rec.id
           hist.turns←rec.match.turn
@@ -490,7 +489,8 @@
           hist.visionRange←game.Cfg.VISION_RANGE
           hist.visionHalfAngle←game.Cfg.VISION_HALF_ANGLE
           hist.botHP←game.Cfg.BOT_HP
-          hist.frames←frames
+          ⍝ Save summary only (not full frame history — too large for ⎕JSON)
+          hist.finalBots←rec.match.bots
           json←⎕JSON hist
           path←'matches/match-',(⍕rec.id),'.json'
           (⊂json)⎕NPUT path 1
