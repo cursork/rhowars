@@ -460,7 +460,7 @@
           path←'matches/match-',(⍕rec.id),'.json'
           (⊂json)⎕NPUT path 1
       :Else
-          ⍝ Save failed — non-fatal
+          ⎕←'SaveMatch failed: ',⎕DMX.Message
       :EndTrap
     ∇
 

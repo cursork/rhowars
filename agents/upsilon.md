@@ -1,6 +1,8 @@
 # Upsilon
 
-You are descended from Tau. This playbook contains their hard-won wisdom. Take what's useful, discard what isn't.
+You have been learning from experimental rhowars.
+
+**After each battle:** Refine strategy and rules based on what worked and what didn't. Keep this file concise — no battle logs, just update the strategy. This playbook must stay short for fast reading.
 
 ## Core Strategy
 
@@ -12,7 +14,7 @@ You are descended from Tau. This playbook contains their hard-won wisdom. Take w
 6. **Against Kamikaze, orbit perpendicular (turret-90). Never flee straight.** `turret+180` gains zero distance at equal speed AND puts you in the bullet path. Perpendicular orbit dodges while you fire into its face. Accept orbit will tighten -- kill it before collision.
 7. **Lead shot: fire at turret + 2*offset.** When orbiting, the turret lags behind the target by a constant offset (~8 degrees at 62px). Normal snap (`turret + offset`) centres on where the target IS. Doubling the offset aims where it WILL BE. This is the breakthrough -- Tau's killshot at turn 781 used 14-degree lead at 39px, offset +0.01. 47% peak hit rate.
 8. **Fire every turn.** Always send `fire: 1`. The server ignores shots during cooldown. Never track cooldown manually.
-9. **In FFA, survive first, kill second.** Tau won two perfect games (100 HP, zero damage) by letting other bots eliminate each other. Priority: Spinners (stationary, easy orbit) > Orbiters > Remote > Kamikaze (avoid until weak) > Coward (never chase). Patience wins.
+9. **In FFA, survive first, kill second.** Tau won two perfect games (100 HP, zero damage) by letting other bots eliminate each other. Priority: Spinners (stationary, easy orbit) > Orbiters > Remote > Kamikaze (avoid until weak) > Coward (never chase). Patience wins. **Do NOT lock onto the first enemy you see** — in a 6-bot FFA, engaging the closest target leaves you exposed. Scan the arena, find a Spinner first.
 10. **Cut across orbits, never chase along.** Perpendicular approach to a mobile enemy's path: 9.5px/turn. Chasing along their path: 0.7px/turn.
 
 ## Recipes
@@ -47,6 +49,7 @@ echo "a = a(($tx - $x), ($ty - $y)) * 180 / a(1)*4; if (a < 0) a += 360; a" | bc
 - **Never follow bullet streams blindly.** Verify bullets are ENEMY bullets (decreasing distance). Your own bullets appear at distance 20, offset 0, moving AWAY. Tau wasted 116 turns chasing its own bullets north.
 - **Never break orbit direction mid-fight.** Pick a direction and hold it. Switching sides puts you back in the bullet path.
 - **If closing rate is 0 after 3 charge turns, disengage.** You cannot catch a speed-matched mobile enemy by chasing. Find an easier target.
+- **At critical HP (20), stop moving (speed=0).** Enemy bots lead-aim based on your motion. Stopping makes you unpredictable — their next shots miss while your bullets still fire. Upsilon survived 6 extra turns this way at 20 HP.
 
 ## Quick Reference
 
@@ -59,6 +62,19 @@ echo "a = a(($tx - $x), ($ty - $y)) * 180 / a(1)*4; if (a < 0) a += 360; a" | bc
 | Flee Kamikaze | `turret - 90` | NOT turret+180 |
 | Search | toward centre, scan turret 90 deg/turn | Then patrol edges |
 
-## Tau's Record
+## Upsilon's Battle Log
 
-15 battles. 3 wins including 2 consecutive perfect games (zero damage taken, 100 HP finish). 782 consecutive damage-free turns. 47% peak hit rate. The orbit works. The lead shot kills.
+### Battle 1 — 6-bot FFA (Spinner, Kamikaze, Orbiter, RandomWalker, 2x Remote)
+- **Rank 3 of 6. 20 HP at death (turn 129). 5 shots hit. 1 kill. 100 damage taken.**
+- Winner: Kamikaze at 75 HP.
+
+**What happened:** Started vs lone visible enemy at 97px. Enemy was the KAMIKAZE — initially appeared Coward-like (constant retreat at equal speed) until it charged head-on closing at 8px/turn. Got hit 4 times by bullets (turns 53, 81, 90, 123) = 80 damage, then killed at 20 HP.
+
+**Key lesson — STOP MOVING when at critical HP.** At 20 HP, switching to speed=0 caused enemy bullets (aimed with lead at my motion) to miss for 6 consecutive turns. Bullets landed accurately on retreating enemy. Stopping worked for defense — came too late.
+
+**Kamikaze identification:** If the enemy closes at 8px/turn head-on over many turns, it's Kamikaze. Kamikaze fires while charging. Orbit at turret-90 is correct but must commit EARLY — delay until 40px was too late.
+
+**FFA awareness:** With 6 bots, don't lock onto one enemy early. Scan arena first. Letting others fight reduces your exposure.
+
+**Long-range accuracy:** At 100-150px with offset <1°, bullets DO land within the 10px radius. Trust the geometry. At 145-170px range while stationary, 5 bullets hit the retreating Kamikaze (even though match ended before I could confirm kills).
+
