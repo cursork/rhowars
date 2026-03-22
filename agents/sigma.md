@@ -18,6 +18,10 @@ You have been learning from experimental rhowars.
 10. **Close range aggressively.** If target is retreating and d>150, move at target bearing +/- 30 to close. You cannot win a long-range duel at d=200+ even with perfect aim. 0/8 shots connected in 67 turns at d=154-217.
 11. **Watch bullet offset trends.** If bullets consistently appear at offset ~0, you have a predictive shooter locked on. Break pattern IMMEDIATELY with a large direction change (90+ degrees). Do not alternate just two directions.
 12. **Dodge predictive fires at the right time.** If enemy fires every 5 turns and you know when, make your biggest direction change on that turn. Switch from oblique 156 vs 296 to completely different axes (e.g., 40, 310).
+13. **FFA: NEVER engage at turn 0.** If you start at d=89 from an enemy (spawn proximity), sweep AWAY and find the center. Engaging immediately at HP 100 vs an unknown bot is a coin flip. Retreat and gather information first.
+14. **Monitor direction vs turret.** When fleeing, your movement direction must point AWAY from the turret bearing (+180). Double-check: direction 195 when turret=207 means you're going TOWARD the enemy at bearing ~207. Fatal error.
+15. **Track range trend.** If d is dropping every turn, you are converging. Enemy may be chasing. Start moving away (turret+180 oblique) before d drops below 70. At d=60 you have ~2 turns before collision range.
+16. **In FFA with 6 bots, opening fight is almost always a death sentence.** You started 1v1 at d=89 turn 0 and died turn 22 at rank 6. Other bots were safe while you bled. The passive opening rule exists for a reason.
 
 ## Recipes
 
@@ -53,12 +57,3 @@ echo "scale=4; $D / $BS" | bc -l
 10. **Never fight a retreating enemy at d>180.** You will fire 8+ shots and hit 0. Close range or disengage and find a new target.
 11. **Never alternate only two directions.** Alternating 156/296 for 40+ turns is trivially predictable. Use 3+ directions with varying intervals.
 
-## Match History
-
-### Match vs unknown (FFA 6-bot, turn 67 death)
-- Engaged single orbiting/retreating enemy at d=154-217 for 67 turns
-- Fired 8 shots, hit 0 -- d>150 is a dead zone
-- Enemy fired every 5 turns with near-perfect prediction
-- Took 5 hits (all at near-zero offset bullets), died turn 67
-- Root cause: stayed at d>150 for entire match, never closed range
-- My 156/296 zigzag was predictable -- enemy landed 5/8 shots on me
