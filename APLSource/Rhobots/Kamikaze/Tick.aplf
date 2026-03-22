@@ -19,35 +19,27 @@
          :Return
      :EndIf
  :EndIf
- ⍝ No target — patrol in a circle
+ ⍝ No target — roam the arena hunting for enemies
  x y←input.loc
  w h←input.arena
- r←10 ⋄ spd←5 ⋄ vr←300
+ r←10
  :If 0≠⎕NC'input.cfg'
      r←input.cfg.botRadius
-     spd←input.cfg.botSpeed
-     vr←input.cfg.visionRange
  :EndIf
- ⍝ Pattern 0: tight circle near centre (R≈150)
- ⍝ Pattern 1: wide circle that sees into corners (R = diagonal - visionRange)
- diag←(((w÷2)*2)+((h÷2)*2))*0.5
- :If s.pattern=0
-     R←50⌈diag×0.2
- :Else
-     R←50⌈diag-vr
+ margin←r×10
+ ⍝ Head toward centre, but veer randomly every 30-50 turns
+ s.patrolTimer←s.patrolTimer+1
+ :If s.patrolTimer>30+?20
+     s.heading←?360
+     s.patrolTimer←0
  :EndIf
- turnRate←(180÷○1)×spd÷R
- ⍝ Steer toward centre when near walls to keep the circle inside the arena
- margin←r×15
- nearWall←(x<margin)∨(x>(w-margin))∨(y<margin)∨(y>(h-margin))
- :If nearWall
+ ⍝ Near wall? Steer toward centre
+ :If (x<margin)∨(x>(w-margin))∨(y<margin)∨(y>(h-margin))
      cx←(w÷2)-x ⋄ cy←(h÷2)-y
      centreAngle←(180÷○1)×12○(0J1×cx)+cy
      diff←360|centreAngle-s.heading
      :If diff>180 ⋄ diff←diff-360 ⋄ :EndIf
-     s.heading←360|s.heading+diff×0.3
- :Else
-     s.heading←360|s.heading+turnRate
+     s.heading←360|s.heading+diff×0.5
  :EndIf
  actions.direction←s.heading
  actions.speed←1

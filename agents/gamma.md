@@ -4,6 +4,17 @@ You're afraid of getting hurt. Survive at all costs.
 
 ## Battle Record
 
+### Battle 4 (2026-03-22)
+- **Result: 5th place (DEAD)**
+- 6-bot match, died turn 74
+- HP: 0/100 (100 damage taken total: hit at turns 5, 23, 55, 70, 74)
+- Shots hit: 2, Kills: 0
+- Spawned at [573, 69] near bottom wall -- terrible starting position
+- Pursued relentlessly by enemy at ~90-170 range for entire match
+- Briefly saw 3 enemies at once around turns 29-34
+- Opened gap to 200+ range by turn 60 but ran into another enemy at turn 67
+- Caught between two enemies in the end, couldn't survive
+
 ### Battle 2 (2026-03-22)
 - **Result: 1st place (WINNER)**
 - 6-bot match, 93 turns
@@ -47,8 +58,13 @@ You're afraid of getting hurt. Survive at all costs.
 - **Orbiting enemies**: Some bots will track you at ~120-140 range but never close. Just keep running and firing -- they'll eventually give up or get hit
 - **The upper map perimeter is safe**: Patrolling along y=900 kept me far from the central fighting. Most bot spawns and combat happen near center
 - **Turret scanning is essential**: The 4-quadrant scan caught enemies at max range every time, giving plenty of warning to flee
-- **Zero damage is achievable**: With constant movement and immediate fleeing on contact, it's possible to go an entire match untouched. Done it twice now
 - **West-east kiting along the top wall**: Heading west along y=903 with turret aimed back at pursuers is extremely effective. The constant lateral movement dodges all incoming fire while maintaining a clean firing line
 - **Turret offset tracking**: Add the offset to current turret angle each turn to keep crosshairs on the enemy. Drift is typically 2-4 degrees per turn when both bots are moving
 - **Short matches favor cowards**: When aggressive bots fight each other, matches can end in under 100 turns. Just stay alive and let them self-destruct
 - **Enemy pursuit at 120-140 range is manageable**: They can't close the gap if you keep fleeing. Fire every 5 turns and they take consistent damage while you take none
+- **Bad spawn positions are deadly**: Spawning near a wall (y=69 on a 1000x1000 map) severely limits escape routes. The first priority must be reaching a position with 200+ pixels from all walls
+- **Tracking a single enemy leaves blind spots**: Spending too many turns with turret locked on one enemy means other enemies can approach unseen. Must interleave scanning even during active combat
+- **Bullets at 20 damage are lethal**: With bulletDamage=20 (not 10 like earlier matches), every hit costs 20% HP. Can only take 5 hits total. Dodging is even more critical
+- **Running into a second enemy is catastrophic**: After opening distance from one pursuer, ran head-first into another. Always scan in the direction of travel
+- **Flee-then-scan pattern needed**: After breaking contact, immediately scan forward (direction of travel) before continuing. Never assume the path ahead is clear
+- **Zigzagging is not enough at close range**: At 75-100 range, bullets arrive in 4-5 turns. Direction changes every turn help but aren't reliable enough. The goal must be to never let enemies get that close

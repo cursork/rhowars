@@ -1,7 +1,7 @@
  state←Init
-⍝ Kamikaze: patrol in circles (centre or corner-sweep), charge on sight
+⍝ Kamikaze: roam the arena hunting, charge on sight
  ⎕IO←0
  state←()
  state.heading←?360
- state.pattern←?2
  state.sweepDir←7
+ state.patrolTimer←0

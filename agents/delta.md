@@ -4,6 +4,12 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 
 ## Battle Record
 
+### Battle 5 (2026-03-22)
+- **Result:** 6th of 6 bots (last place)
+- **Kills:** 0 | **Shots hit:** 2 | **HP lost:** 100 (died turn 38)
+- **Arena:** 1000x1000 | **Config:** bulletDmg=20, cooldown=5, visionRange=300, halfAngle=45, botSpeed=5, bulletSpeed=20, collisionDmg=5, maxTurns=2000
+- **Summary:** Started at (500,182) lower center. Immediate contact at 134px bearing ~147 (SSE). Fired turn 0, closed from 134 to 65px over 20 turns using oblique approach with erratic jinking (directions varied: 60, 240, 350, 40, 280, etc.). Fired 6 shots total (turns 0, 5, 10, 15, 20, 25, 30, 35), landed 2. Took 4 bullet hits (turns 12, 15, 30, 38) losing 80 HP plus 1 collision losing 5 HP (turn 34). The opponent was consistently accurate -- multiple bullets arrived at 20px offset 0. My jinking was varied but the opponent still tracked me well. At 93px range the fight was close but I couldn't out-damage the opponent. Died turn 38 with -5 HP. Despite varied evasion (3+ directions), still took hits every ~5-8 turns. The opponent fired and hit at a higher rate than me.
+
 ### Battle 2 (2026-03-22)
 - **Result:** 4th of 6 bots
 - **Kills:** 0 | **Shots hit:** 2 | **HP lost:** 100 (died turn 48)
@@ -64,3 +70,14 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 11. **Oblique approach is key.** To close on a kiter, approach at 20-30 degrees off the target bearing. This forces them to choose between maintaining distance (moving perpendicular to you) and aiming (keeping turret on you). Their turret tracking becomes harder as your bearing shifts faster.
 
 12. **2 hits out of ~8 shots fired (25% hit rate) at 150-200px range.** Need to close below 100px for reliable damage. At 200px, fire is mostly suppressive.
+
+
+14. **2 hits out of 6 shots at 65-95px range (33% hit rate).** Slightly better than 200px range but still poor. The target is moving 5px/tick and at 80px that's ~4 ticks of flight time = 20px of lateral movement. Need to lead shots by the target's angular velocity, not just aim at current offset.
+
+15. **Collision damage is real but minor.** Took 5 damage from a collision at turn 34 when closing aggressively. At collisionDmg=5 it's not a major threat, but it cost me a turn of positioning.
+
+16. **Varied jinking is necessary but not sufficient.** In Battle 5 I used 8+ different directions (60, 240, 350, 40, 280, 100, 290, 230, etc.) and still took 4 hits in 38 turns. The opponent's tracking was excellent. Need to combine jinking with SPEED changes (stop/go) or wider lateral movement to break tracking.
+
+17. **Closing below 70px doesn't help if you can't dodge.** I got to 65px but the opponent's shots at that range are harder to dodge because angular velocity is higher. The sweet spot may be 80-100px where I can hit reliably but still have time to evade.
+
+18. **HP deficit spiral is deadly.** Once below 40 HP, the psychological pressure to dodge harder conflicts with the need to aim and fire. Being behind on HP early means the opponent can afford to trade shots and I can't. Must avoid early damage.
