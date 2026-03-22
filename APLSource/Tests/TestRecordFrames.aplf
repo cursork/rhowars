@@ -1,0 +1,22 @@
+ TestRecordFrames dummy;m;rec;names;f
+⍝ Test that Record.Create includes full frame history
+ ⎕IO←0
+ m←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.Kamikaze
+ names←'Spinner' 'Kamikaze'
+ rec←##.Record.Create m names
+ ⍝ Record should have frames
+ Assert 'has frames' (0≠⎕NC'rec.frames')
+ Assert 'frames not empty' (0<≢rec.frames)
+ ⍝ Frame count should match history
+ Assert 'frame count matches' ((≢m.history)=≢rec.frames)
+ ⍝ Each frame should have turn, bots, bullets, thoughts
+ f←⊃rec.frames
+ Assert 'frame has turn' (0≠⎕NC'f.turn')
+ Assert 'frame has bots' (0≠⎕NC'f.bots')
+ Assert 'frame has bullets' (0≠⎕NC'f.bullets')
+ Assert 'frame has thoughts' (0≠⎕NC'f.thoughts')
+ ⍝ Bots in frame should be nested (↓ split for JSON compat)
+ Assert 'bots is nested' (1<≡f.bots)
+ ⍝ Record should have turns and done
+ Assert 'has turns' (0≠⎕NC'rec.turns')
+ Assert 'has done' (rec.done=1)

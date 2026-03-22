@@ -24,17 +24,20 @@
      r←HttpCommand.Do'POST'(base,'/api/match')'{"bots":["Spinner","NonExistent"]}'('content-type' 'application/json')
      Assert 'POST invalid bot → 500' (500=r.HttpStatus)
 
-     ⍝ --- POST /api/match → 201 ---
+     ⍝ --- POST /api/match → 202 (async) ---
      r←HttpCommand.Do'POST'(base,'/api/match')'{"bots":["Spinner","RandomWalker"]}'('content-type' 'application/json')
-     Assert 'POST match → 201' (201=r.HttpStatus)
+     Assert 'POST match → 202' (202=r.HttpStatus)
      body←⎕JSON r.Data
-     Assert 'response has done' (0≠⎕NC'body.done')
-     Assert 'response has names' (0≠⎕NC'body.names')
-     Assert 'response has turn' (0≠⎕NC'body.turn')
-     Assert 'response has hp' (0≠⎕NC'body.hp')
-     Assert 'response has alive' (0≠⎕NC'body.alive')
-     Assert 'match is done' (1=body.done)
-     Assert '2 names' (2=≢body.names)
+     Assert 'response has id' (0≠⎕NC'body.id')
+     Assert 'response has status' ('running'≡body.status)
+     ⍝ Wait for match to complete
+     :For i :In ⍳50
+         ⎕DL 0.2
+         r←HttpCommand.Get base,'/api/match/',⍕body.id,'/history'
+         :If 200=r.HttpStatus
+             :If 1=(⎕JSON r.Data).done ⋄ :Leave ⋄ :EndIf
+         :EndIf
+     :EndFor
 
      ⍝ --- GET /api/match → 200 ---
      r←HttpCommand.Get base,'/api/match'
@@ -60,9 +63,17 @@
 
      ⍝ --- POST /api/match with 3 bots ---
      r←HttpCommand.Do'POST'(base,'/api/match')'{"bots":["Spinner","RandomWalker","Spinner"]}'('content-type' 'application/json')
-     Assert 'POST 3 bots → 201' (201=r.HttpStatus)
+     Assert 'POST 3 bots → 202' (202=r.HttpStatus)
      body←⎕JSON r.Data
-     Assert '3 names' (3=≢body.names)
+     Assert '3 bot match has id' (0≠⎕NC'body.id')
+     ⍝ Wait for it to complete
+     :For i :In ⍳50
+         ⎕DL 0.2
+         r←HttpCommand.Get base,'/api/match/',⍕body.id,'/history'
+         :If 200=r.HttpStatus
+             :If 1=(⎕JSON r.Data).done ⋄ :Leave ⋄ :EndIf
+         :EndIf
+     :EndFor
 
      ⍝ ========== Bot CRUD tests ==========
      nl←⎕UCS 10
@@ -111,9 +122,16 @@
      ⍝ --- POST /api/match with user bot → 201 ---
      payload←⎕JSON(bots: 'Spinner' 'testuser/TestBot')
      r←HttpCommand.Do'POST'(base,'/api/match')payload('content-type' 'application/json')
-     Assert 'POST match with user bot → 201' (201=r.HttpStatus)
+     Assert 'POST match with user bot → 202' (202=r.HttpStatus)
      body←⎕JSON r.Data
-     Assert 'match done' (1=body.done)
+     ⍝ Wait for completion
+     :For i :In ⍳50
+         ⎕DL 0.2
+         r←HttpCommand.Get base,'/api/match/',⍕body.id,'/history'
+         :If 200=r.HttpStatus
+             :If 1=(⎕JSON r.Data).done ⋄ :Leave ⋄ :EndIf
+         :EndIf
+     :EndFor
 
      ⍝ --- DELETE /api/bots/testuser/TestBot → 200 ---
      r←HttpCommand.Do'DELETE'(base,'/api/bots/testuser/TestBot')'' ''
@@ -132,8 +150,8 @@
 
      ⍝ ========== Record endpoint tests ==========
 
-     ⍝ --- GET /api/match/record → 200 ---
-     r←HttpCommand.Get base,'/api/match/record'
+     ⍝ --- GET /api/match/{id}/record → 200 ---
+     r←HttpCommand.Get base,'/api/match/1/record'
      Assert 'GET record → 200' (200=r.HttpStatus)
      body←⎕JSON r.Data
      Assert 'record has version' (0≠⎕NC'body.version')
@@ -141,6 +159,9 @@
      Assert 'record has bots' (0≠⎕NC'body.bots')
      Assert 'record has config' (0≠⎕NC'body.config')
      Assert 'record has dyalog' (0≠⎕NC'body.dyalog')
+     Assert 'record has frames' (0≠⎕NC'body.frames')
+     Assert 'record has turns' (0≠⎕NC'body.turns')
+     Assert 'record frames not empty' (0<≢body.frames)
 
      ⍝ --- POST /api/match/replay → 201 ---
      r←HttpCommand.Do'POST'(base,'/api/match/replay')r.Data('content-type' 'application/json')

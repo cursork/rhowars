@@ -36,3 +36,4 @@
  match.thoughts←N⍴⊂''
  match.thoughtAges←N⍴0
  match.hitLog←⍬
+ match.tokenBase←⍎⊃¯8↑⍕⎕AI

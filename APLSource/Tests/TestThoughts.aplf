@@ -1,0 +1,12 @@
+ TestThoughts dummy;m;frame
+⍝ Test that thoughts are recorded in match history
+ ⎕IO←0
+ m←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.Kamikaze
+ ⍝ History frames should have thoughts field
+ frame←⊃m.history
+ Assert 'frame has thoughts' (0≠⎕NC'frame.thoughts')
+ Assert 'thoughts length = bot count' ((≢m.bots)=≢frame.thoughts)
+ ⍝ Check later frames where bots have had time to set thoughts
+ frame←(10⌊≢m.history)⊃m.history
+ Assert 'later frame has thoughts' (0≠⎕NC'frame.thoughts')
+ Assert 'later thoughts length' ((≢m.bots)=≢frame.thoughts)

@@ -1,0 +1,14 @@
+ TestThoughtPersist dummy;m;i;t;found
+⍝ Test that built-in bots emit thoughts
+ ⎕IO←0
+ m←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.Spinner
+ Assert 'history not empty' (0<≢m.history)
+ ⍝ Search first 20 frames for any non-empty thought
+ found←0
+ :For i :In ⍳100⌊≢m.history
+     t←(i⊃m.history).thoughts
+     :If ∨/{0<≢⍕⍵}¨t
+         found←1
+     :EndIf
+ :EndFor
+ Assert 'bots emit thoughts' (found≡1)

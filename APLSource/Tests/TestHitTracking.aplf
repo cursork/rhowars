@@ -1,0 +1,12 @@
+ TestHitTracking dummy;m
+⍝ Test that hit events are recorded in the match hitLog
+ ⎕IO←0
+ m←##.Engine.Run ##.Rhobots.Spinner ##.Rhobots.Kamikaze
+ ⍝ Match should have hitLog
+ Assert 'has hitLog' (0≠⎕NC'm.hitLog')
+ ⍝ In a Spinner vs Kamikaze match, there should be hits
+ Assert 'hitLog not empty' (0<≢m.hitLog)
+ ⍝ Each hit event is a 3-element vector: (shooter target damage)
+ Assert 'hit event has 3 elements' (3=≢⊃m.hitLog)
+ ⍝ Damage should equal bullet damage config
+ Assert 'hit damage = config' (##.Cfg.BULLET_DAMAGE=2⊃⊃m.hitLog)

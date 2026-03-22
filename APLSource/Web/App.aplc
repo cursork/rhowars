@@ -23,6 +23,7 @@
       matches←⍬
       nextMatchId←1
       remotes←⍬
+      LoadSavedMatches
       nextSlot←0
       router←⎕NEW StarkClass
       router.Handlers←⎕THIS
@@ -343,9 +344,9 @@
       ⎕IO←0
       (botns rec matchRemotes)←args
       :Trap 0
-          ⍝ Inline Engine.Run so rec.match is live during execution
+          ⍝ Inline Engine.Run for live viewing (rec.match set before loop)
           seed←?2147483646
-          ⎕RL←seed
+          game.Engine.⎕RL←seed
           :For i :In ⍳≢botns
               (i⊃botns).⎕RL←seed
           :EndFor
@@ -486,6 +487,67 @@
       :Else
           (⊂'SaveMatch error: ',⎕DMX.Message,' at ',⊃⎕DMX.DM)⎕NPUT 'matches/error.txt' 1
       :EndTrap
+    ∇
+
+    ∇ {r}←LoadSavedMatches;files;f;json;data;rec;match;frame;i
+      :Access Private
+      ⎕IO←0
+      r←⍬
+      :Trap 0
+          files←⊃0 ⎕NINFO⍠1⊢'matches/match-*.json'
+      :Else
+          :Return
+      :EndTrap
+      :If 0=≢files ⋄ :Return ⋄ :EndIf
+      :For f :In files
+          :Trap 0
+              json←∊⊃⎕NGET f 1
+              data←⎕JSON json
+              ⍝ Reconstruct match namespace from saved data
+              match←⎕NS⍬
+              match.turn←data.turns
+              match.done←data.done
+              match.names←{⍵.name}¨data.bots
+              match.seed←data.seed
+              ⍝ Final bot state from last frame (or finalBots if present)
+              :If 0≠⎕NC'data.finalBots'
+                  match.bots←↑data.finalBots
+              :ElseIf 0<≢data.frames
+                  match.bots←↑(⊃⌽data.frames).bots
+              :Else
+                  match.bots←0 8⍴0
+              :EndIf
+              match.bullets←0 5⍴0
+              match.hitLog←⍬
+              match.thoughts←(≢data.bots)⍴⊂''
+              match.thoughtAges←(≢data.bots)⍴0
+              match.tokenBase←0
+              ⍝ Reconstruct history frames
+              match.history←⍬
+              :If 0≠⎕NC'data.frames'
+                  :For i :In ⍳≢data.frames
+                      frame←⎕NS⍬
+                      frame.turn←(i⊃data.frames).turn
+                      frame.bots←↑(i⊃data.frames).bots
+                      frame.bullets←{0=≢⍵:0 5⍴0 ⋄ ↑⍵}(i⊃data.frames).bullets
+                      frame.thoughts←{6::⍬ ⋄ ⍵.thoughts}i⊃data.frames
+                      match.history,←⊂frame
+                  :EndFor
+              :EndIf
+              ⍝ Create match record
+              rec←⎕NS⍬
+              rec.id←data.id
+              rec.names←{⍵.name}¨data.bots
+              rec.match←match
+              rec.done←1
+              matches,←rec
+              :If rec.id≥nextMatchId
+                  nextMatchId←rec.id+1
+              :EndIf
+          :Else
+              ⍝ Skip corrupt files
+          :EndTrap
+      :EndFor
     ∇
 
     ∇ result←ListMatches req

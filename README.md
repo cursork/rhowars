@@ -160,3 +160,4 @@ the web UI config panel. Changes persist until the server is restarted.
 | Collision damage | 5 |
 | Collision bounce | 1.5× |
 | Max turns        | 2000 |
+| Thought persist  | 50 turns |

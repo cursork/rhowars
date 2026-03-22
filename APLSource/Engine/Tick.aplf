@@ -25,7 +25,8 @@
  :EndFor
  ⍝ Launch all Ticks on threads, collect via token pool
  match.actions←actions
- match.collectToken←8888+match.turn
+ match.tokenBase←match.tokenBase+100
+ match.collectToken←match.tokenBase+match.turn
  :For idx :In order
      {⎕IO←0 ⋄ (m idx input ns)←⍵ ⋄ m.actions[idx]←⊂ns ##.Bot.CallTick input ⋄ ⎕TPUT m.collectToken}&(match idx(idx⊃inputs)(idx⊃match.botns))
  :EndFor
