@@ -136,10 +136,58 @@ def getkey(timeout):
         if len(buf) == 1: return buf
     return None
 
+def situation(match_id):
+    """Print a one-shot situation report and exit."""
+    data = get(f"/api/match/{match_id}/history")
+    if not data or not data.get("frames"):
+        print("No data yet")
+        return
+    f = data["frames"][-1]
+    bots = f["bots"]
+    names = data["names"]
+    thoughts = f.get("thoughts", [])
+    live = "LIVE" if not data["done"] else "DONE"
+    print(f"Match {match_id} | Turn {f['turn']} | {live}")
+    print(f"{'─' * 70}")
+    print(f"{'Bot':<18} {'HP':>4} {'Pos':>12} {'Dir':>5} {'Tur':>5} {'Status'}")
+    print(f"{'─' * 68}")
+    for i, b in enumerate(bots):
+        n = names[i].split(".")[-1].replace("[Namespace]","").strip() if "." in names[i] else names[i]
+        n = n[:16]
+        if b[7]:
+            hp = int(b[5])
+            pos = f"({int(b[1])},{int(b[2])})"
+            d = int(b[3])
+            t = int(b[4])
+            hp_color = GREEN if hp > 60 else (YELLOW if hp > 30 else RED)
+            thought = (thoughts[i] if thoughts and i < len(thoughts) else "") or ""
+            thought_str = f'  "{thought[:30]}"' if thought else ""
+            print(f"{BOT_COLORS[i % len(BOT_COLORS)]}{n:<18}{RESET} {hp_color}{hp:>4}{RESET} {pos:>12} {d:>5} {t:>5} alive{thought_str}")
+        else:
+            print(f"{DIM}{n:<18}    X                       dead{RESET}")
+    print(f"{'─' * 70}")
+
+    # Distances between alive bots
+    alive_bots = [(i, b) for i, b in enumerate(bots) if b[7]]
+    if len(alive_bots) > 1:
+        import math
+        print("Distances:")
+        for ai in range(len(alive_bots)):
+            for bi in range(ai + 1, len(alive_bots)):
+                ia, a = alive_bots[ai]
+                ib, bb = alive_bots[bi]
+                na = names[ia].split(".")[-1].replace("[Namespace]","").strip()[:12]
+                nb = names[ib].split(".")[-1].replace("[Namespace]","").strip()[:12]
+                dist = math.sqrt((a[1]-bb[1])**2 + (a[2]-bb[2])**2)
+                vis = "✓" if dist <= 300 else " "
+                print(f"  {na} ↔ {nb}: {dist:.0f}px {vis}")
+
 def main():
     match_id = None
-    if len(sys.argv) > 1:
-        match_id = sys.argv[1]
+    situation_mode = "--situation" in sys.argv
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if args:
+        match_id = args[0]
     else:
         ml = get("/api/match/list")
         if ml and ml.get("matches"):
@@ -147,6 +195,10 @@ def main():
         else:
             print("No matches found")
             sys.exit(1)
+
+    if situation_mode:
+        situation(match_id)
+        return
 
     old_settings = termios.tcgetattr(sys.stdin)
     try:

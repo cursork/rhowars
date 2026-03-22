@@ -495,5 +495,48 @@ I am Tau, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 - Charge-3-dodge-1 approach: 177 turns with zero damage = perfectly safe.
 - Against mobile enemies: orbit at turret-108 with periodic direct charges to reset distance.
 - Against stationary enemies: orbit at turret-112 for perfectly stable orbit.
-- **Current win rate: 3 wins out of 13 completed battles (23%), but 2 consecutive wins with perfect games.**
-- **Current record: 2 consecutive perfect games (zero damage).**
+- **Current win rate: 3 wins out of 14 completed battles (21%).**
+- **Previous record: 2 consecutive perfect games (zero damage), broken in Battle 15.**
+
+### Battle 15 — 2026-03-22
+- **Match type:** 6-bot FFA (I was slot 11)
+- **Result:** 3rd place (rank 3 of 6)
+- **Death turn:** 239 of 2000
+- **Final HP:** 0
+- **Damage taken:** 100 (5 hits of 20 each)
+  - Turn 12: HP 100->80 (bullet hit during close-range orbit widening at 35px)
+  - Turn 22: HP 80->60 (bullet hit during orbit widening at ~35px)
+  - Turn 46: HP 60->40 (dead-on bullet at 102px while disengaging from mobile enemy)
+  - Turn 56: HP 40->20 (bullet at 25px hit despite dodge attempt)
+  - Turn 239: HP 20->0 (killed during approach to second enemy at ~110px)
+- **Shots fired:** ~40+ (fired every cooldown throughout)
+- **Shots hit:** 9
+- **Kills:** 2
+- **Config:** bulletDamage=20, botSpeed=5, bulletSpeed=20, cooldown=5, visionRange=300, visionHalfAngle=45, maxTurns=2000, collisionBounce=1.5, collisionDamage=5
+- **Starting position:** (709, 105) — bottom-right area
+- **Opponents:** Coward (1st, 100HP), Orbiter (2nd, 80HP), Remote[11]/Tau (3rd, 0HP), RandomWalker (4th, 0HP), Remote[10] (5th, 0HP), CowardHunter (6th, 0HP)
+- **Phases:**
+  - **Phase 1 (turns 0-9): Approach Enemy 1.** Spotted rhobot at 128px immediately. Closed from 128 to 40px at 10px/turn using charge-3-dodge-1. Stationary target confirmed.
+  - **Phase 2 (turns 10-44): Problematic close-range orbit.** Entered orbit at 40px — TOO CLOSE. Tried to widen using turret-120, turret-130, turret-140, turret-150 but distance stayed at 32-35px. Took 2 hits (turns 12, 22). Eventually widened to 60px by turn 27 using turret-112 orbit. Then orbit kept widening against this MOBILE enemy (not stationary as initially thought). Distance grew from 60 to 135px despite turret-105, turret-100 attempts. Charged directly but closing rate was 0 — enemy matched speed exactly. Disengaged at turn 44.
+  - **Phase 3 (turns 44-49): Disengage and head to center.** Took 3rd hit at turn 46 from dead-on bullet while fleeing. Lost enemy visual at turn 49.
+  - **Phase 4 (turns 50-87): Engaged Enemy 2 (Spinner).** Found new enemy at 109px at turret 315 (NW). Confirmed stationary (5px/turn closing). Charged using charge-3-dodge-1. Entered orbit at 86px. 4th hit at turn 56 from bullet at 25px during approach. Orbited at 88-163px using turret-112 but orbit kept slowly widening. Lost visual at turn 88 when distance exceeded 300px.
+  - **Phase 5 (turns 88-203): MASSIVE search phase (116 turns).** Scanned all 8 compass directions while heading north, chasing bullet streams. The bullet streams I followed turned out to be MY OWN bullets heading north. Scanned every direction from center (557, 500) with no enemies visible. Wasted enormous time.
+  - **Phase 6 (turns 204-239): Approach and death.** Found rhobot at 278px at turret 336 (NNW) while heading NE past center. Closed from 278 to ~110px using charge-3-dodge-1 at ~5px/turn. Killed at turn 239 during approach.
+- **Key failures:**
+  - **Entered orbit too close (40px).** Should have started widening BEFORE reaching 50px. At 40px the orbit is unstable and collision risk is high.
+  - **Misidentified first enemy as stationary.** Closing rate of 10px/turn at 128px was because I was heading roughly toward it already, not because it was stationary. It was actually mobile (matching speed at 115px).
+  - **116-turn search phase chasing own bullets.** The bullets at offset ~0 heading north were my own outgoing bullets, not enemy Spinner bullets. Wasted over 100 turns heading north toward nothing.
+  - **Orbits kept widening against all enemies.** turret-112 only works against truly stationary enemies. Against mobile enemies, the orbit always widens at 2-5px/turn regardless of turret angle.
+- **Key learnings:**
+  - **Distinguish OWN bullets from enemy bullets.** Own bullets appear at distance 20, offset 0 immediately after firing. They head AWAY from you (increasing distance). Enemy bullets head TOWARD you (decreasing distance). If a bullet at 200px has offset 0 and is heading AWAY, it's YOURS.
+  - **At turn 0, closing rate tells you nothing about stationarity.** The 10px/turn closing could be from your heading already pointing at the enemy. Wait until turn 5+ and measure closing rate while charging DIRECTLY at the enemy to confirm stationary.
+  - **Coward won with 100HP, Orbiter 2nd with 80HP.** In FFA, survival wins. Coward took zero damage. Orbiter only took 20 damage. My 5 hits of 20 = 100 damage was too much.
+  - **Don't orbit at 30-40px.** Always widen to 60px BEFORE entering stable orbit. Use turret-130 or turret-140 to widen aggressively from 40px to 60px before switching to turret-112.
+
+### Meta (Battle 15)
+- Broke the 2-game perfect game streak. The mobile enemy at close range was the critical failure point.
+- The search phase problem continues to dominate. 116/239 turns (49%) spent searching.
+- Against mobile enemies, chasing is futile at equal speed. Must find a way to close or disengage immediately.
+- **New rule: If closing rate is 0 after 3 charge turns, immediately disengage and find an easier target.**
+- **New rule: NEVER enter orbit below 55px. Always widen to 60px before entering turret-112 orbit.**
+- **New rule: Verify bullets are enemy bullets (decreasing distance) before following them as bullet streams.**

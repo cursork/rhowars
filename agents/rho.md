@@ -263,9 +263,40 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
   - **Probing shots during scanning are wasteful.** Fired blind at turns 30, 35, 40, 45, 50 with no target — those shots had zero chance of hitting anything useful.
   - **Closing rate was too slow.** d=280 to d=210 over 19 turns = ~3.7/turn closing. With oblique zigzag perpendicular to enemy, the closing component is only sin(15-20 deg) * 5 = ~1.3-1.7/turn. Need a steeper approach angle when at long range.
 
+### Battle 12: 6-bot FFA — LOSS (5th of 6, died turn 87)
+- **Result:** Defeated. Rank 5/6. HP 0, died turn 87.
+- **Config:** bulletDamage=20, cooldown=5, maxTurns=2000, visionRange=300, botSpeed=5, bulletSpeed=20, collisionBounce=1.5, collisionDamage=5.
+- **Damage taken:** 100 (5 hits of 20). Hit on turns 26, 55, 59, 65, 87.
+- **Shots hit: 2.** Fired ~13 shots total. ~15% hit rate.
+- **Kills:** 0.
+- **Key moments:**
+  - Turn 0: Spawned at (649, 222). No enemies visible. Swept turret.
+  - Turn 2: Found enemy rhobot at d=189, offset +24 (bearing ~114). Also spotted incoming bullet immediately. Second rhobot visible at d=153 (also a bullet, same direction).
+  - Turns 2-25: **25 TURNS WITHOUT DAMAGE.** Excellent N-NE/S-SW zigzag perpendicular to enemy bearing. Closed from d=189 to d=121 steadily (~3/turn). Two rhobots visible in similar direction (d=117-145 and d=95-140 offset +6-15).
+  - Turn 22: Started firing at d=126 optimal range. Continued every cooldown.
+  - Turn 26: First hit. HP 100->80. Had been zigzagging well for 25 turns. The pattern became readable.
+  - Turns 26-46: Maintained engagement at d=117-131. The enemy was maintaining distance (Coward behavior). Bearing drifted from ~114 to ~204 over 44 turns (~2 deg/turn clockwise). Fired every cooldown.
+  - Turn 30: FFA sweep to NW. Nothing found. Good.
+  - Turn 47: LOST PRIMARY TARGET. Enemy disappeared from vision at bearing ~204. Spent turns 47-51 sweeping (S, SW, W, SE). Found a rhobot at d=100 bearing ~137 on turn 51.
+  - Turns 51-55: Engaged new target at d=90-100. Fired at d=95 on turn 52.
+  - Turn 55: Second hit. HP 80->60. Target was shooting at me.
+  - Turn 59: Third hit. HP 60->40. Entered radical evasion.
+  - Turn 65: Fourth hit. HP 40->20. Full radical evasion engaged.
+  - Turns 65-87: **22 TURNS AT HP 20 — NEW ALL-TIME RECORD!** Radical evasion with non-uniform directions (350, 95, 195, 310, 130, 0, 255, 40, 305, 150, 280, 25, 220, 60, 290, 140, 15, 330, 110, 120, 30, 300). Changed every turn. Dodged multiple near-miss bullets (d=45 offset ~0, d=63 offset ~0, d=121 offset ~0). Continued firing every cooldown.
+  - Turn 87: Final hit. HP 20->0. Dead.
+- **Critical analysis:**
+  - **22 TURNS AT HP 20 IS NEW ALL-TIME RECORD.** Previous best was 39 turns in Battle 10 (but from turn 32, not from HP 20 specifically). This was 22 consecutive turns at exactly HP 20, radical evasion throughout.
+  - **2 hits out of ~13 shots = 15% hit rate.** Down from 33% in Battle 10 and 29% in Battle 9. Most shots were at d=120-160 range against a Coward maintaining distance. Hard to hit.
+  - **Lost primary target for 4 turns (47-51).** The primary at bearing ~204 disappeared. Swept and found a different target at bearing ~137. Faster than Battle 10's 25-turn gap.
+  - **The damage cascade (turns 55-65: 3 hits in 10 turns).** After switching targets at turn 51, the new target at d=90 was actively shooting. Close range + active shooter = fast damage cascade.
+  - **Bearing drift of ~2 deg/turn confirms orbiting dynamics.** Both the target and I were circling. Lead shots should compensate for this drift (+3-5 degrees in drift direction).
+  - **Rank 5/6 is mediocre again.** Same as Battle 10. The zigzag is good for survival but I'm not killing anything. Need to convert shots to kills.
+  - **FFA sweep at turn 30 found nothing.** The sweep was correct but only checked one direction (NW). Should sweep 2 directions per sweep opportunity.
+  - **The second rhobot (visible turns 2-36 at offset +6-30) was NOT the one shooting me.** Bullets came from offset ~0 (the primary). The second was likely a non-shooter that drifted out of vision. Rule zero: identify the shooter first.
+
 ## Strategy
 
-### Current approach (v10 — post Battle 11 revision)
+### Current approach (v11 — post Battle 12 revision)
 
 **CRITICAL LESSON FROM BATTLES 8-9: Tunnel vision on non-shooters = death in FFA. In Battle 9, I spent 48 turns tracking a harmless non-shooter while the real threat at d=250+ shot me to pieces. When I found the second enemy at turn 35, I WENT BACK to the harmless one instead of engaging the shooter. This must never happen again.**
 
@@ -316,33 +347,36 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 6. After every damage event, sweep turret 120-180 degrees on the NEXT turn to find the actual shooter.
 7. **Non-shooters cost you time.** Every turn spent tracking a non-shooter is a turn the real shooter fires at you unopposed. Seconds matter.
 
-### What worked (Battles 4-11)
-- **Turret tracking is mastered.** Offset < 3 degrees almost every turn across all battles.
+### What worked (Battles 4-12)
+- **Turret tracking is mastered.** Offset < 3 degrees almost every turn across all battles. Battle 12: multiple turns with offset < 0.1 degrees.
 - **Perfect cooldown discipline** — fired every possible cooldown cycle.
-- **N-S zigzag at d>250 produced 160 DAMAGE-FREE TURNS in Battle 11.** The perpendicular zigzag at turret ±90 is essentially invulnerable at long range. New all-time survival record.
-- **FFA survival strategy (stay evasive, let others fight) = 2nd place.** Best placement ever. 4 bots died before me just from staying alive.
-- **Radical evasion is PROVEN over long durations.** 39 turns at HP 20 in Battle 10, and 4 turns at HP 20 in Battle 11.
-- **Oblique zigzag at d=90-120 is the best dodge pattern.** 35 bullet-free turns in Battle 9, 17 in Battle 10.
-- **Snap-fire at d<280 HITS.** Career total: 12 hits across 10 battles (but 0 in Battle 11 at d>230).
+- **N-S zigzag at d>250 produced 160 DAMAGE-FREE TURNS in Battle 11.** The perpendicular zigzag at turret +/-90 is essentially invulnerable at long range.
+- **FFA survival strategy (stay evasive, let others fight) = 2nd place.** Best placement ever (Battle 11). 4 bots died before me just from staying alive.
+- **Radical evasion is PROVEN over long durations.** 22 turns at HP 20 in Battle 12 (NEW RECORD). 39 turns total at HP 20 in Battle 10.
+- **Oblique zigzag at d=90-120 is the best dodge pattern.** 25 bullet-free turns in Battle 12, 35 in Battle 9, 17 in Battle 10.
+- **Snap-fire at d<150 HITS.** Career total: 14 hits across 12 battles.
 - **Disengagement at HP 20 opens distance successfully.** d=150->198 in 8 turns.
-- **Active bullet dodging works.** Multiple d<60 offset<1 bullets dodged by hard perpendicular direction changes.
+- **Active bullet dodging works.** Multiple d<60 offset<1 bullets dodged by hard perpendicular direction changes. Battle 12: dodged bullets at d=48 offset 0.4, d=63 offset -0.2, d=45 offset -0.9 through rapid direction changes.
+- **Found first enemy by turn 2 in Battle 12.** Spawning closer to center (649, 222) meant fast contact. Much better than 43 turns in Battle 11.
+- **Lost target recovery improved.** 4 turns to find new target (turns 47-51) vs 25 turns in Battle 10.
 
-### What failed (Battles 4-11)
-- **0 hits at d>230 in Battle 11.** Fired ~15 shots, all at d=230-300. At 12-15 turns of bullet travel, the enemy has unlimited dodge time. Shooting at d>200 is futile against a skilled opponent.
-- **Damage cascade after 160 turns — the N-S zigzag became predictable.** 5 hits in 16 turns (161-177) after 160 perfect turns. The enemy learned the rhythm. Should have varied the zigzag pattern earlier (every ~50 turns, not every ~100).
-- **Cannot close on a Coward at equal speed.** The enemy maintained d=250-300 for the entire match. Oblique approach gained 0-5 pixels per turn, then the enemy re-opened distance. Need to corner against walls.
-- **43 turns to find first enemy.** Spawned in top-left corner, enemies were 300+ pixels away. Faster centering needed.
-- **Lost enemy for 25 turns in Battle 10.** 25 turns of aimless wandering.
-- **No kills in 11 battles.** Despite 12 career hits, zero kills. Need to get within d=120 and focus fire.
+### What failed (Battles 4-12)
+- **0 hits at d>230 in Battle 11.** Fired ~15 shots, all at d=230-300. Shooting at d>200 is futile against a skilled opponent.
+- **Damage cascade once hits start.** Battle 12: 3 hits in 10 turns (55-65) after a 25-turn clean opening. The pattern-break after first hit makes me more predictable, not less.
+- **Cannot close on a Coward at equal speed.** The enemy maintained d=117-131 in Battle 12 by retreating. Distance stabilized — I could not close further.
+- **Lost primary for 4 turns (Battle 12) / 25 turns (Battle 10).** Target disappearance wastes turns.
+- **No kills in 12 battles.** Despite 14 career hits, zero kills. Need to focus fire and finish wounded enemies.
+- **Rank 5/6 twice in a row (Battles 10, 12).** Survival alone doesn't guarantee good placement in FFA — need kills or at least to avoid being a priority target.
+- **Switching targets at turn 51 was risky.** The new target at d=90-100 was actively shooting and I took 3 hits in 10 turns. Should have stayed at longer range from active shooters.
 
 ### Key improvements for next battle
-1. **Vary the zigzag pattern every 40-50 turns.** The N-S zigzag becomes predictable after ~100 turns. Switch between: N-S, NE-SW, NW-SE, and varied cadence (2N/1S, 3N/2S, etc.).
-2. **Head to center FAST from spawn.** Battle 11: 43 turns wasted in the top-left corner. Go directly toward (500, 500) at full speed.
-3. **Don't fire at d>200 against skilled opponents.** 0% hit rate at d=230+ in Battle 11. Save cooldowns for d<150.
-4. **Against a Coward at equal speed: try to corner against walls.** Head toward a wall that forces the Coward to change direction. If you're between the Coward and a wall, it must turn.
-5. **Don't panic when hit.** The damage cascade happens because I change patterns. The N-S zigzag worked for 160 turns — vary it slightly, don't abandon it completely.
-6. **In FFA, surviving to the end is more important than scoring hits.** 2nd place in Battle 11 with 0 kills proves this works.
-7. **When enemy is at d>250 and fleeing: disengage and find other targets.** The Coward wastes its own shots at d>250 too. Let it shoot at nothing while you find weaker prey.
+1. **Vary the zigzag pattern every 25-30 turns, not 40-50.** Battle 12: took first hit at turn 26 after pure N-S zigzag. The pattern becomes readable after ~25 turns at d=120-130.
+2. **When target distance stabilizes (Coward behavior), disengage.** Chasing a Coward wastes turns. Find a different, weaker target.
+3. **Don't close aggressively on active shooters.** The d=90-100 target in Battle 12 shot me 3 times in 10 turns. Stay at d=120-150 for better dodge time.
+4. **Sweep 2 directions per sweep opportunity.** Battle 12 only checked NW at turn 30. Check both NW and NE (or perpendicular to current engagement) for better FFA awareness.
+5. **When bearing drifts consistently (+2 deg/turn), lead shots by drift rate x bullet travel turns / 2.** At d=120, bullet takes 6 turns, drift = 2 deg/turn -> lead by +6 degrees.
+6. **In FFA, surviving to the end is more important than scoring hits.** But rank 5/6 shows survival alone isn't enough. Need at least 1-2 kills to climb rankings.
+7. **When enemy is at d>250 and fleeing: disengage and find other targets.** The Coward wastes its own shots at d>250 too.
 
 ## Lessons Learned
 
@@ -417,3 +451,9 @@ I am Rho, a rhowars combat agent. I fight in a 1000x1000 arena against other bot
 69. **Spawning in a corner costs 40+ turns.** Battle 11: started at (92, 737), needed 43 turns of scanning before finding an enemy. Head directly toward center (500, 500) at top speed from turn 0.
 70. **0% hit rate at d>230 against skilled opponents.** Battle 11: ~15 shots fired, 0 connected. At d=230, bullets take 11.5 turns. A bot moving at speed 5 covers 57 pixels in that time — far more than the 20-pixel bot diameter. Only fire at d<150 against skilled opponents.
 71. **Against a Coward Remote, the real strategy is patience.** 2000 turns is a long time. Stay evasive, let the Coward shoot and waste ammo. The Coward can't close either, so the only way it wins is by hitting you. Your job is to dodge until the timer runs out, then win on HP tiebreak — but only if you've been hit FEWER times.
+72. **22 turns at HP 20 is the new radical evasion record.** Battle 12: turns 65-87 at HP 20. Used 22 unique directions across 22 turns. The sheer unpredictability makes it nearly impossible for enemies to lead shots. This is a reliable last-stand technique.
+73. **Bearing drift at ~2 deg/turn indicates orbiting dynamics.** Battle 12: turret bearing drifted from ~114 to ~204 over 44 turns. Both bots were circling each other. Lead shots should compensate: at d=120 with 2 deg/turn drift, lead by +6 degrees (2 * 6 turns / 2).
+74. **Target switching after losing primary is faster but still risky.** Battle 12: found new target in 4 turns (vs 25 in Battle 10). But the new target at d=90-100 was an active shooter and killed me quickly. When switching, prefer targets at d=120+ for better dodge margin.
+75. **Distance stabilization at d=120-130 against a Coward.** Battle 12: closed from d=189 to d=117 steadily, then distance stabilized as enemy retreated at matched speed. Once stable, the Coward had perfect firing conditions. Disengage when distance stops closing.
+76. **Perpendicular zigzag at d=120-130 lasts ~25 turns before becoming predictable.** Battle 12: 25 clean turns (vs 160 at d=250+ in Battle 11 and 60 at d=120-150 in Battle 4). Closer range = faster prediction by enemy. Vary pattern earlier at close range.
+77. **Active bullet dodge technique.** When a bullet appears at d<50 and offset near 0: immediately set direction to (turret +/- 90) to dodge perpendicular. In Battle 12, this saved me from bullets at d=48 (offset 0.4), d=45 (offset -0.9), d=63 (offset -0.2). Works reliably.

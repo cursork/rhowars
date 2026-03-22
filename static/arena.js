@@ -141,13 +141,13 @@ document.getElementById('btnStartMatch').onclick = async () => {
     }
     const matchResult = await matchResp.json();
     currentMatchId = matchResult.id;
-    // Poll until match has history data (non-Remote matches complete in ms)
+    // Poll until match is done (timeout 10s for normal matches)
     let histData;
-    for (let attempt = 0; attempt < 100; attempt++) {
+    for (let attempt = 0; attempt < 50; attempt++) {
       const resp = await fetch(`${API}/api/match/${currentMatchId}/history`);
       if (resp.ok) {
         histData = await resp.json();
-        if (histData.frames && histData.frames.length > 0) break;
+        if (histData.done) break;
       }
       await new Promise(r => setTimeout(r, 200));
     }
