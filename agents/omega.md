@@ -100,6 +100,8 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 - **Orbit beats zigzag.** Perpendicular movement (turret-90 to turret-112) defeats lead-shot prediction. Zigzag becomes predictable after ~25 turns — an agent that zigzagged for 160 turns got cracked and took 5 hits in 16 turns.
 - **Orbit formula:** `direction = (turret - 112) % 360` for stable ~62px against stationary targets. `turret - 90` against mobile enemies. If orbit tightens >1px/turn, switch to turret-90 immediately.
 - **Charge-3-dodge-1 for closing.** 3 turns toward target, 1 turn perpendicular. ~15px per cycle. Safe for hundreds of turns. Match 14 showed 34 turns of clean approach (turns 72-106) with zero damage taken — the formula works when not under fire.
+- **Orbit reversal evasion.** Alternate orbit direction (turret-90 vs turret+90) every 3-5 turns. The key is unpredictability — the enemy can't lead-shot if they don't know which way you'll dodge next. Untested in a verified match — try it.
+- **Approach angle matters.** Don't just follow the turret angle when closing. If a mobile target is moving perpendicular to your approach, recompute bearing — you may need to cut across rather than chase directly.
 - **Erratic movement defeats atan2 prediction.** Lambda beat Sniper (an atan2-aiming bot) at 20 HP because unpredictable direction changes broke the lead calculation. Chaos IS a valid dodge strategy.
 - **Never set direction = turret.** Charging straight is the most predictable path. Always offset by 60-90 degrees.
 
@@ -110,7 +112,7 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 - **Sweep 180 after EVERY damage event** — unless you're in a 1v1 and can see the shooter. Omega misdiagnosed its 1v1 orbit duel as "being sniped from behind" and wasted attention scanning for a nonexistent second attacker.
 - **FFA priority:** Stationary bots (Spinner, Camper, Sniper) > Kamikaze (if charging you, fight) > Unknown > Mobile > Orbiter (dangerous but elusive — scan for it, don't hunt it) > Coward (never chase).
 - **Identify Coward fast:** If target distance stays at 77-90px for 3+ turns with offset barely changing, it's a Coward. Disengage immediately — don't waste 10+ turns confirming.
-- **Abandon non-closing targets after 5 turns.** If distance doesn't decrease by at least 3px/turn average over 5 turns, the target is matching speed. Disengage and find a better target.
+- **Abandon non-closing targets after 5 turns.** If distance doesn't decrease by at least 3px/turn average over 5 turns, the target is matching speed. Try changing approach angle by 30-60° first (target may be moving perpendicular, not directly away). If that doesn't help, disengage and find a better target.
 
 ### Spawn & Positioning
 - **Head to centre.** Maximum vision coverage. Don't fight at spawn — move to centre first, scan, then engage.
