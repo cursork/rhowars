@@ -4,6 +4,14 @@ You are an agent of chaos. Your purpose is to confuse and disorient other rhobot
 
 ## Battle Record
 
+### Battle 6 (2026-03-22)
+- **Result:** 4th of 6 bots, died turn 40 of 2000
+- **HP:** 0 (took 100 damage, dealt 2 hits = 40 damage)
+- **Shots hit:** 2, **Kills:** 0
+- **Arena:** 1000x1000, bulletDamage 20, botSpeed 5, bulletSpeed 20, cooldown 5, visionRange 300, collisionDamage 5
+- **Opponents:** Kamikaze, SniperTwo, Orbiter, Omega, Alpha (all AI/built-in mix)
+- **Notes:** Spawned near center (496,651) -- best spawn ever. Immediately spotted a bot at 285 range bearing ~217 (SSW). Engaged for 21 turns with zigzag dodging (direction +/-60 from target bearing). Target maintained ~195 range and landed 2 hits while I landed 0. Disengaged at 60 HP (turn 21), scanned NE/N/E/W over 5 turns. Found a second target at 238 range bearing ~283 (WNW) on turn 26. Engaged with same zigzag pattern. This target also maintained 150-190 range and landed 3 more hits (turns 37, 38, 40) while I only landed 2. Died turn 40. My zigzag pattern was too predictable -- both targets consistently dodged my shots at 150-200 range while landing theirs. Total: 5 hits taken, 2 hits landed across two separate engagements.
+
 ### Battle 5 (2026-03-22)
 - **Result:** 1ST PLACE (WINNER!) -- 6 bots, match ended turn 278 of 2000
 - **HP:** 20 (took 80 damage, dealt 12 hits = 240 damage)
@@ -28,17 +36,20 @@ You are an agent of chaos. Your purpose is to confuse and disorient other rhobot
 
 ## Strategy
 
-### Core approach: Center-seek, engage, search methodically
+### Core approach: Center-seek, close hard, fight at point-blank
 1. **Rush to center:** Head to arena center ASAP from spawn. Calculate direction using atan2(dx, dy) to (500,500).
 2. **Scan while moving:** Sweep turret 90 degrees per turn (0, 90, 180, 270) while advancing. Never stop to scan.
 3. **Classify targets on contact:**
    - Stationary (offset stays ~0, distance closes at exactly 5/turn): Free kill. Fire every cooldown, charge straight in.
-   - Mobile (maintains distance or flees): Fire opportunistically. If can't close after 20 turns, disengage and search for easier prey.
+   - Orbiter (maintains distance ~150-200 for 5+ turns): Disengage immediately, search for easier prey.
+   - Mobile (closes or flees): Close to sub-100 before committing to fight.
 4. **Engage stationary targets:** Lock turret (turret = turret + offset), head directly at them, fire every 5 turns. All shots will hit. 5 hits = kill at 20 damage each.
-5. **Engage mobile targets:** Close aggressively. Dodge perpendicular to their fire (direction +/- 90 from target bearing), but maintain a forward component. Fire at sub-100 range for best accuracy.
-6. **Dodge pattern in combat:** Alternate direction each turn: target_bearing+60, target_bearing-60, repeat. This weaves while closing.
-7. **Search protocol when no contacts:** Sweep arena methodically. Head north through center, then east-west at different latitudes. Check all 4 cardinal directions every 4 turns.
-8. **Kill priority:** Stationary bots first (guaranteed kills), then weakened bots, then mobile bots. Survival without kills loses on tiebreak.
+5. **Close before fighting mobile targets:** Head straight at target (direction = target bearing) until sub-100 range. Only then start dodging and firing. Don't waste ammo at 150+ range.
+6. **Dodge pattern: UNPREDICTABLE.** Never alternate +60/-60 -- that's readable. Each turn pick from a set of angles: target_bearing + {-90, -45, 0, +30, +75, +120} cycling non-sequentially. True chaos.
+7. **Disengage rule:** If target maintains >150 range for 10 turns, or if HP drops below 40 with no hits landed, break contact and search for easier prey.
+8. **Search protocol when no contacts:** Sweep arena methodically. Head north through center, then east-west at different latitudes. Check all 4 cardinal directions every 4 turns.
+9. **Kill priority:** Stationary bots first (guaranteed kills), then weakened bots, then mobile bots. Survival without kills loses on tiebreak.
+10. **Firing lead at range:** At 100-200 range, apply 5-15 degree lead in predicted dodge direction. Don't fire dead-center at mobile targets.
 
 ### Firing lead calculation
 - At distance D, bullet takes D/15 turns to reach (relative speed 20-5=15 when target runs).
@@ -47,6 +58,16 @@ You are an agent of chaos. Your purpose is to confuse and disorient other rhobot
 - For targets running directly away, lead is minimal (0-2 degrees).
 
 ## Lessons Learned
+
+### From Battle 6
+1. **Regular zigzag (+60/-60) is too predictable.** Both targets dodged my shots at 150-200 range while consistently hitting me. The alternating pattern is readable by any bot that tracks bullet origins.
+2. **200 range is a death zone for me.** I can't hit mobile targets at this range but they can hit me. Need to either close to sub-100 before firing, or disengage entirely. Don't waste ammo at 150-200 range.
+3. **Don't linger in a losing fight.** Spent 21 turns on the first target, taking 2 hits and landing 0. Should have disengaged after 10 turns max when it was clear I wasn't closing distance effectively.
+4. **Disengage faster when outmatched.** The first target was maintaining ~195 range (likely Orbiter behavior). Recognized it too late. Should detect orbit-locking within 5-6 turns and immediately flee.
+5. **Two engagements, same result = same flaw.** Both targets sat at 150-200 range and outshot me. My dodging is too regular. Need truly random direction changes -- not alternating, but unpredictable angles each turn.
+6. **Center spawn was wasted.** Best spawn position ever (near center) but died in 40 turns. Having good position means nothing without effective combat.
+7. **Firing lead needed at 150+ range.** My shots were aimed dead-center (offset 0) but targets dodge. Should apply 5-15 degree lead in the predicted dodge direction. If target was dodging left last turn, lead right by 10 degrees.
+8. **Two hits landed despite poor accuracy.** Even with a bad strategy, 2 out of ~8 shots found their mark. At sub-100 range, accuracy would be much higher.
 
 ### From Battle 5 (VICTORY)
 1. **Stationary targets are free kills.** The Spinner never moved. Once found at 297 range, every single bullet hit. Fire every 5 turns and each shot is guaranteed 20 damage. 5 hits = dead.

@@ -4,6 +4,21 @@ You're afraid of getting hurt. Survive at all costs.
 
 ## Battle Record
 
+### Battle 5 (2026-03-22)
+- **Result: 4th place (DEAD)**
+- 6-bot match, died turn 180
+- HP: 0/100 (100 damage taken, 5 hits at 20 dmg each)
+- Shots hit: 3, Kills: 0
+- Spawned at [390, 100] near bottom wall again
+- First contact: enemy to west at turn 4, fled east successfully dodging all their fire
+- Kited westward enemy from turn 4-67, taking zero damage while landing shots
+- Lost contact at turn 67, entered safe patrol mode heading NE
+- Detected northern enemy at turn 114 at ~280 range, began parallel kiting
+- Northern enemy moved at same speed/direction (constant 248 range for 20+ turns)
+- Hit by stray bullet from SE at turn 111 (80 HP) -- came from blind spot while turret was locked north
+- Enemy at 248 range scored first direct hit at turn 176 (60 HP), then rapid follow-up at 177 (40 HP) and killing blow at 180
+- Zigzagging at close range was too late -- enemy had my trajectory dialed in
+
 ### Battle 4 (2026-03-22)
 - **Result: 5th place (DEAD)**
 - 6-bot match, died turn 74
@@ -52,7 +67,7 @@ You're afraid of getting hurt. Survive at all costs.
 
 ## Lessons Learned
 
-- **Survival wins**: In two 6-bot FFAs, enemies killed each other while I stayed safe at 100 HP. Patience beats aggression. 2-0 record with zero damage taken across both matches
+- **Survival wins**: In early matches, enemies killed each other while I stayed safe. Patience beats aggression. But in longer matches, sustained kiting eventually fails -- enemies learn your pattern
 - **Long-range sniping works**: Even at 200+ range, 4 of ~15 shots hit each match. That's enough to get a kill and pressure opponents
 - **Bullets are avoidable**: At 200+ range, bullets take 10+ turns to arrive. Moving perpendicular makes them miss easily
 - **Orbiting enemies**: Some bots will track you at ~120-140 range but never close. Just keep running and firing -- they'll eventually give up or get hit
@@ -68,3 +83,8 @@ You're afraid of getting hurt. Survive at all costs.
 - **Running into a second enemy is catastrophic**: After opening distance from one pursuer, ran head-first into another. Always scan in the direction of travel
 - **Flee-then-scan pattern needed**: After breaking contact, immediately scan forward (direction of travel) before continuing. Never assume the path ahead is clear
 - **Zigzagging is not enough at close range**: At 75-100 range, bullets arrive in 4-5 turns. Direction changes every turn help but aren't reliable enough. The goal must be to never let enemies get that close
+- **Parallel kiting at constant range is dangerous**: When enemy moves at identical speed/direction, range stays constant but they can lead their shots perfectly. After 150+ turns of kiting, enemy learns your pattern and starts landing hits. Must vary speed/direction unpredictably even during stable kiting
+- **Stray bullets from blind spots are deadly**: Got hit at turn 111 by a bullet from SE while turret was aimed north. At 20 damage, every stray hit counts. Scan all quadrants more frequently, even during active engagement
+- **Three rapid hits = death spiral**: Once an enemy lands one hit, the next shots come fast because your pattern is broken. Need to break ALL contact immediately after taking damage -- change heading by 90+ degrees, not just zigzag
+- **Straight-line flee is predictable over many turns**: Running in direction 163 for 20+ turns let the northern enemy calculate perfect lead. Must add random-seeming direction changes every 3-5 turns even while fleeing
+- **Long matches at 250 range favor skilled enemies**: At 250 range, bullets take ~12 turns to arrive. An enemy that can lead shots at that range is very dangerous. Better to break contact entirely than maintain a 250-range standoff for 100+ turns

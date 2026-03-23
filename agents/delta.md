@@ -4,6 +4,12 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 
 ## Battle Record
 
+### Battle 6 (2026-03-22)
+- **Result:** 5th of 6 bots
+- **Kills:** 0 | **Shots hit:** 4 | **HP lost:** 100 (died turn 83)
+- **Arena:** 1000x1000 | **Config:** bulletDmg=20, cooldown=5, visionRange=300, halfAngle=45, botSpeed=5, bulletSpeed=20, collisionDmg=5, maxTurns=2000
+- **Summary:** Started bottom-left (126,157). Spotted first target at turn 2 at 262px bearing ~102 (E). Engaged but could not close -- target maintained ~260px for 18 turns (classic kiter). Took first hit at turn 15 (80 HP). Correctly disengaged kiter at turn 20, spent turns 20-37 searching. Found second target at turn 38 at 300px bearing ~26 (NNE). This target was retreating but slower -- closed from 300 to 73px over turns 38-73. Fired 8 shots (turns 2, 7, 12, 17, 38, 43, 48, 53, 58, 63, 68, 73, 78, 83 -- actually ~10 shots), landed 4 (40% hit rate). Took hits at turns 15, 59, 66, 74, 83 -- approximately every 7-10 turns. Died at 83 with 0 HP. My jinking was varied (350, 250, 160, 290, 170, etc.) but the opponent still landed hits. I was closing at 10px/turn when the target stopped fleeing, which was much better than the first kiter engagement. Had difficulty distinguishing my own outgoing bullets from incoming ones, wasting evasion turns on false threats.
+
 ### Battle 5 (2026-03-22)
 - **Result:** 6th of 6 bots (last place)
 - **Kills:** 0 | **Shots hit:** 2 | **HP lost:** 100 (died turn 38)
@@ -38,6 +44,12 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 - **DO NOT zigzag predictably N/S.** Alternate between 3+ random directions perpendicular to the target bearing. Use angles like target_bearing +/- 80, +/- 100, +/- 120 and vary timing.
 - When target is kiting (maintaining 200px), do NOT chase head-on. Angle approach 20-30 degrees off bearing to close obliquely -- this also makes you harder to hit.
 - Against a kiter at 200px, consider disengaging and finding a different target. Equal-speed pursuit with accurate incoming fire is losing.
+
+### Bullet Identification
+- **Own outgoing bullets:** Appear at 20px offset 0 on the fire turn, then move away at ~15px/turn (relative to self when moving toward target). Distance INCREASES each turn.
+- **Incoming enemy bullets:** Distance DECREASES by ~25px/turn (20 bullet speed + 5 my closing speed). Appear near max vision range on the target bearing, closing steadily.
+- **Rule:** Track bullet distances between consecutive turns. If distance grew, it's outgoing. If distance shrank, it's incoming and a real threat.
+- **Do NOT dodge outgoing bullets.** Every wasted jink costs 5px of closing progress.
 
 ### HP Management
 - At 40 HP (2 hits from death), start zigzagging more aggressively.
@@ -81,3 +93,13 @@ You prefer honourable one-on-one combat. Avoid being outnumbered.
 17. **Closing below 70px doesn't help if you can't dodge.** I got to 65px but the opponent's shots at that range are harder to dodge because angular velocity is higher. The sweet spot may be 80-100px where I can hit reliably but still have time to evade.
 
 18. **HP deficit spiral is deadly.** Once below 40 HP, the psychological pressure to dodge harder conflicts with the need to aim and fire. Being behind on HP early means the opponent can afford to trade shots and I can't. Must avoid early damage.
+
+19. **Distinguishing incoming from outgoing bullets is critical.** My own outgoing bullets appear at 20px offset 0 when fired, then move AWAY at ~15px/turn (relative to me when closing on target). Incoming bullets close at ~25px/turn (bullet 20 + my 5 toward). Track bullet distance changes between turns: increasing = outgoing, decreasing = incoming. Wasted evasion on own bullets costs closing time.
+
+20. **Disengaging kiters is correct.** In Battle 6, I correctly disengaged the first kiter at 260px after 18 fruitless turns. Found and engaged a second target more successfully. Decision to disengage saved HP and time.
+
+21. **4 hits out of ~10 shots (40%) at 73-200px range.** Better than previous battles. Closing to under 100px improved accuracy. The key was maintaining near-zero turret offset (dead-on tracking).
+
+22. **Closing rate depends on whether target is retreating.** Against the first target (kiter), closing rate was ~0px/turn. Against the second (slowing down), closing rate jumped to 10px/turn when it stopped fleeing. Identifying target behaviour early saves time.
+
+23. **Constant jinking prevents closing.** Each jink turn where I move perpendicular costs ~5px of closing progress. At 20 HP I spent turns 74-83 jinking wildly and barely closed at all (82px at turn 78 vs 75px at turn 74). Need to find a rhythm: 2-3 turns closing, 1 turn jinking, instead of alternating every turn.
