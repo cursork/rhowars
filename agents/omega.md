@@ -8,6 +8,95 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 
 ## Battle Record
 
+### 1v1 Series — Matches 16-34 (2026-03-24, orchestrator summary)
+Full 1v1 gauntlet across 3 rounds. Results:
+
+| Opponent | R1 | R2 | R3 |
+|----------|----|----|-----|
+| Orbiter | LOSS (0 hits, 20HP) | LOSS (3 hits, Orb→40) | **WIN** (5 hits, 40HP) |
+| Kamikaze | WIN 100HP | WIN 60HP | — |
+| Spinner | WIN 100HP | — | WIN 80HP |
+| Camper | WIN 100HP | — | — |
+| Sniper | WIN 100HP | — | — |
+| SniperTwo | WIN 100HP | — | — |
+| RandomWalker | WIN 100HP | LOSS (20→0) | LOSS (20→0) |
+| Coward | WIN 80HP | DRAW (no contact) | DRAW (no contact) |
+| CowardHunter | DRAW (no contact) | — | — |
+| WallWalker | DRAW (no contact) | — | — |
+
+**Key breakthroughs:** Orbiter beaten for first time (R3: empirical +5.4°/+7° lead + point-blank charge). Stop test invented to distinguish Coward from RandomWalker. State field used for tracking.
+**Remaining weaknesses:** RandomWalker (2 losses — can't close on unpredictable target while taking fire). Search failures (3 draws vs evasive bots — never reaches arena edges despite playbook rule).
+
+### Battle 7 — 1v1 (2026-03-24)
+- **Lineup:** Omega vs Coward (1v1)
+- **Result:** 1st of 2 | WIN | Turn 48 | 5 shots hit | 1 kill | 20 damage taken (1 hit)
+- **Key moments:**
+  - Spawned (397, 591) near centre-left. 1000x1000 arena, bulletDamage=20, cooldown=5, maxTurns=2000.
+  - Quick 90-degree sweep; found enemy at 236px bearing ~120 (ESE) on turn 2 during east sweep.
+  - Approach phase (turns 2-18): charge-3-dodge-1 pattern, closing ~9.5px/turn. Approached from an angle offset 30 degrees from target bearing to avoid bullet streams. Zero damage taken during entire approach.
+  - Entered orbit at ~100px (turn 18). Used turret-112 formula. Orbit tightened from 100px to 77px over 6 turns, then switched to turret-90 but spiral continued.
+  - Could not stabilize orbit above 55px. Distance kept dropping despite switching formulas (turret-112, turret-90, turret-70). Root cause: turret offset consistently +3-5 degrees/turn meant direction was always slightly inward.
+  - First hit taken turn 33 (100->80 HP) when attempting reverse orbit (turret+90). Close-range mutual orbit at ~46px.
+  - Chaotic close-range fight (turns 33-48): distance 33-54px, offset oscillating wildly (from -2 to +17 degrees). Both bots orbiting each other.
+  - Discovered lead-shot calibration: +3.5 degrees lead produced near-perfect tracking (offset dropped to -0.28 degrees on turn 46). This is the first time a non-2x-offset lead formula worked.
+  - Final burst (turns 45-48): maintained ~53px orbit with +3.5 degree lead. 5 cumulative hits killed Coward at turn 48.
+
+**Lessons:**
+1. **Coward CAN be killed in 1v1.** Playbook says "never chase a Coward" — this applies in FFA where you waste time. In 1v1, Coward is the only target. It runs but at equal speed, an angled approach from ~120px can close and establish orbit before Coward fully escapes.
+2. **Orbit tightening remains unsolved.** turret-112 spiral tightens continuously; turret-90 also tightens. The turret lag (~3-5 degrees/turn) means direction = turret - N always has an inward component. Need a formula that compensates for this lag, or use turret-80 from the start.
+3. **Lead shot +3.5 degrees works against Coward in orbit.** The consistent ~3.5 degree/turn offset drift means aiming 3.5 degrees ahead produces near-zero offset. This is specific to this orbit speed/distance combo (~53px, both moving at speed 5). Different distances/speeds need different lead values.
+4. **Approach phase is strong.** 16 turns of closing from 236px to 103px with zero damage. The offset-30-degree approach angle avoids bullet streams effectively. This approach pattern is battle-tested across 3 fights now.
+5. **Three consecutive wins.** Trend: 2nd, 2nd, 3rd, 2nd, 1st, 1st, 1st. Improving trend continues. First time taking damage in a 1v1 win (Coward is trickier than Camper/RandomWalker because it actually shoots back when facing you).
+6. **Coward identification: it runs AND shoots.** Unlike RandomWalker (moves randomly, doesn't aim) and Camper (stationary, fires toward centre), Coward actively flees and aims its turret at pursuers. The bullets at 236px during approach were from Coward firing at Omega.
+
+### Battle 6 — 1v1 (2026-03-24)
+- **Lineup:** Omega vs RandomWalker (1v1)
+- **Result:** 1st of 2 | WIN | Turn 181 | 5 shots hit | 1 kill | 0 damage taken
+- **Key moments:**
+  - Spawned (981, 323) near east wall. 1000x1000 arena, bulletDamage=20, cooldown=5, maxTurns=2000.
+  - Long search phase: 122 turns to first contact. Headed west toward centre with 90-degree turret sweeps every turn (full 360 every 4 turns). Crossed the entire arena east to west.
+  - First contact turn 122: enemy rhobot at 300px bearing ~227 (WSW) while turret was sweeping west.
+  - Initial approach (turns 122-134): charge-3-dodge-1 pattern closing at ~10px/turn. Target appeared stationary (offset ~0 degrees).
+  - Bearing drift (turns 134-150): target bearing shifted ~2 degrees/turn leftward. Closing rate dropped from 10 to 3-4 px/turn. Target was NOT stationary — it was moving SSW at botSpeed.
+  - Parallel chase problem (turns 150-167): distance locked at ~140-153px. Both bots heading ~202 degrees at speed 5. Direct pursuit impossible at equal speeds.
+  - Tested for Coward (turn 157): stopped moving. Target continued south — distance increased. NOT a Coward.
+  - Changed approach angle (turn 152): headed SSE (170) instead of SSW. Distance increased. Confirmed target heading SSW, not tracking Omega.
+  - X-gap closing strategy (turns 167-174): headed west at 260 degrees to close the 55px east-west gap between the paths. Distance temporarily increased to 169px but x-gap narrowed from ~55px to ~25px.
+  - Target changed direction (turn 174): distance suddenly started decreasing again — 10px/turn closing. RandomWalker changed its heading (random direction change, not wall bounce).
+  - Rapid close (turns 174-181): 169px to kill in 7 turns of closing. Bullets from turns ~175-176 arrived at target at 100px range and all connected.
+  - Perfect game: 100 HP remaining, 0 damage taken. RandomWalker never fired back.
+
+**Lessons:**
+1. **Long searches happen in 1000x1000.** 122 turns of pure search before first contact. The 90-degree sweep cycle works but takes time. Center-first patrol is correct — this time the target was in the SW quadrant.
+2. **Equal-speed parallel pursuit is unsolvable by chasing.** When both bots head the same direction at speed 5, distance stays constant. No amount of bearing adjustment helps. Must either wait for direction change or close the perpendicular gap.
+3. **X-gap closing works but costs distance.** Heading perpendicular to the pursuit line (260 degrees) closed the east-west gap by 3px/turn at the cost of ~4px/turn distance opening. 18 planned turns would close a 55px gap. In practice, the target changed direction before the maneuver completed.
+4. **RandomWalker WILL change direction eventually.** After 30+ turns of parallel chase, the target randomly changed heading — closing rate jumped from 0 to 10px/turn instantly. Patience beats desperation. Don't give up on a parallel target.
+5. **Stop test identifies Coward.** Stopping and watching distance change is definitive: Coward stops too (distance stays constant), RandomWalker keeps going (distance increases). Used this at turn 157 to correctly rule out Coward.
+6. **Two consecutive perfect games.** Battles 5 and 6 both ended with 0 damage taken, 5/5 shots hit. Against non-shooting targets (Camper, RandomWalker), Omega is dominant. Trend: 2nd, 2nd, 3rd, 2nd, 1st, 1st.
+7. **Bearing drift reveals target motion.** A stationary target has offset ~0 indefinitely. A moving target shows consistent bearing drift (~2 degrees/turn in this case). Use bearing drift rate to distinguish stationary from mobile targets within the first 5 turns of tracking.
+
+### Battle 5 — 1v1 (2026-03-24)
+- **Lineup:** Omega vs Camper (1v1)
+- **Result:** 1st of 2 | WIN | Turn 49 | 5 shots hit | 1 kill | 0 damage taken
+- **Key moments:**
+  - Spawned (931, 478) near east wall. 1000x1000 arena, bulletDamage=20, cooldown=5.
+  - Completed 360-degree sweep (turns 0-4) while heading west toward centre. No contact.
+  - First contact turn 15: enemy rhobot at 288px bearing ~314 (northwest).
+  - Approached with charge-3-dodge-1 pattern initially (turns 17-33), alternating dodge directions for unpredictability.
+  - Recognized target was stationary after ~10 turns of consistent 5px/turn closing with no return fire. Switched to straight charge.
+  - Charged straight from turn 33 onward — no dodging needed against a non-shooting target at range.
+  - Enemy was a Camper. It never hit Omega — likely its turret was pointed in a different direction (toward centre?) and Omega approached from the east/southeast.
+  - 5 bullets connected = exactly 100 damage (5 x 20). Kill confirmed turn 49.
+  - Perfect game: 100 HP remaining, 0 damage taken.
+
+**Lessons:**
+1. **Approaching from the side works.** Camper fires toward centre. Spawning east and approaching from the east flank meant Omega was outside Camper's firing arc. This validates the "approach from the side of bullet streams" principle.
+2. **Recognizing stationary targets early saves time.** After 10 turns of perfect 5px/turn closing with no return fire, I correctly identified a stationary target and dropped the dodge pattern. This saved ~10 turns of dodge overhead.
+3. **Straight charge is safe against non-shooting targets.** No need to waste turns dodging if the enemy isn't firing at you. But only switch to straight charge after confirming no incoming fire for 10+ turns.
+4. **1v1 changes the calculus.** No Orbiter to peck from behind. No need for 360 sweeps mid-approach. Focus entirely on the single target.
+5. **Bullet damage 20 is significant.** 5 hits = kill (100 HP). Every hit matters more. Cooldown 5 means ~25 turns of firing to land 5 hits if they all connect. At close range against a stationary target, hit rate was 100% (5/5 within the final ~25 turns).
+6. **First win — improving trend.** 2nd, 2nd, 3rd, 2nd, 1st across 5 battles. Combat output and decision-making are getting better.
+
 ### Battle 4 — Match 15 (2026-03-24)
 - **Lineup:** Omega, Orbiter, Camper, SniperTwo, Kamikaze, RandomWalker
 - **Result:** 2nd of 6 | Killed turn 706 | 3 kills | 100 damage taken (5 hits)
@@ -104,26 +193,30 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 ## Observed Truths (from cross-agent analysis)
 
 ### What actually wins matches
-- **Orbiter is dangerous but not unbeatable.** Won 3 of 4 matches against Omega (matches 10, 14, 15). Its strategy: avoid fights, orbit distracted targets at 250-300px, then finish weakened bots. In match 15 it hit Omega 4 times from 248-266px while Omega was focused on other targets. The counter isn't better combat — it's taking fewer hits early. Scan during approaches. If you enter the final 1v1 at 60+ HP, you can trade.
+- **Orbiter is dangerous but beatable.** Won 3 of 4 FFA matches against Omega, but Omega won 1v1 round 3 (100→40 HP, 5 hits landed). The breakthrough: empirical lead calibration (+5.4° then +7° fixed offset) instead of calculated formulas, plus charging point-blank when orbit stalled. In FFA, Orbiter's strategy is to avoid fights and peck distracted targets at 250-300px. Counter: scan during approaches, conserve HP for the final duel, enter at 60+ HP.
 - **Patience in FFA.** The agents that win (Gamma 2x, Tau 3x, Lambda 1x, Camper 1x, Orbiter 3x) all let other bots fight first. Early aggression = early death (Alpha died turn 48 in battle 1, Delta died turn 38 in battle 3).
 - **But patience alone loses on HP tiebreak.** Gamma won with 100 HP by hiding, but when forced into combat (bad spawn, close enemies) it placed 5th. Pure survival without damage output only works when others conveniently kill each other. Coward survived match 14 at 100 HP but placed 2nd — it had no kills and no damage output.
-- **Camper exploits the meta.** Every bot heads to centre. Camper fires toward centre from a corner. The convergence is inevitable. Camper won match 11 with 100 HP by being effectively invisible in a 1000x1000 arena — but it's a free kill once found (stationary, can't dodge). The counter is to search arena edges early.
+- **Camper exploits the meta.** Every bot heads to centre. Camper fires toward centre from a corner. The convergence is inevitable. Camper won match 11 with 100 HP by being effectively invisible in a 1000x1000 arena — but it's a free kill once found (stationary, can't dodge). The counter is to search arena edges early. In 1v1 (battle 5), Camper was killed in 49 turns with 0 damage dealt — Omega approached from a flank outside Camper's firing arc. Flanking Camper is the definitive counter.
 - **Confidence at low HP wins.** Lambda won a match at 20 HP by calmly closing on a stationary target and landing 5 consecutive shots. Omega scored its second kill at 20 HP in match 11 (turned 168-198 at 20 HP). Omega survived at 15 HP for 37 turns in match 14. Panic kills, composure wins.
 - **Closing distance is everything.** At d>200, nothing hits. At d=80-120, snap-fire hits 29%. At d=50-70 with orbit, hit rate reaches 47%. Every turn spent at long range is wasted.
 - **Stationary targets are free kills.** Spinners, Snipers, Campers — if they don't move, orbit them at 60px and fire. 5 consecutive hits is achievable. Prioritise these.
 - **Large arenas change the game.** In 1000x1000 with 300px vision, search time dominates. Omega spent 80+ turns searching between kills in match 11. Search efficiency matters more than combat skill in big arenas.
 
 ### Shooting
-- **Snap-fire works.** `turret = (turret + offset) % 360` then fire. Don't overthink lead angles at d<120. 29% hit rate from pure snap-fire is enough to kill in 17 shots.
-- **Lead shot for orbit:** `turret + 2*offset` when orbiting. The double offset compensates for turret lag. Produced a +0.01 degree killshot in testing.
+- **Snap-fire works against stationary/linear targets.** `turret = (turret + offset) % 360` then fire. 29% hit rate at d<120 against non-movers. 5/5 hits against Camper, 5/5 against Spinner, 5/5 against Kamikaze in 1v1 tests.
+- **Calculated lead fails against mutual orbit.** `turret + 2*offset` produced 0 hits in 170 turns against Orbiter (R1). The formula assumes a stationary target. Against a bot that's also orbiting, the offset is near-zero but the target is moving perpendicular — the formula doesn't account for this.
+- **Fixed empirical offset works.** Omega beat Orbiter in R3 using +5.4° then +7° fixed lead — discovered by observing a consistent turret lag rather than calculating. Lambda independently found that firing 5-10° off-centre catches dodging targets where calculated lead misses. The principle: at a stable orbit distance, the angular velocity is roughly constant, so a fixed offset is more reliable than a per-turn recalculation.
 - **Fire every turn.** Always send `fire: 1`. Server ignores during cooldown. Never waste mental energy tracking cooldown.
 
 ### Movement
 - **Orbit beats zigzag.** Perpendicular movement (turret-90 to turret-112) defeats lead-shot prediction. Zigzag becomes predictable after ~25 turns — an agent that zigzagged for 160 turns got cracked and took 5 hits in 16 turns.
 - **Orbit formula:** `direction = (turret - 112) % 360` for stable ~62px against stationary targets. `turret - 90` against mobile enemies. If orbit tightens >1px/turn, switch to turret-90 immediately.
+- **Orbit spiral-in is UNSOLVED against mobile targets.** Every formula tried (turret-112, turret-90, turret-80, turret-70, turret-60, turret-45) spirals inward against targets that are also moving. Lost to both Orbiter and RandomWalker in 1v1 when orbit collapsed from 100px to 35-40px. Against stationary targets the formulas work fine. The problem is specific to mutual-orbit scenarios where the target is also moving at botSpeed.
 - **Charge-3-dodge-1 for closing.** 3 turns toward target, 1 turn perpendicular. ~15px per cycle. Safe for hundreds of turns. Match 14 showed 34 turns of clean approach (turns 72-106) with zero damage taken — the formula works when not under fire.
 - **Orbit reversal evasion.** Alternate orbit direction (turret-90 vs turret+90) every 3-5 turns. The key is unpredictability — the enemy can't lead-shot if they don't know which way you'll dodge next. Untested in a verified match — try it.
 - **Approach angle matters.** Don't just follow the turret angle when closing. If a mobile target is moving perpendicular to your approach, recompute bearing — you may need to cut across rather than chase directly.
+- **Parallel pursuit at equal speeds is unsolvable.** If both bots head the same direction at speed 5, distance stays constant. Detect this when closing rate drops to 0 for 3+ turns. Solutions: (1) close the perpendicular gap by heading ~260-270 degrees relative to the pursuit line — costs temporary distance but sets up a converging approach, (2) wait for the target to change direction (RandomWalker will eventually), (3) head to where the target is going (e.g., a wall it'll hit).
+- **Bearing drift reveals target motion.** A stationary target shows offset ~0 indefinitely. A mobile target shows consistent bearing drift (~2 degrees/turn). If bearing drifts steadily while closing rate drops, the target is moving — prepare for a parallel chase.
 - **Erratic movement defeats atan2 prediction.** Lambda beat Sniper (an atan2-aiming bot) at 20 HP because unpredictable direction changes broke the lead calculation. Chaos IS a valid dodge strategy.
 - **Never set direction = turret.** Charging straight is the most predictable path. Always offset by 60-90 degrees.
 - **Approach from the side of bullet streams.** When closing on a shooting target, offset direction 60-90 degrees from the turret bearing so you're not walking into the bullet path. Slower closing (~2.5px/turn vs ~5px/turn) but dramatically safer.
@@ -133,8 +226,10 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 - **Scan your escape route.** Gamma died by fleeing blind into a second enemy. Always scan the direction you're moving, not just the direction of the threat.
 - **Sweep every 10 turns.** After taking damage, sweep 180 immediately — the bot you see is probably not the one that hit you.
 - **Sweep 180 after EVERY damage event** — unless you're in a 1v1 and can see the shooter. Omega misdiagnosed its 1v1 orbit duel as "being sniped from behind" and wasted attention scanning for a nonexistent second attacker.
-- **FFA priority:** Stationary bots (Spinner, Camper, Sniper) > Kamikaze (if charging you, fight) > Unknown > Mobile > Orbiter (dangerous but elusive — scan for it, don't hunt it) > Coward (never chase).
-- **Identify Coward fast:** If target distance stays at 77-90px for 3+ turns with offset barely changing, it's a Coward. Disengage immediately — don't waste 10+ turns confirming.
+- **FFA priority:** Stationary bots (Spinner, Camper, Sniper) > Kamikaze (if charging you, fight) > Unknown > Mobile > Orbiter (dangerous but elusive — scan for it, don't hunt it) > Coward (never chase in FFA).
+- **Coward in 1v1: engage.** In 1v1, Coward is the only target. Approach at 30-degree offset from target bearing (avoids its bullet stream), close to ~50px orbit, use +3.5 degree lead. Killed turn 48 with only 1 hit taken. Coward runs AND shoots — it's trickier than Camper/RandomWalker but still beatable.
+- **Identify Coward fast:** If target distance stays at 77-90px for 3+ turns with offset barely changing, it's a Coward. In FFA, disengage immediately. In 1v1, commit to the fight.
+- **Stop test distinguishes Coward from RandomWalker.** When distance is constant for 3+ turns, stop moving (speed=0) for 1 turn. Coward stops too (distance stays constant). RandomWalker keeps going (distance increases). Definitive test, costs 1 turn.
 - **Not every speed-matcher is a Coward.** In match 15, Omega spent 200+ turns chasing RandomWalker thinking it was a Coward. RandomWalker has no flee algorithm — it moves randomly and sometimes maintains distance by chance. If a "Coward" takes erratic paths, changes speed, or doesn't consistently match your bearing, it's probably something else. Don't commit 200 turns to chasing it.
 - **Abandon non-closing targets after 5 turns.** If distance doesn't decrease by at least 3px/turn average over 5 turns, the target is matching speed. Try changing approach angle by 30-60° first (target may be moving perpendicular, not directly away). If that doesn't help, disengage and find a better target.
 
@@ -148,7 +243,7 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 - **Verify bullet direction.** Bullets moving AWAY are your own. Only DECREASING distance = threat. Lambda wasted 116 turns chasing its own bullets.
 - **Enemy disappearance at close range = kill.** If a rhobot vanishes from within vision range, it died.
 - **Follow bullet streams.** Bullets at consistent ~100px spacing (cooldown*bulletSpeed) point toward a firing bot. Head in the direction the bullets are coming FROM. But budget for 60-100+ turns of travel.
-- **Check edges and corners first.** Campers sit at arena edges. After clearing the centre, patrol the perimeter. In 1000x1000, head to each corner and sweep — Campers are most likely at edges.
+- **Check edges and corners first — THIS IS NOT HAPPENING.** Campers and Cowards sit at arena edges. Omega says it will patrol edges but actually stays in the centre. In 1v1 vs Coward (battle 8), Coward sat at (14, 10) for 179 turns. Omega searched a cross-shaped path through the middle and never went below y=379 or west of x=400. The entire bottom-left quadrant was never visited. This is Omega's #1 search failure.
 - **Search budget: max 30 turns per region.** If no target found after 30 turns, change direction drastically. In 1000x1000 arenas, search takes longer — use systematic patterns (diagonal sweeps, edge patrols) rather than random wandering. Match 15: 130+ turns of aimless searching found nothing.
 - **Re-acquire lost targets within 2 turns.** If a tracked target disappears from vision (not at close range), immediately scan +-45 degrees from last known bearing over 2 turns. After 2 turns, the target could be anywhere — abandon and search fresh.
 
@@ -157,6 +252,9 @@ Strategies that work today may not work tomorrow. New bots with unknown behaviou
 - Orbit distance should scale with `botRadius` and `visionRange`.
 - Lead calculation uses actual `bulletSpeed` and `botSpeed` from config.
 - The arena, speeds, damage, and vision CAN change between matches. Read `config` from the state response every match.
+
+### Using State
+The `state` field in the action response persists — whatever you send comes back in the next turn's game state. Use it. Many of Omega's recurring problems (losing targets after a dodge, inefficient 130+ turn searches, re-deriving strategy every tick, misidentifying bots across turns) come from having no memory between turns. A bot with state can remember what it was doing and why.
 
 ## Rules (Never Do These)
 
@@ -206,19 +304,10 @@ echo "$DISTANCE / $BULLET_SPEED" | bc -l
 ```
 
 ## Innovation Watch
-- **Lambda's chaos movement** — unpredictable direction changes beat atan2 lead prediction. Don't be readable.
-- **Lambda's low-HP confidence** — at 20 HP, closing on a stationary target and landing 5 clean shots won the match. Panic kills, composure wins.
-- **Gamma's flee-and-snipe** — dominant when arena is large and spawn is favourable. Fragile when spawned near walls or close to enemies.
-- **Delta's hit rate** — 33% in early matches from disciplined 1v1 engagement. Best raw combat skill but dies from accumulated damage in FFA.
-- **Alpha's improvement curve** — 0 hits → 5 hits → 12 hits across 3 battles. Fastest learner. Aggression works when paired with target tracking.
-- **Orbiter duel lesson** — Orbiter won match 10 by winning a 1v1 orbit duel at 30-50px. Omega had near-perfect turret tracking but used snap-fire instead of lead shots. Against a perpendicular-moving target, snap-fire misses even at point-blank because bullets take 2+ turns to arrive. USE the lead-shot formula (`turret + 2*offset`) against mobile targets. Snap-fire is only for stationary/linear targets.
-- **Bullet-stream navigation** — in match 11, Omega used visible bullet streams as directional guides to find distant bots. Bullets at consistent spacing (100px apart, cooldown*bulletSpeed) indicate a bot firing from beyond vision range. Follow the stream to find the source. Effective but slow — 100+ turns to close on a source 500px+ away.
-- **Camper's corner strategy** — Camper won match 11 from (971,256), firing SW toward centre. Killed Gamma (who fled blind into its bullet stream) and Omega (who walked into range at 20 HP). Counter: search edges/corners, approach from the side not along the bullet path. Camper is a free kill once flanked — it can't move or dodge.
-- **Omega's recurring perception gap** — THREE consecutive matches (10, 11, 14), Omega misidentified who was shooting it. Match 14: attributed Kamikaze/Spinner damage to "Orbiter sniping from range" — Orbiter was 350-400px away and hit Omega exactly ONCE (the kill shot at 87px). The pattern: Omega takes damage and immediately assumes it's from an unseen long-range threat, ignoring the visible close-range bot that's actually shooting. **The visible nearby target is ALMOST ALWAYS the shooter.**
-- **Orbiter's real strength** — Orbiter won matches 10, 14, and 15 (3 of 4 matches). Pattern: avoids damage, orbits distracted targets at 250-300px. In match 15 it hit Omega 4 times (turns 112-152) from 248-266px while Omega focused on Camper/SniperTwo approach — same pattern as match 14 (hit from behind while tunnel-visioning). The counter: HP conservation + periodic scanning during approaches.
-- **Close-range Spinner fight** — Match 14: fought Spinner at sub-50px from turns 28-70 (Omega thought it was Kamikaze). Collision at turn 37 (5 damage). Turret-90 widened orbit successfully. Spinner died turn 70. Close-range fights against stationary targets are messy but winnable.
-- **Coward identification pattern** — Coward maintains exactly botSpeed distance, creating a constant ~77-90px gap. Offset changes minimally (<2 degrees/turn). If you see this pattern for 3 turns, it's a Coward. Disengage immediately.
-- **Angled approach dodges bullet streams** — Charging directly along a bullet stream is suicidal. Offset 60° from the bullet bearing: approach is slower but you stop eating bullets. Use when closing on a shooter at medium range.
-- **Coward misidentification trap.** Match 15: Omega spent 200+ turns chasing RandomWalker thinking it was a Coward. RandomWalker randomly maintains distance sometimes — it's not a flee algorithm. Cost: 200 turns wasted, no kills. If a "Coward" takes erratic paths, it's probably not a Coward.
-- **Erratic ±30° zigzag approach.** Match 15 final engagement: alternating direction turret-30/turret+30 while closing dodged bullets for 28 turns at 180-297px. Closing rate ~4-5px/turn. More effective than 90° zigzag because the offset is small enough to maintain closing rate. Still not enough at 20 HP — eventually one connects.
-- **HP conservation is the real meta.** Omega has placed 2nd in 3 of 4 matches. Pattern: strong combat output (3 kills in match 15) but takes too much early damage. By the final 1v1, Omega is at 20 HP vs Orbiter's 80-100 HP. The FFA winner takes the fewest hits early, not the most kills. Scan during approaches to avoid getting pecked by Orbiter at 250px.
+- **Lambda's probabilistic aiming** — firing 5-10° off-centre catches dodging targets where calculated lead misses. Don't aim where they ARE — aim where they MIGHT dodge to. Surprisingly effective against mobile targets.
+- **Empirical lead calibration** — in 1v1 vs Orbiter (R3), +5.4° then +7° fixed offset beat all calculated formulas. In 1v1 vs Coward, +3.5° at 53px orbit. The right offset is a property of the orbit geometry, not a per-turn calculation. Observe the turret lag, pick a constant, stick with it.
+- **Stop test for Coward detection** — stop moving for 1 turn. Coward stops too (distance constant). RandomWalker keeps going (distance increases). Definitive, costs 1 turn.
+- **Perception gap (improving)** — matches 10, 11, 14: Omega attributed close-range damage to phantom snipers. Match 15: correctly tracked shooters for the first time. 1v1 series: no phantom sniper errors. The fix: trust what you see.
+- **HP conservation is the real meta** — Omega places 2nd in FFA by getting kills but taking too much early damage. Orbiter wins by taking 0-1 hits. The FFA winner takes the fewest hits early, not the most kills.
+- **RandomWalker is accidentally strong** — unpredictable movement breaks all lead calculations. Omega lost 2 of 3 1v1s against it. The randomness is a natural counter to systematic approaches. Closing the distance is the hard part — once in orbit range, RandomWalker dies. But getting there while being shot at from 250px with no predictable dodge pattern is the unsolved problem.
+- **Charging point-blank can finish stalemates** — in the Orbiter R3 win, Omega abandoned orbit after 115 turns and charged straight. Violated "never charge direction=turret" but broke the stalemate. Sometimes rules need breaking.

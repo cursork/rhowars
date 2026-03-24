@@ -32,7 +32,8 @@ You control a rhobot by polling for game state and posting actions via HTTP.
   ],
   "config": { "bulletSpeed": 20, "botSpeed": 5, "botHP": 100, "botRadius": 10,
               "bulletDamage": 10, "visionRange": 200, "visionHalfAngle": 45,
-              "cooldown": 5, "collisionDamage": 20, "collisionBounce": 30, "maxTurns": 500 }
+              "cooldown": 5, "collisionDamage": 20, "collisionBounce": 30, "maxTurns": 500 },
+  "state": {}
 }
 ```
 
@@ -45,6 +46,7 @@ You control a rhobot by polling for game state and posting actions via HTTP.
 | `fire` | 0 or 1 | 1 = shoot, 0 = hold |
 | `speed` | 0 or 1 | 1 = move, 0 = stop |
 | `thought` | string | Optional narration shown in replay. Only on major events. Omit on normal turns. |
+| `state` | object | Persistent state — returned to you on the next turn. Whatever you send here comes back in the next game state. |
 
 ## Mechanics
 

@@ -744,6 +744,7 @@
           :Else
               result.visible←⍬
           :EndIf
+          result.state←input.state
       :EndSelect
     ∇
 
@@ -772,7 +773,11 @@
       :If 0≠body.⎕NC'fire' ⋄ act.fire←body.fire ⋄ :EndIf
       :If 0≠body.⎕NC'speed' ⋄ act.speed←body.speed ⋄ :EndIf
       :If 0≠body.⎕NC'thought' ⋄ act.thought←body.thought ⋄ :EndIf
-      act.state←rem.pendingInput.state
+      :If 0≠body.⎕NC'state'
+          act.state←body.state
+      :Else
+          act.state←rem.pendingInput.state
+      :EndIf
       rem.pendingAction←act
       ⎕TPUT rem.token
       result←(ok: 1 ⋄ turn: rem.tick)
